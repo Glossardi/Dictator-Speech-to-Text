@@ -4,7 +4,7 @@
 [![Hammerspoon](https://img.shields.io/badge/Hammerspoon-0.9.97+-green.svg)](https://www.hammerspoon.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A lightweight, professional macOS menubar application for voice dictation using OpenAI's Whisper API. Record audio with a hotkey, get instant transcription, and optionally auto-paste into any application.
+A lightweight, **high-performance** macOS menubar application for voice dictation using OpenAI's Whisper API. Record audio with a hotkey, get instant transcription, and optionally auto-paste into any application.
 
 Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability and performance.
 
@@ -22,6 +22,31 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 - **🔄 Auto-Retry**: Exponential backoff with automatic retry on API errors (429, 5xx)
 - **⚡ Debouncing**: Prevents accidental double-triggers from rapid hotkey presses
 - **✅ Input Validation**: Validates API keys, audio file size (<25MB), and configuration
+- **🚀 Performance Optimized**: 
+  - MP3 compression reduces file sizes by ~90% (faster uploads)
+  - Optimized curl flags for maximum transfer speed
+  - Voice normalization and noise reduction built-in
+
+---
+
+## ⚡ Performance Optimizations
+
+### Audio Format
+- **MP3 compression** with 16kHz mono and 32kbps bitrate
+- **~90% file size reduction** vs WAV (e.g., 5 sec: 800KB → 80KB)
+- **Voice optimization**: Compand effect for clarity and noise reduction
+- **Maintains quality**: Optimal for speech transcription
+
+### Network Transfer
+- **HTTP compression** enabled (`--compressed`)
+- **TCP optimizations**: No-delay flag for faster packet delivery
+- **Proper multipart encoding**: Prevents parsing errors
+- **Smart error detection**: Specific handling for SSL, network, and parsing issues
+
+### Processing
+- **Shell escaping**: Secure, reliable handling of special characters
+- **Detailed logging**: File sizes, commands, and timing for debugging
+- **Retry intelligence**: Differentiates between retryable and permanent errors
 
 ---
 
@@ -240,9 +265,15 @@ Dictator/
 2. Verify API key is correct (must start with `sk-`)
 3. Check OpenAI API quota/billing
 4. **Rate Limit**: Wait if you see "Rate limit reached" message
-5. **File Size**: Recording must be under 25MB
+5. **File Size**: Recording must be under 25MB (rarely an issue with MP3 compression)
 6. Check internet connection
-7. API retries automatically (up to 5 attempts) - check logs
+7. API retries automatically (up to 3 attempts with exponential backoff)
+
+**Common Error Messages**:
+- `"could not parse multi-part form"` - Fixed in latest version (proper shell escaping)
+- `"Network error"` - Check internet connection, DNS resolution
+- `"SSL/Certificate error"` - System time may be wrong, or SSL issues
+- `"API Error: <message>"` - Check OpenAI status and API key validity
 
 ### Rate Limit Errors
 
@@ -262,10 +293,25 @@ Dictator/
 
 **Solutions**:
 
-1. Verify SoX is installed: ` (with debounce info)
+1. Verify SoX is installed: `which rec` (should show path)
+2. Test microphone: `rec test.mp3 rate 16k channels 1` (speak, then Ctrl+C)
+3. Check microphone permissions:
+   - **System Settings** → **Privacy & Security** → **Microphone**
+   - Enable **Hammerspoon**
+4. Recording format: MP3 at 16kHz mono is optimized for speech
+5. Hold hotkey for at least 1-2 seconds to capture audio
+6. Check Console for SoX errors: `SoX Error: <message>`
+
+---
+
+## 📊 Logging & Debugging
+
+Access the **Hammerspoon Console** (menubar → Console) to view detailed logs:
+
+**What is logged** (with debounce info):
 
 - Recording start/stop
-- API requests/responses (including retry attempts)
+- API requests/responses (including retry attempts and file sizes)
 - Rate limiter status (tokens remaining)
 - Transcription results
 - Detailed error messages with context
