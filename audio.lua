@@ -9,13 +9,14 @@ M.currentFilePath = nil
 function M.startRecording()
     if M.isRecording then return end
     
-    M.currentFilePath = utils.get_temp_file_path("wav")
+    M.currentFilePath = utils.get_temp_file_path("mp3")
     print("Starting recording to: " .. M.currentFilePath)
     
-    -- Using 'rec' from SoX
-    -- -r 16000: sample rate
-    -- -c 1: mono
-    -- -b 16: 16-bit
+    -- Using 'rec' from SoX with optimized settings for Whisper API
+    -- Output format: MP3 (much smaller than WAV, ~90% reduction)
+    -- -r 16000: 16kHz sample rate (optimal for speech, reduces file size)
+    -- -c 1: mono (speech doesn't need stereo)
+    -- -C 32: MP3 compression quality (32 kbps is good for speech)
     local soxPath = "/opt/homebrew/bin/rec" -- Standard brew path on Apple Silicon
     if not utils.file_exists(soxPath) then
         soxPath = "/usr/local/bin/rec" -- Intel Mac
@@ -31,7 +32,7 @@ function M.startRecording()
         if exitCode ~= 0 and exitCode ~= -1 then -- -1 is terminated
              print("SoX Error: " .. stdErr)
         end
-    end, {M.currentFilePath, "rate", "16k", "channels", "1"})
+    end, {"-t", "mp3", M.currentFilePath, "rate", "16k", "channels", "1", "compand", "0.3,1", "6:-70,-60,-20", "-5", "-90", "0.2"})
     
     if M.currentTask:start() then
         M.isRecording = true
