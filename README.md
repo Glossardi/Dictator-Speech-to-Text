@@ -24,6 +24,7 @@ Built with [Hammerspoon](https://www.hammerspoon.org/).
 ## 🔧 Prerequisites
 
 ### Required Software
+
 - **macOS** (tested on macOS Sonoma+)
 - **Hammerspoon** – Automation framework for macOS
   ```bash
@@ -35,10 +36,12 @@ Built with [Hammerspoon](https://www.hammerspoon.org/).
   ```
 
 ### API Key
+
 - **OpenAI API Key** with Whisper API access
   - Get one at [OpenAI Platform](https://platform.openai.com/api-keys)
 
 ### System Permissions
+
 - **Accessibility Permission** for Hammerspoon (required for Fn key detection)
   - Go to: **System Settings** → **Privacy & Security** → **Accessibility**
   - Enable **Hammerspoon**
@@ -48,6 +51,7 @@ Built with [Hammerspoon](https://www.hammerspoon.org/).
 ## 📦 Installation
 
 ### Option 1: Direct Install
+
 ```bash
 # Clone the repository
 git clone <repository-url> Dictator
@@ -61,6 +65,7 @@ cp -r *.lua ~/.hammerspoon/
 ```
 
 ### Option 2: Symlink (Recommended for Development)
+
 ```bash
 # Clone the repository
 git clone <repository-url> ~/Documents/Dictator
@@ -77,12 +82,14 @@ ln -sf ~/Documents/Dictator/*.lua ~/.hammerspoon/
 ## 🚀 Quick Start
 
 ### 1. Configure API Key
+
 1. Click the **Dictator menubar icon** (🎙️)
 2. Navigate to **Settings** → **API Key**
 3. Enter your OpenAI API Key
 4. Click **OK**
 
 ### 2. Test Recording
+
 1. Open any text editor (Notes, TextEdit, etc.)
 2. Click in a text field
 3. **Hold the `Fn` key** and speak
@@ -96,6 +103,7 @@ ln -sf ~/Documents/Dictator/*.lua ~/.hammerspoon/
 Access all settings via the menubar icon:
 
 ### Settings Menu
+
 - **API Key**: Set your OpenAI API key
 - **Language**: Set transcription language (`auto`, `en`, `de`, etc.)
 - **Auto-Paste**: Toggle automatic text pasting
@@ -105,11 +113,13 @@ Access all settings via the menubar icon:
 ### Hotkey Options
 
 #### Option 1: Fn Key (Default)
+
 - **Enable**: Check **Use Fn Key (Hold)** in settings
 - **Usage**: Hold `Fn` to record, release to transcribe
 - **Requires**: Accessibility permissions
 
 #### Option 2: Custom Hotkey
+
 - **Enable**: Uncheck **Use Fn Key (Hold)**
 - **Configure**: Click **Set Custom Hotkey**
 - **Format**: Enter modifiers and key (e.g., `cmd alt d`)
@@ -120,6 +130,7 @@ Access all settings via the menubar icon:
 ## 🎯 Usage
 
 ### With Auto-Paste Enabled (Default)
+
 1. Click into any text field
 2. Hold your configured hotkey (`Fn` or custom)
 3. Speak your text
@@ -127,6 +138,7 @@ Access all settings via the menubar icon:
 5. Text automatically appears in the active field
 
 ### With Auto-Paste Disabled
+
 1. Hold your configured hotkey
 2. Speak your text
 3. Release the hotkey
@@ -154,17 +166,20 @@ Dictator/
 ## 🔒 Robustness & Security Features
 
 ### Rate Limiting
+
 - **Token Bucket Algorithm**: Prevents exceeding OpenAI API rate limits
 - **Default**: 3 requests per 60 seconds (configurable)
 - **Automatic**: Checks rate limit before each API call
 - **User Feedback**: Shows wait time when rate limit is exceeded
 
 ### Hotkey Debouncing
+
 - **Prevents Double-Triggers**: 500ms minimum delay between actions
 - **Protects Against**: Accidental double-taps or rapid key presses
 - **Smart State Management**: Only allows one operation at a time
 
 ### API Retry Logic
+
 - **Exponential Backoff**: Automatically retries on transient failures
 - **Handles**:
   - 429 (Rate Limit): Respects `Retry-After` header
@@ -174,12 +189,14 @@ Dictator/
 - **Jitter**: Random delay added to prevent thundering herd
 
 ### Input Validation
+
 - **API Key**: Validates format (must start with `sk-`, minimum length)
 - **Audio File**: Checks existence and size (<25MB OpenAI limit)
 - **Configuration**: Validates all user inputs before saving
 - **State Guards**: Prevents concurrent operations (recording + processing)
 
 ### Structured Logging
+
 - **hs.logger Integration**: Professional logging with levels (debug, info, warning, error)
 - **Console Output**: View detailed logs in Hammerspoon Console
 - **Debugging**: Easy troubleshooting with contextual error messages
@@ -189,9 +206,11 @@ Dictator/
 ## 🐛 Troubleshooting
 
 ### Fn Key Not Working
+
 **Symptom**: Nothing happens when holding Fn key
 
 **Solutions**:
+
 1. Check Hammerspoon Console for errors:
    - Open Hammerspoon → **Console**
    - Look for: `ERROR: Failed to start Fn key eventtap`
@@ -202,18 +221,22 @@ Dictator/
 4. Check Console for: `Fn key watcher started successfully` ✅
 
 ### Custom Hotkey Not Working
+
 **Symptom**: Hotkey doesn't trigger recording
 
 **Solutions**:
+
 1. Ensure **Use Fn Key (Hold)** is **unchecked**
 2. Check Console for: `Hotkey bound successfully`
 3. Try a different key combination
 4. Valid format: `cmd alt s`, `ctrl shift d`, etc.
 
 ### Auto-Paste Not Working
+
 **Symptom**: Text copied to clipboard but not pasted
 
 **Solutions**:
+
 1. Ensure **Auto-Paste** is **checked** in menu
 2. Check Console for: `Auto-pasting text...`
 3. Make sure text editor has **focus** after recording
@@ -221,9 +244,11 @@ Dictator/
 5. Try disabling auto-paste and using manual `Cmd+V`
 
 ### Transcription Fails
+
 **Symptom**: No text appears, error notification shown
 
 **Solutions**:
+
 1. Check Hammerspoon Console for detailed error messages
 2. Verify API key is correct (must start with `sk-`)
 3. Check OpenAI API quota/billing
@@ -233,9 +258,11 @@ Dictator/
 7. API retries automatically (up to 5 attempts) - check logs
 
 ### Rate Limit Errors
+
 **Symptom**: "Rate limit reached. Please wait X seconds."
 
 **Solutions**:
+
 1. This is normal - OpenAI limits requests to ~3 per minute
 2. Wait the specified time (shown in error message)
 3. Rate limiter tracks this automatically
@@ -243,10 +270,13 @@ Dictator/
 5. Check your OpenAI account tier for actual limits
 
 ### Recording Issues
+
 **Symptom**: No audio captured or poor quality
 
 **Solutions**:
+
 1. Verify SoX is installed: ` (with debounce info)
+
 - Recording start/stop
 - API requests/responses (including retry attempts)
 - Rate limiter status (tokens remaining)
@@ -254,13 +284,15 @@ Dictator/
 - Detailed error messages with context
 
 **Log Levels**:
+
 - `[info]` - Normal operations
 - `[warning]` - Non-critical issues (rate limits, debounce blocks)
 - `[error]` - Failures requiring attention
 - `[debug]` - Detailed state information
 
 **Useful Console Commands**:
-```lua
+
+````lua
 -- Check Fn watcher status
 print(fnWatcher and "Fn watcher exists" or "Fn watcher is nil")
 
@@ -298,19 +330,21 @@ print(config.getAutoPaste() and "Auto-Paste ON" or "Auto-Paste OFF")
 
 -- Check use Fn key setting
 print(config.getUseFnKey() and "Use Fn Key ON" or "Use Fn Key OFF")
-```
+````
 
 ---
 
 ## 🛠️ Development
 
 ### Code Structure
+
 - **Modular design**: Separation of concerns (UI, config, audio, API)
 - **State management**: Persistent settings via `hs.settings`
 - **Error handling**: Comprehensive logging for debugging
 - **Event-driven**: Hotkey bindings and UI callbacks
 
 ### Testing Locally
+
 1. Make changes to `.lua` files
 2. Reload Hammerspoon config
 3. Test functionality
@@ -318,7 +352,9 @@ print(config.getUseFnKey() and "Use Fn Key ON" or "Use Fn Key OFF")
 5. Copy to `~/.hammerspoon/` when ready
 
 ### Contributing
+
 Contributions welcome! Please:
+
 - Follow existing code style
 - Add error handling and logging
 - Test thoroughly before submitting

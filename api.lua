@@ -3,7 +3,7 @@ local config = require("config")
 local utils = require("utils")
 
 -- Retry configuration
-M.MAX_RETRIES = 5
+M.MAX_RETRIES = 3
 M.INITIAL_RETRY_DELAY = 1  -- seconds
 M.MAX_RETRY_DELAY = 60  -- seconds
 
@@ -141,16 +141,22 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
     
     hs.task.new("/bin/sh", function(exitCode, stdOut, stdErr)
         print("API Response received. Exit code: " .. exitCode)
+        print("Response length: " .. (stdOut and #stdOut or 0) .. " bytes")
         
         if exitCode == 0 then
-            -- Parse headers and body
-            local headerEnd = stdOut:find("\r?\n\r?\n")
+            -- Parse headers and body - look for double newline
+            local headerEnd = stdOut:find("\r\n\r\n") or stdOut:find("\n\n")
             local headers = ""
             local body = stdOut
             
             if headerEnd then
                 headers = stdOut:sub(1, headerEnd)
-                body = stdOut:sub(headerEnd + 1)
+                -- Skip the double newline characters
+                local bodyStart = headerEnd + (stdOut:sub(headerEnd, headerEnd+3) == "\r\n\r\n" and 4 or 2)
+                body = stdOut:sub(bodyStart)
+                print("Separated headers (" .. #headers .. " bytes) and body (" .. #body .. " bytes)")
+            else
+                print("WARNING: Could not find header/body separator")
             end
             
             -- Log rate limit headers if present
@@ -161,6 +167,9 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
             
             -- Check for HTTP status code in headers
             local statusCode = headers:match("HTTP/[%d%.]+%s+(%d+)")
+            print("DEBUG: Checking for status code in headers...")
+            print("DEBUG: First 200 chars of headers: " .. headers:sub(1, 200))
+            
             if statusCode then
                 statusCode = tonumber(statusCode)
                 print("HTTP Status: " .. statusCode)
@@ -191,10 +200,14 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
             
             -- Parse JSON body
             if not body or #body == 0 then
-                print("WARNING: Empty response body from API")
+                print("ERROR: Empty response body from API")
+                print("DEBUG: Full stdOut (first 1000 chars): " .. stdOut:sub(1, 1000))
                 if callback then callback(nil, "Empty response from API") end
                 return
             end
+            
+            print("DEBUG: Attempting to parse JSON body (" .. #body .. " bytes)")
+            print("DEBUG: First 200 chars of body: " .. body:sub(1, 200))
             
             -- Try to decode JSON
             local success, response = pcall(hs.json.decode, body)
@@ -234,12 +247,14 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         else
             -- Curl command failed
             print("ERROR: Curl command failed with exit code: " .. exitCode)
+            print("ERROR: This usually means network error or curl syntax problem")
             if stdErr and #stdErr > 0 then
                 print("Stderr: " .. stdErr)
             end
             if stdOut and #stdOut > 0 then
-                print("Stdout: " .. stdOut)
+                print("Stdout (first 500 chars): " .. stdOut:sub(1, 500))
             end
+            print("DEBUG: Command was: " .. command:sub(1, 200) .. "...")
             
             -- Retry on network errors
             local delay = M.calculateRetryDelay(attemptNumber, nil)
