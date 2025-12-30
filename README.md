@@ -54,50 +54,33 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 
 ## 📦 Installation
 
-### Option 1: Direct Install
-
 ```bash
-# Clone the repository
-git clone <repository-url> Dictator
-cd Dictator
+# 1. Install dependencies
+brew install hammerspoon --cask
+brew install sox
 
-# Copy files to Hammerspoon config directory
-cp -r *.lua ~/.hammerspoon/
-
-# Reload Hammerspoon
-# (Click Hammerspoon menubar icon → Reload Config)
-```
-
-### Option 2: Symlink (Recommended for Development)
-
-```bash
-# Clone the repository
-git clone <repository-url> ~/Documents/Dictator
+# 2. Clone repository
+git clone https://github.com/YOUR_USERNAME/Dictator.git ~/Documents/Dictator
 cd ~/Documents/Dictator
 
-# Symlink files to Hammerspoon config
-ln -sf ~/Documents/Dictator/*.lua ~/.hammerspoon/
+# 3. Copy files to Hammerspoon
+cp *.lua ~/.hammerspoon/
 
-# Reload Hammerspoon
+# 4. Grant permissions
+# System Settings → Privacy & Security → Accessibility → Enable Hammerspoon
+# System Settings → Privacy & Security → Microphone → Enable Hammerspoon
+
+# 5. Reload Hammerspoon (menubar → Reload Config)
 ```
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Configure API Key
-
-1. Click the **Dictator menubar icon** (🎙️)
-2. Navigate to **Settings** → **API Key**
-3. Enter your OpenAI API Key
-4. Click **OK**
-
-### 2. Test Recording
-
-1. Open any text editor (Notes, TextEdit, etc.)
-2. Click in a text field
-3. **Hold the `Fn` key** and speak
-4. **Release `Fn`** when done
+1. **Configure API Key**: Dictator menubar icon → Settings → API Key
+   - Get key from: https://platform.openai.com/api-keys
+2. **Test**: Open any text editor, hold `Fn` key, speak, release `Fn`
+3. **Done**: Text appears automatically!
 5. Wait for transcription to appear
 
 ---
@@ -368,7 +351,7 @@ Contributions welcome! Please:
 
 ## 📝 License
 
-MIT License - See LICENSE file for details
+MIT License - See [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -378,8 +361,3 @@ MIT License - See LICENSE file for details
 - [OpenAI Whisper](https://openai.com/research/whisper) – Speech recognition AI
 - [SoX](http://sox.sourceforge.net/) – Audio processing utility
 
----
-
-## 📧 Support
-
-For issues, questions, or feature requests, please open an issue on GitHub.
