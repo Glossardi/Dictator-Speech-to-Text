@@ -9,14 +9,12 @@ M.currentFilePath = nil
 function M.startRecording()
     if M.isRecording then return end
     
-    M.currentFilePath = utils.get_temp_file_path("mp3")
+    M.currentFilePath = utils.get_temp_file_path("flac")
     print("Starting recording to: " .. M.currentFilePath)
     
-    -- Using 'rec' from SoX with optimized settings for Whisper API
-    -- Output format: MP3 (much smaller than WAV, ~90% reduction)
-    -- -r 16000: 16kHz sample rate (optimal for speech, reduces file size)
-    -- -c 1: mono (speech doesn't need stereo)
-    -- -C 32: MP3 compression quality (32 kbps is good for speech)
+    -- Using 'rec' from SoX with FLAC output (lossless, 50% smaller than WAV)
+    -- FLAC is natively supported by SoX and perfect for Whisper API
+    -- Arguments: output_file, then effects (rate, channels, compression)
     local soxPath = "/opt/homebrew/bin/rec" -- Standard brew path on Apple Silicon
     if not utils.file_exists(soxPath) then
         soxPath = "/usr/local/bin/rec" -- Intel Mac
@@ -32,7 +30,7 @@ function M.startRecording()
         if exitCode ~= 0 and exitCode ~= -1 then -- -1 is terminated
              print("SoX Error: " .. stdErr)
         end
-    end, {"-t", "mp3", M.currentFilePath, "rate", "16k", "channels", "1", "compand", "0.3,1", "6:-70,-60,-20", "-5", "-90", "0.2"})
+    end, {M.currentFilePath, "rate", "16k", "channels", "1"})
     
     if M.currentTask:start() then
         M.isRecording = true
@@ -49,13 +47,16 @@ function M.stopRecording(callback)
         return
     end
 
+    local filePath = M.currentFilePath
     M.currentTask:terminate()
     M.isRecording = false
     M.currentTask = nil
     
-    -- Give file system a moment to close the file? Usually terminate is enough.
-    -- Return the file path to the callback
-    if callback then callback(M.currentFilePath, nil) end
+    -- Give file system a brief moment to flush and close the FLAC file
+    -- This ensures the file is fully written before we try to upload it
+    hs.timer.doAfter(0.1, function()
+        if callback then callback(filePath, nil) end
+    end)
 end
 
 return M

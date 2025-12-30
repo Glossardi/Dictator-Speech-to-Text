@@ -16,7 +16,7 @@ end
 
 function M.get_temp_file_path(extension)
     local uuid = hs.host.uuid()
-    return os.tmpname() .. "_" .. uuid .. "." .. (extension or "mp3")
+    return os.tmpname() .. "_" .. uuid .. "." .. (extension or "flac")
 end
 
 return M
