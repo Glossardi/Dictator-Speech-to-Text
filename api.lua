@@ -119,22 +119,27 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
 
     local langArg = ""
     if language and language ~= "auto" then
-        langArg = string.format("-F language=%s", language)
+        langArg = string.format("-F 'language=%s'", language)
     end
 
-    -- Escape special characters in paths for shell
-    -- Don't use quotes around the path with -F, curl handles it
-    local escapedPath = audioFilePath:gsub('"', '\\"'):gsub('\n', ''):gsub('\r', '')
-    local escapedKey = apiKey:gsub('"', '\\"'):gsub('\n', ''):gsub('\r', '')
+    -- Properly escape shell arguments using single quotes
+    -- For paths and API keys, we use single quotes which prevent all shell expansion
+    -- We only need to handle single quotes within the strings by escaping them
+    local function shellEscape(str)
+        -- Replace single quotes with '\'' (end quote, escaped quote, start quote)
+        return "'" .. str:gsub("'", "'\\''") .. "'"
+    end
 
     -- Use -w flag to get HTTP status code separately from body
+    -- Use proper @ syntax for file upload, let curl auto-generate Content-Type
     local command = string.format(
         '/usr/bin/curl -s -w "\\nHTTP_STATUS:%%{http_code}" ' ..
+        '--compressed --tcp-nodelay ' ..
         'https://api.openai.com/v1/audio/transcriptions ' ..
         '-H "Authorization: Bearer %s" ' ..
         '-F file=@%s ' ..
         '-F model=whisper-1 %s',
-        escapedKey, escapedPath, langArg
+        shellEscape(apiKey), shellEscape(audioFilePath), langArg
     )
 
     local attemptLog = attemptNumber > 0 and string.format(" (attempt %d/%d)", attemptNumber + 1, M.MAX_RETRIES) or ""
