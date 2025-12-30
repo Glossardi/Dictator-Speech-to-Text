@@ -119,32 +119,38 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
 
     local langArg = ""
     if language and language ~= "auto" then
-        langArg = string.format("-F 'language=%s'", language)
+        -- language codes are simple (en,de,auto), no complex escaping needed
+        langArg = string.format("-F language=%s", language)
     end
 
     -- Properly escape shell arguments using single quotes
-    -- For paths and API keys, we use single quotes which prevent all shell expansion
+    -- For paths and headers, we use single quotes which prevent all shell expansion
     -- We only need to handle single quotes within the strings by escaping them
     local function shellEscape(str)
         -- Replace single quotes with '\'' (end quote, escaped quote, start quote)
         return "'" .. str:gsub("'", "'\\''") .. "'"
     end
 
+    local authHeader = shellEscape("Authorization: Bearer " .. apiKey)
+    local fileArg = shellEscape("file=@" .. audioFilePath)
+
     -- Use -w flag to get HTTP status code separately from body
     -- Use proper @ syntax for file upload, let curl auto-generate Content-Type
-    -- Performance flags:
+    -- Performance and robustness flags:
     --   --compressed: Enable HTTP compression
     --   --tcp-nodelay: Disable Nagle's algorithm for faster small packet transfers
     --   --tcp-fastopen: Send data in SYN packet (requires kernel support)
     --   --keepalive-time 60: Keep connections alive for reuse
+    --   --connect-timeout 10 / --max-time 30: Ensure we never hang forever
     local command = string.format(
         '/usr/bin/curl -s -w "\\nHTTP_STATUS:%%{http_code}" ' ..
         '--compressed --tcp-nodelay --tcp-fastopen --keepalive-time 60 ' ..
-        'https://api.openai.com/v1/audio/transcriptions ' ..
-        '-H "Authorization: Bearer %s" ' ..
-        '-F file=@%s ' ..
+        '--connect-timeout 10 --max-time 30 ' ..
+        '%s ' ..
+        '-H %s ' ..
+        '-F %s ' ..
         '-F model=whisper-1 %s',
-        shellEscape(apiKey), shellEscape(audioFilePath), langArg
+        url, authHeader, fileArg, langArg
     )
 
     local attemptLog = attemptNumber > 0 and string.format(" (attempt %d/%d)", attemptNumber + 1, M.MAX_RETRIES) or ""

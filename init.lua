@@ -169,10 +169,21 @@ function M.stopAndTranscribe()
     ui.updateStatus("processing", "Processing...")
     
     audio.stopRecording(function(filePath, err)
+        -- Watchdog: falls innerhalb von 35s kein Ergebnis zurückkommt, brechen wir sauber ab
+        local timeoutTimer = hs.timer.doAfter(35, function()
+            if M.isProcessing then
+                M.isProcessing = false
+                log.e("Transcription timeout after 35 seconds")
+                ui.updateStatus("idle", "Timeout")
+                ui.showError("Transcription timeout: no response from API")
+            end
+        end)
+
         if err then
             M.isProcessing = false
             log.e("Recording error: " .. err)
             ui.showError("Recording Error: " .. err)
+            if timeoutTimer then timeoutTimer:stop() end
             return
         end
         
@@ -180,6 +191,7 @@ function M.stopAndTranscribe()
             M.isProcessing = false
             log.e("No audio file generated")
             ui.showError("No audio file generated")
+            if timeoutTimer then timeoutTimer:stop() end
             return
         end
 
@@ -196,6 +208,7 @@ function M.stopAndTranscribe()
 
         log.i("Sending audio to Whisper API")
         api.transcribe(filePath, function(text, apiErr)
+            if timeoutTimer then timeoutTimer:stop() end
             M.isProcessing = false  -- Reset processing flag
             
             -- Cleanup temp file
