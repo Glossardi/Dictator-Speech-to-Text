@@ -81,7 +81,7 @@ cp *.lua ~/.hammerspoon/
    - Get key from: https://platform.openai.com/api-keys
 2. **Test**: Open any text editor, hold `Fn` key, speak, release `Fn`
 3. **Done**: Text appears automatically!
-5. Wait for transcription to appear
+4. Wait for transcription to appear
 
 ---
 
@@ -360,4 +360,3 @@ MIT License - See [LICENSE](LICENSE) file for details.
 - [Hammerspoon](https://www.hammerspoon.org/) – macOS automation framework
 - [OpenAI Whisper](https://openai.com/research/whisper) – Speech recognition AI
 - [SoX](http://sox.sourceforge.net/) – Audio processing utility
-
