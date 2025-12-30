@@ -145,6 +145,8 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
     local attemptLog = attemptNumber > 0 and string.format(" (attempt %d/%d)", attemptNumber + 1, M.MAX_RETRIES) or ""
     print("Executing API request" .. attemptLog .. "...")
     print("Audio file: " .. audioFilePath)
+    print("File size: " .. string.format("%.2f KB", (utils.get_file_size(audioFilePath) or 0) / 1024))
+    print("Command: " .. command)
     
     hs.task.new("/bin/sh", function(exitCode, stdOut, stdErr)
         print("API Response received. Exit code: " .. exitCode)
@@ -233,21 +235,40 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         else
             -- Curl command failed
             print("ERROR: Curl command failed with exit code: " .. exitCode)
+            print("Command was: " .. command)
+            if stdOut and #stdOut > 0 then
+                print("Stdout: " .. stdOut)
+            end
             if stdErr and #stdErr > 0 then
                 print("Stderr: " .. stdErr)
             end
             
-            -- Retry on network errors
-            local delay = M.calculateRetryDelay(attemptNumber, nil)
-            print(string.format("Network error. Retrying in %.1f seconds...", delay))
+            -- Check for common curl errors
+            if stdErr:match("Could not resolve host") then
+                print("ERROR: Network connectivity issue - cannot reach OpenAI API")
+                if callback then callback(nil, "Network error: Cannot reach OpenAI API") end
+                return
+            elseif stdErr:match("SSL") or stdErr:match("certificate") then
+                print("ERROR: SSL/Certificate error")
+                if callback then callback(nil, "SSL/Certificate error") end
+                return
+            elseif stdErr:match("multipart") or stdErr:match("boundary") then
+                print("ERROR: Multipart form data error - check file path and curl syntax")
+                if callback then callback(nil, "Multipart form parsing error") end
+                return
+            end
             
-            -- Retry on network errors
-            local delay = M.calculateRetryDelay(attemptNumber, nil)
-            print(string.format("Network error. Retrying in %.1f seconds...", delay))
-            
-            hs.timer.doAfter(delay, function()
-                M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber + 1, callback)
-            end)
+            -- Retry on network errors (but not on validation/auth errors)
+            if attemptNumber < M.MAX_RETRIES - 1 then
+                local delay = M.calculateRetryDelay(attemptNumber, nil)
+                print(string.format("Network error. Retrying in %.1f seconds...", delay))
+                
+                hs.timer.doAfter(delay, function()
+                    M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber + 1, callback)
+                end)
+            else
+                if callback then callback(nil, "Network error after " .. M.MAX_RETRIES .. " attempts") end
+            end
         end
     end, {"-c", command}):start()
 end
