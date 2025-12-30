@@ -1,8 +1,12 @@
 # Dictator – Voice-to-Text Menubar App for macOS
 
-A lightweight macOS menubar application for voice dictation using OpenAI's Whisper API. Record audio with a hotkey, get instant transcription, and optionally auto-paste into any application.
+[![macOS](https://img.shields.io/badge/macOS-14.0+-blue.svg)](https://www.apple.com/macos/)
+[![Hammerspoon](https://img.shields.io/badge/Hammerspoon-0.9.97+-green.svg)](https://www.hammerspoon.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Built with [Hammerspoon](https://www.hammerspoon.org/).
+A lightweight, professional macOS menubar application for voice dictation using OpenAI's Whisper API. Record audio with a hotkey, get instant transcription, and optionally auto-paste into any application.
+
+Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability and performance.
 
 ---
 

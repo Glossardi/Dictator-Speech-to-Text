@@ -1,3 +1,27 @@
-tmp-npm-cache
-.vscode
-.github
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Hammerspoon
+*.log
+
+# Development
+*.backup
+*.bak
+*.tmp
+*~
+
+# Testing
+test*.lua
+debug*.lua
+*_test.sh
+tmp-npm-cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+/tmp/
+*.wav

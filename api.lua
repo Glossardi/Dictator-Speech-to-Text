@@ -122,16 +122,18 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         langArg = string.format("-F language=%s", language)
     end
 
-    -- Escape paths and key
-    local escapedPath = audioFilePath:gsub('"', '\\"')
-    local escapedKey = apiKey:gsub('"', '\\"')
+    -- Escape special characters in paths for shell
+    -- Don't use quotes around the path with -F, curl handles it
+    local escapedPath = audioFilePath:gsub('"', '\\"'):gsub('\n', ''):gsub('\r', '')
+    local escapedKey = apiKey:gsub('"', '\\"'):gsub('\n', ''):gsub('\r', '')
 
-    -- Include verbose headers to capture rate limit info
+    -- Use -w flag to get HTTP status code separately from body
     local command = string.format(
-        '/usr/bin/curl -s -i https://api.openai.com/v1/audio/transcriptions ' ..
+        '/usr/bin/curl -s -w "\\nHTTP_STATUS:%%{http_code}" ' ..
+        'https://api.openai.com/v1/audio/transcriptions ' ..
         '-H "Authorization: Bearer %s" ' ..
-        '-F file="@%s" ' ..
-        '-F model="whisper-1" %s',
+        '-F file=@%s ' ..
+        '-F model=whisper-1 %s',
         escapedKey, escapedPath, langArg
     )
 
@@ -141,43 +143,27 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
     
     hs.task.new("/bin/sh", function(exitCode, stdOut, stdErr)
         print("API Response received. Exit code: " .. exitCode)
-        print("Response length: " .. (stdOut and #stdOut or 0) .. " bytes")
         
         if exitCode == 0 then
-            -- Parse headers and body - look for double newline
-            local headerEnd = stdOut:find("\r\n\r\n") or stdOut:find("\n\n")
-            local headers = ""
+            -- Extract HTTP status code from end of response
+            local statusCode = nil
             local body = stdOut
             
-            if headerEnd then
-                headers = stdOut:sub(1, headerEnd)
-                -- Skip the double newline characters
-                local bodyStart = headerEnd + (stdOut:sub(headerEnd, headerEnd+3) == "\r\n\r\n" and 4 or 2)
-                body = stdOut:sub(bodyStart)
-                print("Separated headers (" .. #headers .. " bytes) and body (" .. #body .. " bytes)")
-            else
-                print("WARNING: Could not find header/body separator")
-            end
-            
-            -- Log rate limit headers if present
-            local rateLimitHeaders = M.parseRateLimitHeaders(headers)
-            if next(rateLimitHeaders) then
-                print("Rate limit headers: " .. hs.inspect(rateLimitHeaders))
-            end
-            
-            -- Check for HTTP status code in headers
-            local statusCode = headers:match("HTTP/[%d%.]+%s+(%d+)")
-            print("DEBUG: Checking for status code in headers...")
-            print("DEBUG: First 200 chars of headers: " .. headers:sub(1, 200))
-            
-            if statusCode then
-                statusCode = tonumber(statusCode)
+            local statusMatch = stdOut:match("\nHTTP_STATUS:(%d+)$")
+            if statusMatch then
+                statusCode = tonumber(statusMatch)
+                -- Remove status line from body
+                body = stdOut:gsub("\nHTTP_STATUS:%d+$", "")
                 print("HTTP Status: " .. statusCode)
-                
+            else
+                print("WARNING: Could not extract HTTP status code")
+            end
+            
+            -- Handle error status codes
+            if statusCode then
                 -- Handle 429 Rate Limit
                 if statusCode == 429 then
-                    local retryAfter = headers:match("retry%-after:%s*(%d+)")
-                    local delay = M.calculateRetryDelay(attemptNumber, retryAfter)
+                    local delay = M.calculateRetryDelay(attemptNumber, nil)
                     print(string.format("Rate limit hit (429). Retrying in %.1f seconds...", delay))
                     
                     hs.timer.doAfter(delay, function()
@@ -201,20 +187,15 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
             -- Parse JSON body
             if not body or #body == 0 then
                 print("ERROR: Empty response body from API")
-                print("DEBUG: Full stdOut (first 1000 chars): " .. stdOut:sub(1, 1000))
                 if callback then callback(nil, "Empty response from API") end
                 return
             end
-            
-            print("DEBUG: Attempting to parse JSON body (" .. #body .. " bytes)")
-            print("DEBUG: First 200 chars of body: " .. body:sub(1, 200))
             
             -- Try to decode JSON
             local success, response = pcall(hs.json.decode, body)
             
             if not success then
                 print("ERROR: Failed to parse JSON response: " .. tostring(response))
-                print("Raw response (first 500 chars): " .. string.sub(body, 1, 500))
                 if callback then callback(nil, "Invalid JSON response from API") end
                 return
             end
@@ -247,14 +228,13 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         else
             -- Curl command failed
             print("ERROR: Curl command failed with exit code: " .. exitCode)
-            print("ERROR: This usually means network error or curl syntax problem")
             if stdErr and #stdErr > 0 then
                 print("Stderr: " .. stdErr)
             end
-            if stdOut and #stdOut > 0 then
-                print("Stdout (first 500 chars): " .. stdOut:sub(1, 500))
-            end
-            print("DEBUG: Command was: " .. command:sub(1, 200) .. "...")
+            
+            -- Retry on network errors
+            local delay = M.calculateRetryDelay(attemptNumber, nil)
+            print(string.format("Network error. Retrying in %.1f seconds...", delay))
             
             -- Retry on network errors
             local delay = M.calculateRetryDelay(attemptNumber, nil)
