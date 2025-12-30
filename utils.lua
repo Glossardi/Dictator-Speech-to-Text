@@ -6,6 +6,14 @@ function M.file_exists(name)
    return false
 end
 
+function M.get_file_size(filePath)
+    local attributes = hs.fs.attributes(filePath)
+    if attributes then
+        return attributes.size
+    end
+    return nil
+end
+
 function M.get_temp_file_path(extension)
     local uuid = hs.host.uuid()
     return os.tmpname() .. "_" .. uuid .. "." .. (extension or "wav")

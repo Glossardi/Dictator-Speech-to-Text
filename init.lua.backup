@@ -107,78 +107,19 @@ function M.canPerformAction()
     local timeSinceLastAction = now - M.lastActionTime
     
     if timeSinceLastAction < M.DEBOUNCE_DELAY then
-        log.d(string.format("Debounce: Action blocked (%.2fs since last, need %.2fs)", 
+        print(string.format("Debounce: Action blocked (%.2fs since last action, need %.2fs)", 
             timeSinceLastAction, M.DEBOUNCE_DELAY))
         return false
     end
     
     M.lastActionTime = now
-    return true
-end
-
-function M.startRecording()
-    -- Debouncing: prevent rapid double-taps
-    if not M.canPerformAction() then
-        log.i("Start recording blocked by debounce")
-        return
-    end
-    
-    -- State guard: prevent concurrent operations
-    if M.isProcessing then
-        log.w("Start recording blocked: already processing")
-        hs.alert.show("Already processing, please wait...")
-        return
-    end
-    
-    -- Check if already recording
-    if audio.isRecording then
-        log.w("Already recording")
-        return
-    end
-    
-    if audio.startRecording() then
-        log.i("Recording started")
-        ui.updateStatus("recording", "Recording...")
-    else
-        log.e("Could not start recording")
-        ui.showError("Could not start recording")
-    end
-end
-
-function M.stopAndTranscribe()
-    -- Debouncing: prevent rapid double-taps
-    if not M.canPerformAction() then
-        log.i("Stop recording blocked by debounce")
-        return
-    end
-    
-    -- State guard: prevent concurrent operations
-    if M.isProcessing then
-        log.w("Stop recording blocked: already processing")
-        return
-    end
-    
-    -- Check if not recording
-    if not audio.isRecording then
-        log.w("Not recording, cannot stop")
-        return
-    end
-    
-    M.isProcessing = true
-    log.i("Stopping recording and starting transcription")
-    ui.updateStatus("processing", "Processing...")
-    
-    audio.stopRecording(function(filePath, err)
-        if err then
-            M.isProcessing = false
-            log.e("Recording error: " .. err)
+    return tM.isProcessing = false
             ui.showError("Recording Error: " .. err)
             return
         end
         
         if not filePath then
             M.isProcessing = false
-            log.e("No audio file generated")
             ui.showError("No audio file generated")
             return
         end
@@ -187,28 +128,76 @@ function M.stopAndTranscribe()
         local allowed, waitTime = rateLimiter.consumeToken()
         if not allowed then
             M.isProcessing = false
-            local msg = string.format("Rate limit reached. Please wait %d seconds.", waitTime)
-            log.w(msg)
-            ui.showError(msg)
+            ui.showError(string.format("Rate limit reached. Please wait %d seconds.", waitTime))
             os.remove(filePath)  -- Cleanup
             return
         end
 
-        log.i("Sending audio to Whisper API")
         api.transcribe(filePath, function(text, apiErr)
             M.isProcessing = false  -- Reset processing flag
             
+    -- State guard: prevent concurrent operations
+    if M.isProcessing then
+        print("Start recording blocked: already processing")
+        hs.alert.show("Already processing, please wait...")
+        return
+    end
+    
+    -- Check if already recording
+    if audio.isRecording then
+        print("Already recording")
+        return
+    end
+    
+    if audio.startRecording() then
+        ui.updateStatus("recording", "Recording...")
+    else
+        ui.showError("Could not start recording")
+    end
+end
+
+function M.stopAndTranscribe()
+    -- Debouncing: prevent rapid double-taps
+    if not M.canPerformAction() then
+        print("Stop recording blocked by debounce")
+        return
+    end
+    
+    -- State guard: prevent concurrent operations
+    if M.isProcessing then
+        print("Stop recording blocked: already processing")
+        return
+    end
+    
+    -- Check if not recording
+    if not audio.isRecording then
+        print("Not recording")
+        return
+    end
+    
+    M.isProcessing = true
+    ui.updateStatus("processing", "Processing...")
+    audio.stopRecording(function(filePath, err)
+        if err then
+            ui.showError("Recording Error: " .. err)
+            return
+        end
+        
+        if not filePath then
+            ui.showError("No audio file generated")
+            return
+        end
+
+        api.transcribe(filePath, function(text, apiErr)
             -- Cleanup temp file
             os.remove(filePath)
 
             if apiErr then
-                log.e("API error: " .. apiErr)
                 ui.showError("API Error: " .. apiErr)
                 return
             end
 
             if text then
-                log.i("Transcription successful (" .. #text .. " characters)")
                 ui.updateStatus("idle", "Ready")
                 
                 -- Copy to clipboard

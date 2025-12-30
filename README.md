@@ -14,6 +14,10 @@ Built with [Hammerspoon](https://www.hammerspoon.org/).
 - **⚙️ Configurable**: Set API key, custom hotkeys, language, and auto-paste behavior
 - **🎯 Minimal UI**: Clean menubar icon showing current status (🎙️ Idle, 🔴 Recording, ⏳ Processing)
 - **🌍 Multi-language**: Support for multiple languages via Whisper API
+- **🛡️ Rate Limiting**: Built-in rate limiter prevents exceeding API limits (3 requests/minute default)
+- **🔄 Auto-Retry**: Exponential backoff with automatic retry on API errors (429, 5xx)
+- **⚡ Debouncing**: Prevents accidental double-triggers from rapid hotkey presses
+- **✅ Input Validation**: Validates API keys, audio file size (<25MB), and configuration
 
 ---
 
@@ -135,14 +139,50 @@ Access all settings via the menubar icon:
 
 ```
 Dictator/
-├── init.lua       # Main entry point, menu logic, hotkey binding
-├── config.lua     # Configuration management (settings persistence)
-├── audio.lua      # Audio recording via SoX
-├── api.lua        # OpenAI API integration (Whisper transcription)
-├── ui.lua         # Menubar UI and status updates
-├── utils.lua      # Utility functions (temp file handling)
-└── README.md      # This file
+├── init.lua           # Main entry point, menu logic, hotkey binding
+├── config.lua         # Configuration management (settings persistence)
+├── audio.lua          # Audio recording via SoX
+├── api.lua            # OpenAI API integration (Whisper transcription with retry logic)
+├── ui.lua             # Menubar UI and status updates
+├── utils.lua          # Utility functions (temp file handling, file validation)
+├── rate_limiter.lua   # Token bucket rate limiter (prevents API abuse)
+└── README.md          # This file
 ```
+
+---
+
+## 🔒 Robustness & Security Features
+
+### Rate Limiting
+- **Token Bucket Algorithm**: Prevents exceeding OpenAI API rate limits
+- **Default**: 3 requests per 60 seconds (configurable)
+- **Automatic**: Checks rate limit before each API call
+- **User Feedback**: Shows wait time when rate limit is exceeded
+
+### Hotkey Debouncing
+- **Prevents Double-Triggers**: 500ms minimum delay between actions
+- **Protects Against**: Accidental double-taps or rapid key presses
+- **Smart State Management**: Only allows one operation at a time
+
+### API Retry Logic
+- **Exponential Backoff**: Automatically retries on transient failures
+- **Handles**:
+  - 429 (Rate Limit): Respects `Retry-After` header
+  - 5xx (Server Errors): Automatic retry with backoff
+  - Network Errors: Connection issues handled gracefully
+- **Max Retries**: Up to 5 attempts with increasing delays (1s → 60s)
+- **Jitter**: Random delay added to prevent thundering herd
+
+### Input Validation
+- **API Key**: Validates format (must start with `sk-`, minimum length)
+- **Audio File**: Checks existence and size (<25MB OpenAI limit)
+- **Configuration**: Validates all user inputs before saving
+- **State Guards**: Prevents concurrent operations (recording + processing)
+
+### Structured Logging
+- **hs.logger Integration**: Professional logging with levels (debug, info, warning, error)
+- **Console Output**: View detailed logs in Hammerspoon Console
+- **Debugging**: Easy troubleshooting with contextual error messages
 
 ---
 
@@ -185,31 +225,67 @@ Dictator/
 
 **Solutions**:
 1. Check Hammerspoon Console for detailed error messages
-2. Verify API key is correct
+2. Verify API key is correct (must start with `sk-`)
 3. Check OpenAI API quota/billing
-4. Test with shorter recordings first
-5. Check internet connection
+4. **Rate Limit**: Wait if you see "Rate limit reached" message
+5. **File Size**: Recording must be under 25MB
+6. Check internet connection
+7. API retries automatically (up to 5 attempts) - check logs
+
+### Rate Limit Errors
+**Symptom**: "Rate limit reached. Please wait X seconds."
+
+**Solutions**:
+1. This is normal - OpenAI limits requests to ~3 per minute
+2. Wait the specified time (shown in error message)
+3. Rate limiter tracks this automatically
+4. To adjust limits: Edit `config.lua` → `defaultRateLimitMax` and `defaultRateLimitWindow`
+5. Check your OpenAI account tier for actual limits
 
 ### Recording Issues
 **Symptom**: No audio captured or poor quality
 
 **Solutions**:
-1. Verify SoX is installed: `which rec`
-2. Check microphone permissions for Hammerspoon
-3. Test recording manually: `rec test.wav`
-4. Check Console for SoX errors
-
----
-
-## 🔍 Debug Mode
-
-Open Hammerspoon Console to see detailed logging:
-
-**Console Shows**:
-- Hotkey press/release events
+1. Verify SoX is installed: ` (with debounce info)
 - Recording start/stop
-- API requests/responses
+- API requests/responses (including retry attempts)
+- Rate limiter status (tokens remaining)
 - Transcription results
+- Detailed error messages with context
+
+**Log Levels**:
+- `[info]` - Normal operations
+- `[warning]` - Non-critical issues (rate limits, debounce blocks)
+- `[error]` - Failures requiring attention
+- `[debug]` - Detailed state information
+
+**Useful Console Commands**:
+```lua
+-- Check Fn watcher status
+print(fnWatcher and "Fn watcher exists" or "Fn watcher is nil")
+
+-- Check auto-paste setting
+print(config.getAutoPaste() and "Auto-Paste ON" or "Auto-Paste OFF")
+
+-- Check use Fn key setting
+print(config.getUseFnKey() and "Use Fn Key ON" or "Use Fn Key OFF")
+, rate limiting)
+- **State management**: Persistent settings via `hs.settings`
+- **Error handling**: Comprehensive logging and graceful degradation
+- **Event-driven**: Hotkey bindings and UI callbacks
+- **Secure by Design**: API key validation, input sanitization, rate limiting
+- **Retry Logic**: Exponential backoff with jitter for transient failures
+- **Debouncing**: Prevents rapid-fire operations
+
+### Best Practices Implemented
+- **DRY**: Reusable modules for each concern
+- **KISS**: Simple, clear interfaces
+- **LEAN**: Minimal dependencies, efficient resource usage
+- **Secure**: No hardcoded secrets, validates all inputs
+- **Robust**: Handles edge cases, network failures, rate limit
+
+-- View current processing state
+print("Processing: " .. tostring(M.isProcessing)
 - Error messages
 
 **Useful Console Commands**:

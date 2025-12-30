@@ -9,6 +9,8 @@ M.HOTKEY_KEY_KEY = M.BUNDLE_ID .. ".hotkeyKey"
 M.AUTO_PASTE_KEY = M.BUNDLE_ID .. ".autoPaste"
 M.USE_FN_KEY_KEY = M.BUNDLE_ID .. ".useFnKey"
 M.LANGUAGE_KEY = M.BUNDLE_ID .. ".language"
+M.RATE_LIMIT_MAX_KEY = M.BUNDLE_ID .. ".rateLimitMax"
+M.RATE_LIMIT_WINDOW_KEY = M.BUNDLE_ID .. ".rateLimitWindow"
 
 -- Defaults
 M.defaultHotkeyMods = {"cmd", "alt"}
@@ -16,6 +18,8 @@ M.defaultHotkeyKey = "D"
 M.defaultUseFnKey = true
 M.defaultAutoPaste = true
 M.defaultLanguage = "auto"
+M.defaultRateLimitMax = 3  -- 3 requests
+M.defaultRateLimitWindow = 60  -- per 60 seconds (1 minute)
 
 function M.getApiKey()
     return settings.get(M.API_KEY_KEY)
@@ -62,6 +66,22 @@ end
 
 function M.setLanguage(lang)
     settings.set(M.LANGUAGE_KEY, lang)
+end
+
+function M.getRateLimitMaxRequests()
+    return settings.get(M.RATE_LIMIT_MAX_KEY) or M.defaultRateLimitMax
+end
+
+function M.setRateLimitMaxRequests(max)
+    settings.set(M.RATE_LIMIT_MAX_KEY, max)
+end
+
+function M.getRateLimitWindow()
+    return settings.get(M.RATE_LIMIT_WINDOW_KEY) or M.defaultRateLimitWindow
+end
+
+function M.setRateLimitWindow(window)
+    settings.set(M.RATE_LIMIT_WINDOW_KEY, window)
 end
 
 return M
