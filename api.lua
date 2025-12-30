@@ -132,9 +132,14 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
 
     -- Use -w flag to get HTTP status code separately from body
     -- Use proper @ syntax for file upload, let curl auto-generate Content-Type
+    -- Performance flags:
+    --   --compressed: Enable HTTP compression
+    --   --tcp-nodelay: Disable Nagle's algorithm for faster small packet transfers
+    --   --tcp-fastopen: Send data in SYN packet (requires kernel support)
+    --   --keepalive-time 60: Keep connections alive for reuse
     local command = string.format(
         '/usr/bin/curl -s -w "\\nHTTP_STATUS:%%{http_code}" ' ..
-        '--compressed --tcp-nodelay ' ..
+        '--compressed --tcp-nodelay --tcp-fastopen --keepalive-time 60 ' ..
         'https://api.openai.com/v1/audio/transcriptions ' ..
         '-H "Authorization: Bearer %s" ' ..
         '-F file=@%s ' ..
