@@ -23,27 +23,30 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 - **⚡ Debouncing**: Prevents accidental double-triggers from rapid hotkey presses
 - **✅ Input Validation**: Validates API keys, audio file size (<25MB), and configuration
 - **🚀 Performance Optimized**: 
-  - MP3 compression reduces file sizes by ~90% (faster uploads)
+  - FLAC compression reduces file sizes by ~50% (faster uploads)
   - Optimized curl flags for maximum transfer speed
-  - Voice normalization and noise reduction built-in
+  - Lossless quality for perfect transcription accuracy
 
 ---
 
 ## ⚡ Performance Optimizations
 
 ### Audio Format
-- **MP3 compression** with 16kHz mono and 32kbps bitrate
-- **~90% file size reduction** vs WAV (e.g., 5 sec: 800KB → 80KB)
-- **Voice optimization**: Compand effect for clarity and noise reduction
-- **Maintains quality**: Optimal for speech transcription
+
+- **FLAC compression** with 16kHz mono (lossless)
+- **~50% file size reduction** vs WAV (e.g., 2 sec: 125KB → 59KB)
+- **Lossless quality**: Perfect for speech transcription, no quality loss
+- **Native SoX support**: Reliable recording without extra dependencies
 
 ### Network Transfer
+
 - **HTTP compression** enabled (`--compressed`)
 - **TCP optimizations**: No-delay flag for faster packet delivery
 - **Proper multipart encoding**: Prevents parsing errors
 - **Smart error detection**: Specific handling for SSL, network, and parsing issues
 
 ### Processing
+
 - **Shell escaping**: Secure, reliable handling of special characters
 - **Detailed logging**: File sizes, commands, and timing for debugging
 - **Retry intelligence**: Differentiates between retryable and permanent errors
@@ -270,6 +273,7 @@ Dictator/
 7. API retries automatically (up to 3 attempts with exponential backoff)
 
 **Common Error Messages**:
+
 - `"could not parse multi-part form"` - Fixed in latest version (proper shell escaping)
 - `"Network error"` - Check internet connection, DNS resolution
 - `"SSL/Certificate error"` - System time may be wrong, or SSL issues
@@ -294,11 +298,11 @@ Dictator/
 **Solutions**:
 
 1. Verify SoX is installed: `which rec` (should show path)
-2. Test microphone: `rec test.mp3 rate 16k channels 1` (speak, then Ctrl+C)
+2. Test microphone: `rec test.flac rate 16k channels 1` (speak, then Ctrl+C)
 3. Check microphone permissions:
    - **System Settings** → **Privacy & Security** → **Microphone**
    - Enable **Hammerspoon**
-4. Recording format: MP3 at 16kHz mono is optimized for speech
+4. Recording format: FLAC at 16kHz mono is optimized for speech (lossless, 50% smaller than WAV)
 5. Hold hotkey for at least 1-2 seconds to capture audio
 6. Check Console for SoX errors: `SoX Error: <message>`
 
