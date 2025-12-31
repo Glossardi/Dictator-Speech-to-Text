@@ -14,6 +14,8 @@ M.log = log
 M.isProcessing = false  -- Global flag to prevent concurrent operations
 M.lastActionTime = 0  -- Track last action for debouncing
 M.DEBOUNCE_DELAY = 0.5  -- Minimum 500ms between actions
+M.MIN_RECORDING_DURATION = 0.4  -- Minimum duration in seconds to trigger transcription
+M.recordingStartTime = nil
 
 -- Initialize rate limiter
 rateLimiter.init()
@@ -138,6 +140,7 @@ function M.startRecording()
     
     if audio.startRecording() then
         log.i("Recording started")
+        M.recordingStartTime = hs.timer.secondsSinceEpoch()
         ui.updateStatus("recording", "Recording...")
     else
         log.e("Could not start recording")
@@ -164,11 +167,39 @@ function M.stopAndTranscribe()
         return
     end
     
-    M.isProcessing = true
-    log.i("Stopping recording and starting transcription")
-    ui.updateStatus("processing", "Processing...")
+    -- Determine recording duration to ignore very short taps
+    local now = hs.timer.secondsSinceEpoch()
+    local duration = 0
+    if M.recordingStartTime then
+        duration = now - M.recordingStartTime
+    end
+    local isShortTap = duration > 0 and duration < M.MIN_RECORDING_DURATION
+
+    if isShortTap then
+        log.i(string.format("Recording too short (%.2fs), ignoring.", duration))
+        ui.updateStatus("idle", "Ready")
+    else
+        M.isProcessing = true
+        log.i("Stopping recording and starting transcription")
+        ui.updateStatus("processing", "Processing...")
+    end
     
     audio.stopRecording(function(filePath, err)
+        -- Reset start time on every stop
+        M.recordingStartTime = nil
+
+        -- Watchdog: falls innerhalb von 35s kein Ergebnis zurückkommt, brechen wir sauber ab
+        local timeoutTimer
+        if not isShortTap then
+            timeoutTimer = hs.timer.doAfter(35, function()
+                if M.isProcessing then
+                    M.isProcessing = false
+                    log.e("Transcription timeout after 35 seconds")
+                    ui.updateStatus("idle", "Timeout")
+                    ui.showError("Transcription timeout: no response from API")
+                end
+            end)
+        end
         -- Watchdog: falls innerhalb von 35s kein Ergebnis zurückkommt, brechen wir sauber ab
         local timeoutTimer = hs.timer.doAfter(35, function()
             if M.isProcessing then
@@ -180,18 +211,29 @@ function M.stopAndTranscribe()
         end)
 
         if err then
-            M.isProcessing = false
-            log.e("Recording error: " .. err)
-            ui.showError("Recording Error: " .. err)
-            if timeoutTimer then timeoutTimer:stop() end
+            if not isShortTap then
+                M.isProcessing = false
+                log.e("Recording error: " .. err)
+                ui.showError("Recording Error: " .. err)
+                if timeoutTimer then timeoutTimer:stop() end
+            end
             return
         end
         
         if not filePath then
-            M.isProcessing = false
-            log.e("No audio file generated")
-            ui.showError("No audio file generated")
-            if timeoutTimer then timeoutTimer:stop() end
+            if not isShortTap then
+                M.isProcessing = false
+                log.e("No audio file generated")
+                ui.showError("No audio file generated")
+                if timeoutTimer then timeoutTimer:stop() end
+            end
+            return
+        end
+
+        -- For short taps: just clean up the file and return without API call or rate limiting
+        if isShortTap then
+            log.d("Short tap: deleting temp audio file and skipping transcription")
+            os.remove(filePath)
             return
         end
 
