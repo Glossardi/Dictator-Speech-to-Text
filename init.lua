@@ -16,6 +16,7 @@ M.lastActionTime = 0  -- Track last action for debouncing
 M.DEBOUNCE_DELAY = 0.5  -- Minimum 500ms between actions
 M.MIN_RECORDING_DURATION = 0.4  -- Minimum duration in seconds to trigger transcription
 M.recordingStartTime = nil
+M.lastTranscription = nil  -- Store last successful transcription text
 
 -- Initialize rate limiter
 rateLimiter.init()
@@ -40,6 +41,14 @@ local function buildMenu()
         { title = "Status: " .. ui.currentStatus:upper(), disabled = true },
         { title = "-" },
         { title = "Start/Stop Recording", fn = function() M.toggleRecording() end },
+        { title = "Copy Last Transcription", disabled = (M.lastTranscription == nil), fn = function()
+            if M.lastTranscription then
+                hs.pasteboard.setContents(M.lastTranscription)
+                hs.alert.show("Last transcription copied to clipboard")
+            else
+                hs.alert.show("No transcription available yet")
+            end
+        end },
         { title = "-" },
         { title = "Settings", disabled = true },
         { title = "  API Key: " .. apiKeyDisplay, fn = function() 
@@ -269,6 +278,9 @@ function M.stopAndTranscribe()
                 -- Copy to clipboard
                 hs.pasteboard.setContents(text)
                 log.d("Text copied to clipboard: " .. string.sub(text, 1, 50) .. "...")
+                -- Store last transcription for later retrieval via menu
+                M.lastTranscription = text
+                ui.setMenu(buildMenu())
                 
                 if config.getAutoPaste() then
                     -- Paste text with a slight delay to ensure focus
