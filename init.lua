@@ -209,15 +209,6 @@ function M.stopAndTranscribe()
                 end
             end)
         end
-        -- Watchdog: falls innerhalb von 35s kein Ergebnis zurückkommt, brechen wir sauber ab
-        local timeoutTimer = hs.timer.doAfter(35, function()
-            if M.isProcessing then
-                M.isProcessing = false
-                log.e("Transcription timeout after 35 seconds")
-                ui.updateStatus("idle", "Timeout")
-                ui.showError("Transcription timeout: no response from API")
-            end
-        end)
 
         if err then
             if not isShortTap then

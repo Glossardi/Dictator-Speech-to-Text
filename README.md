@@ -22,7 +22,7 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 - **🔄 Auto-Retry**: Exponential backoff with automatic retry on API errors (429, 5xx)
 - **⚡ Debouncing**: Prevents accidental double-triggers from rapid hotkey presses
 - **✅ Input Validation**: Validates API keys, audio file size (<25MB), and configuration
-- **🚀 Performance Optimized**: 
+- **🚀 Performance Optimized**:
   - FLAC compression reduces file sizes by ~50% (faster uploads)
   - Optimized curl flags for maximum transfer speed
   - Lossless quality for perfect transcription accuracy
@@ -160,6 +160,27 @@ Access all settings via the menubar icon:
 4. Text is copied to clipboard (notification appears)
 5. Press `Cmd+V` to paste manually
 
+> **Note:** Regardless of auto-paste, the last successful transcription is **always** copied to the clipboard. If auto-paste fails (e.g. focus changed), you can still paste manually with `Cmd+V`.
+
+### Short Tap Behaviour
+
+- Very short hotkey taps (shorter than ~0.4 seconds) are **ignored on purpose**:
+  - Recording starts and stops, but **no API call** is made
+  - No rate-limit token is consumed
+  - The temporary audio file is deleted
+- This prevents accidental triggers when you just "tap" the hotkey.
+
+### Copy Last Transcription (Menubar)
+
+- The menubar menu contains an extra entry: **Copy Last Transcription**
+- After each successful transcription:
+  - The text is stored internally as the "last transcription"
+  - The menu entry becomes enabled
+- Clicking **Copy Last Transcription**:
+  - Copies the last transcription text back to the clipboard
+  - Shows a small confirmation toast
+- This is useful if you missed the auto-paste or switched windows too quickly.
+
 ---
 
 ## 🏗️ Project Structure
@@ -200,7 +221,7 @@ Dictator/
   - 429 (Rate Limit): Respects `Retry-After` header
   - 5xx (Server Errors): Automatic retry with backoff
   - Network Errors: Connection issues handled gracefully
-- **Max Retries**: Up to 5 attempts with increasing delays (1s → 60s)
+- **Max Retries**: Up to 3 attempts with increasing delays
 - **Jitter**: Random delay added to prevent thundering herd
 
 ### Input Validation
@@ -305,6 +326,8 @@ Dictator/
 4. Recording format: FLAC at 16kHz mono is optimized for speech (lossless, 50% smaller than WAV)
 5. Hold hotkey for at least 1-2 seconds to capture audio
 6. Check Console for SoX errors: `SoX Error: <message>`
+
+> **Tip:** If you only tap the hotkey very briefly (<0.4s), Dictator will intentionally ignore the recording to avoid accidental API calls. Hold the key slightly longer for a real dictation.
 
 ---
 
