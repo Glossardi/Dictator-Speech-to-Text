@@ -136,16 +136,13 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
 
     -- Use -w flag to get HTTP status code separately from body
     -- Use proper @ syntax for file upload, let curl auto-generate Content-Type
-    -- Performance and robustness flags:
+    -- Robustness flags only (no low-level TCP tuning which caused timeouts on some networks):
     --   --compressed: Enable HTTP compression
-    --   --tcp-nodelay: Disable Nagle's algorithm for faster small packet transfers
-    --   --tcp-fastopen: Send data in SYN packet (requires kernel support)
-    --   --keepalive-time 60: Keep connections alive for reuse
-    --   --connect-timeout 10 / --max-time 30: Ensure we never hang forever
+    --   --connect-timeout 10 / --max-time 60: Ensure we never hang forever
     local command = string.format(
         '/usr/bin/curl -s -w "\\nHTTP_STATUS:%%{http_code}" ' ..
-        '--compressed --tcp-nodelay --tcp-fastopen --keepalive-time 60 ' ..
-        '--connect-timeout 10 --max-time 30 ' ..
+        '--compressed ' ..
+        '--connect-timeout 10 --max-time 60 ' ..
         '%s ' ..
         '-H %s ' ..
         '-F %s ' ..
