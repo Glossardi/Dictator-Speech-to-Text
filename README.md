@@ -43,7 +43,6 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 ### Network Transfer
 
 - **HTTP compression** enabled (`--compressed`)
-- **TCP optimizations**: No-delay flag for faster packet delivery
 - **Proper multipart encoding**: Prevents parsing errors
 - **Smart error detection**: Specific handling for SSL, network, and parsing issues
 
@@ -62,7 +61,7 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 - **macOS** (tested on macOS Sonoma+)
 - **Hammerspoon** – Automation framework for macOS
   ```bash
-  brew install hammerspoon
+  brew install --cask hammerspoon
   ```
 - **SoX** – Audio recording utility
   ```bash
@@ -307,7 +306,7 @@ Dictator/
 2. Verify API key is correct (must start with `sk-`)
 3. Check OpenAI API quota/billing
 4. **Rate Limit**: Wait if you see "Rate limit reached" message
-5. **File Size**: Recording must be under 25MB (rarely an issue with MP3 compression)
+5. **File Size**: Recording must be under 25MB (rarely an issue with FLAC at 16kHz mono)
 6. Check internet connection
 7. API retries automatically (up to 3 attempts with exponential backoff)
 
@@ -370,35 +369,6 @@ Access the **Hammerspoon Console** (menubar → Console) to view detailed logs:
 
 **Useful Console Commands**:
 
-````lua
--- Check Fn watcher status
-print(fnWatcher and "Fn watcher exists" or "Fn watcher is nil")
-
--- Check auto-paste setting
-print(config.getAutoPaste() and "Auto-Paste ON" or "Auto-Paste OFF")
-
--- Check use Fn key setting
-print(config.getUseFnKey() and "Use Fn Key ON" or "Use Fn Key OFF")
-, rate limiting)
-- **State management**: Persistent settings via `hs.settings`
-- **Error handling**: Comprehensive logging and graceful degradation
-- **Event-driven**: Hotkey bindings and UI callbacks
-- **Secure by Design**: API key validation, input sanitization, rate limiting
-- **Retry Logic**: Exponential backoff with jitter for transient failures
-- **Debouncing**: Prevents rapid-fire operations
-
-### Best Practices Implemented
-- **DRY**: Reusable modules for each concern
-- **KISS**: Simple, clear interfaces
-- **LEAN**: Minimal dependencies, efficient resource usage
-- **Secure**: No hardcoded secrets, validates all inputs
-- **Robust**: Handles edge cases, network failures, rate limit
-
--- View current processing state
-print("Processing: " .. tostring(M.isProcessing)
-- Error messages
-
-**Useful Console Commands**:
 ```lua
 -- Check Fn watcher status
 print(fnWatcher and "Fn watcher exists" or "Fn watcher is nil")
@@ -408,7 +378,10 @@ print(config.getAutoPaste() and "Auto-Paste ON" or "Auto-Paste OFF")
 
 -- Check use Fn key setting
 print(config.getUseFnKey() and "Use Fn Key ON" or "Use Fn Key OFF")
-````
+
+-- View current processing state (from init.lua)
+print("Processing: " .. tostring(M.isProcessing))
+```
 
 ---
 
