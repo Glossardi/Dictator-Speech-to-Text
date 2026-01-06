@@ -284,28 +284,37 @@ function M.stopAndTranscribe()
         log.i("Sending audio to Whisper API")
         api.transcribe(filePath, function(text, apiErr)
             if timeoutTimer then timeoutTimer:stop() end
-            M.isProcessing = false  -- Reset processing flag
             
             -- Cleanup temp file
             os.remove(filePath)
 
             if apiErr then
+                M.isProcessing = false  -- Reset processing flag
                 log.e("API error: " .. apiErr)
                 ui.showError("API Error: " .. apiErr)
                 return
             end
 
-            if text then
-                log.i("Transcription successful (" .. #text .. " characters)")
+            if not text or text == "" then
+                M.isProcessing = false  -- Reset processing flag
+                log.e("No text returned from API")
+                ui.showError("No text returned")
+                return
+            end
+
+            local function finalize(finalText)
+                M.isProcessing = false
+                log.i("Transcription successful (" .. #finalText .. " characters)")
                 ui.updateStatus("idle", "Ready")
-                
+
                 -- Copy to clipboard
-                hs.pasteboard.setContents(text)
-                log.d("Text copied to clipboard: " .. string.sub(text, 1, 50) .. "...")
+                hs.pasteboard.setContents(finalText)
+                log.d("Text copied to clipboard: " .. string.sub(finalText, 1, 50) .. "...")
+
                 -- Store last transcription for later retrieval via menu
-                M.lastTranscription = text
+                M.lastTranscription = finalText
                 ui.setMenu(buildMenu())
-                
+
                 if config.getAutoPaste() then
                     -- Paste text with a slight delay to ensure focus
                     hs.timer.doAfter(0.3, function()
@@ -316,9 +325,21 @@ function M.stopAndTranscribe()
                 else
                     ui.showNotification("Transcribed (Copied to Clipboard)")
                 end
+            end
+
+            if config.getCorrectionEnabled() then
+                log.i("AI correction enabled - correcting text")
+                ui.updateStatus("processing_ai", "Processing AI...")
+                api.correctText(text, function(correctedText, correctionErr)
+                    if correctionErr or type(correctedText) ~= "string" or correctedText == "" then
+                        log.w("AI correction failed, falling back to raw transcription: " .. tostring(correctionErr))
+                        finalize(text)
+                    else
+                        finalize(correctedText)
+                    end
+                end)
             else
-                log.e("No text returned from API")
-                ui.showError("No text returned")
+                finalize(text)
             end
         end)
     end)
