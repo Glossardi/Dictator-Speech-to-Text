@@ -105,6 +105,135 @@ function M.transcribe(audioFilePath, callback)
     M.transcribeWithRetry(audioFilePath, apiKey, 0, callback)
 end
 
+-- Correct transcribed text using Chat Completions (optional post-processing)
+function M.correctText(text, callback)
+    local apiKey = config.getApiKey()
+
+    local valid, err = M.validateApiKey(apiKey)
+    if not valid then
+        print("ERROR: " .. err)
+        if callback then callback(nil, err) end
+        return
+    end
+
+    if type(text) ~= "string" or text == "" then
+        if callback then callback(nil, "No text to correct") end
+        return
+    end
+
+    M.correctTextWithRetry(text, apiKey, 0, callback)
+end
+
+function M.correctTextWithRetry(text, apiKey, attemptNumber, callback)
+    if attemptNumber >= M.MAX_RETRIES then
+        local errorMsg = string.format("Max retries (%d) exceeded", M.MAX_RETRIES)
+        print("ERROR: " .. errorMsg)
+        if callback then callback(nil, errorMsg) end
+        return
+    end
+
+    local url = "https://api.openai.com/v1/chat/completions"
+    local model = config.getCorrectionModel()
+    local systemPrompt = config.getCorrectionSystemPrompt()
+
+    local payload = {
+        model = model,
+        messages = {
+            { role = "system", content = systemPrompt },
+            { role = "user", content = text }
+        },
+        temperature = 0.3
+    }
+
+    local jsonBody = hs.json.encode(payload)
+
+    local args = {
+        "-s",
+        "-w", "\\nHTTP_STATUS:%{http_code}",
+        "--compressed",
+        "--connect-timeout", "10",
+        "--max-time", "30",
+        "-H", "Authorization: Bearer " .. apiKey,
+        "-H", "Content-Type: application/json",
+        "-d", jsonBody,
+        url
+    }
+
+    local attemptLog = attemptNumber > 0 and string.format(" (attempt %d/%d)", attemptNumber + 1, M.MAX_RETRIES) or ""
+    print("Executing correction request" .. attemptLog .. "...")
+    print("Model: " .. tostring(model))
+
+    hs.task.new("/usr/bin/curl", function(exitCode, stdOut, stdErr)
+        if exitCode == 0 then
+            local statusMatch = stdOut:match("\\nHTTP_STATUS:(%d+)$")
+            local statusCode = statusMatch and tonumber(statusMatch) or nil
+            local body = stdOut:gsub("\\nHTTP_STATUS:%d+$", "")
+
+            if statusCode == 429 then
+                local delay = M.calculateRetryDelay(attemptNumber, nil)
+                print(string.format("Rate limit hit (429). Retrying in %.1f seconds...", delay))
+                hs.timer.doAfter(delay, function()
+                    M.correctTextWithRetry(text, apiKey, attemptNumber + 1, callback)
+                end)
+                return
+            end
+
+            if statusCode and statusCode >= 500 and statusCode < 600 then
+                local delay = M.calculateRetryDelay(attemptNumber, nil)
+                print(string.format("Server error (%d). Retrying in %.1f seconds...", statusCode, delay))
+                hs.timer.doAfter(delay, function()
+                    M.correctTextWithRetry(text, apiKey, attemptNumber + 1, callback)
+                end)
+                return
+            end
+
+            if not body or #body == 0 then
+                if callback then callback(nil, "Empty response from correction API") end
+                return
+            end
+
+            local success, response = pcall(hs.json.decode, body)
+            if not success then
+                if callback then callback(nil, "Invalid JSON response from correction API") end
+                return
+            end
+
+            if response and response.error then
+                local errorMsg = response.error.message or "Unknown API error"
+                if callback then callback(nil, "API Error: " .. errorMsg) end
+                return
+            end
+
+            local content = nil
+            if response and response.choices and response.choices[1] and response.choices[1].message then
+                content = response.choices[1].message.content
+            end
+
+            if type(content) == "string" and content ~= "" then
+                -- Trim outer whitespace without touching internal formatting
+                content = content:gsub("^%s+", ""):gsub("%s+$", "")
+                if callback then callback(content, nil) end
+            else
+                if callback then callback(nil, "Unknown correction response format") end
+            end
+        else
+            if stdErr and #stdErr > 0 then
+                print("ERROR: Curl correction request failed: " .. stdErr)
+            end
+
+            if attemptNumber < M.MAX_RETRIES - 1 then
+                local delay = M.calculateRetryDelay(attemptNumber, nil)
+                print(string.format("Correction network error. Retrying in %.1f seconds...", delay))
+                hs.timer.doAfter(delay, function()
+                    M.correctTextWithRetry(text, apiKey, attemptNumber + 1, callback)
+                end)
+            else
+                if callback then callback(nil, "Correction network error after " .. M.MAX_RETRIES .. " attempts") end
+            end
+        end
+    end, args):start()
+end
+
 -- Internal function to handle retries
 function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
     if attemptNumber >= M.MAX_RETRIES then
