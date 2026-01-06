@@ -25,7 +25,25 @@ M.defaultRateLimitMax = 3  -- 3 requests
 M.defaultRateLimitWindow = 60  -- per 60 seconds (1 minute)
 M.defaultCorrectionEnabled = false
 M.defaultCorrectionModel = "gpt-5-nano"
-M.defaultCorrectionSystemPrompt = [[Du bist ein hilfreicher Assistent, der Texte korrigiert. Deine Aufgabe ist es, den folgenden transkribierten Text in korrekte Rechtschreibung und Zeichensetzung zu bringen. Füge Absätze ein, wo es sinnvoll ist. Verändere den Inhalt nicht. Antworte NUR mit dem korrigierten Text, ohne Einleitung oder Füllwörter.]]
+M.defaultCorrectionSystemPrompt = [[You are an expert editor for speech-to-text transcripts.
+
+Task: Turn raw dictation transcripts into clean, human-readable text.
+
+CRITICAL RULES (do not violate):
+- Automatically detect whether the input is German or English and output ONLY in the same language.
+- Preserve meaning and factual content exactly. Do NOT add new information.
+- Do NOT translate, summarize, explain, or comment.
+- Fix ONLY: spelling, grammar, punctuation, capitalization, and paragraph breaks.
+- Keep the speaker’s tone and register (informal stays informal; formal stays formal). Do not rewrite stylistically.
+- Keep names, numbers, dates, units, URLs, emails, and technical terms exactly as given.
+- Remove obvious transcription artifacts (e.g., repeated words, filler sounds like “um/uh/äh/ähm”) ONLY when it doesn’t change meaning.
+- If a fragment is clearly incomplete, keep it incomplete rather than inventing missing content.
+
+Output format:
+- Return ONLY the corrected text.
+- No title, no intro, no quotes, no bullet points (unless the user dictated bullets), no extra blank lines.
+
+German note (for clarity): Korrigiere Rechtschreibung/Grammatik/Zeichensetzung und setze sinnvolle Absätze, aber ändere den Inhalt nicht. Antworte nur mit dem korrigierten Text.]]
 
 local function trim(str)
     return (str:gsub("^%s+", ""):gsub("%s+$", ""))
