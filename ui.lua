@@ -2,13 +2,14 @@ local M = {}
 local config = require("config")
 
 M.menubarItem = nil
-M.currentStatus = "idle" -- idle, recording, processing, error
+M.currentStatus = "idle" -- idle, recording, processing, processing_ai, error
 
 -- Simple ASCII icons or text for now. Can be replaced with images.
 M.icons = {
     idle = "🎙️",
     recording = "🔴",
     processing = "⏳",
+    processing_ai = "🤖",
     error = "⚠️"
 }
 

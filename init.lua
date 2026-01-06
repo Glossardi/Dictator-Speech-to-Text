@@ -36,6 +36,8 @@ local function buildMenu()
     local lang = config.getLanguage()
     local autoPaste = config.getAutoPaste()
     local useFnKey = config.getUseFnKey()
+    local correctionEnabled = config.getCorrectionEnabled()
+    local correctionModel = config.getCorrectionModel()
 
     return {
         { title = "Status: " .. ui.currentStatus:upper(), disabled = true },
@@ -71,6 +73,37 @@ local function buildMenu()
             config.setAutoPaste(not autoPaste)
             ui.setMenu(buildMenu())
         end },
+        { title = "  Enable AI Correction", checked = correctionEnabled, fn = function()
+            config.setCorrectionEnabled(not correctionEnabled)
+            ui.setMenu(buildMenu())
+        end },
+        { title = "  Correction Settings", disabled = (not correctionEnabled), menu = {
+            { title = "Set Model... (" .. correctionModel .. ")", fn = function()
+                local button, text = hs.dialog.textPrompt("Correction Model", "Enter model id (e.g. 'gpt-5-nano'):", correctionModel, "OK", "Cancel")
+                if button == "OK" then
+                    local ok = config.setCorrectionModel(text)
+                    if ok then
+                        hs.alert.show("Correction model saved")
+                        ui.setMenu(buildMenu())
+                    else
+                        hs.alert.show("Invalid model id")
+                    end
+                end
+            end },
+            { title = "Set System Prompt...", fn = function()
+                local current = config.getCorrectionSystemPrompt()
+                local button, text = hs.dialog.textPrompt("Correction System Prompt", "Enter system prompt for correction:", current, "OK", "Cancel")
+                if button == "OK" then
+                    local ok = config.setCorrectionSystemPrompt(text)
+                    if ok then
+                        hs.alert.show("System prompt saved")
+                        ui.setMenu(buildMenu())
+                    else
+                        hs.alert.show("Invalid prompt")
+                    end
+                end
+            end }
+        } },
         { title = "  Use Fn Key (Hold)", checked = useFnKey, fn = function()
             config.setUseFnKey(not useFnKey)
             M.bindHotkey() -- Rebind
