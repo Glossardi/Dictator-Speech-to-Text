@@ -94,7 +94,11 @@ git clone https://github.com/Glossardi/Dictator.git ~/Documents/Dictator
 cd ~/Documents/Dictator
 
 # 3. Copy files to Hammerspoon
-cp *.lua ~/.hammerspoon/
+# Create the Hammerspoon config directory (if needed) and copy the Lua files from this repo:
+mkdir -p ~/.hammerspoon && cp -v ~/Documents/Dictator/*.lua ~/.hammerspoon/
+
+# Optional: make a quick backup of existing Hammerspoon scripts before overwriting
+# mkdir -p ~/.hammerspoon_backup && cp -v ~/.hammerspoon/*.lua ~/.hammerspoon_backup/
 
 # 4. Grant permissions
 # System Settings → Privacy & Security → Accessibility → Enable Hammerspoon
