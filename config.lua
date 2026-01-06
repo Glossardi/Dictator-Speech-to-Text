@@ -11,6 +11,9 @@ M.USE_FN_KEY_KEY = M.BUNDLE_ID .. ".useFnKey"
 M.LANGUAGE_KEY = M.BUNDLE_ID .. ".language"
 M.RATE_LIMIT_MAX_KEY = M.BUNDLE_ID .. ".rateLimitMax"
 M.RATE_LIMIT_WINDOW_KEY = M.BUNDLE_ID .. ".rateLimitWindow"
+M.CORRECTION_ENABLED_KEY = M.BUNDLE_ID .. ".correctionEnabled"
+M.CORRECTION_MODEL_KEY = M.BUNDLE_ID .. ".correctionModel"
+M.CORRECTION_SYSTEM_PROMPT_KEY = M.BUNDLE_ID .. ".correctionSystemPrompt"
 
 -- Defaults
 M.defaultHotkeyMods = {"cmd", "alt"}
@@ -20,6 +23,32 @@ M.defaultAutoPaste = true
 M.defaultLanguage = "auto"
 M.defaultRateLimitMax = 3  -- 3 requests
 M.defaultRateLimitWindow = 60  -- per 60 seconds (1 minute)
+M.defaultCorrectionEnabled = false
+M.defaultCorrectionModel = "gpt-5-nano"
+M.defaultCorrectionSystemPrompt = [[Du bist ein hilfreicher Assistent, der Texte korrigiert. Deine Aufgabe ist es, den folgenden transkribierten Text in korrekte Rechtschreibung und Zeichensetzung zu bringen. Füge Absätze ein, wo es sinnvoll ist. Verändere den Inhalt nicht. Antworte NUR mit dem korrigierten Text, ohne Einleitung oder Füllwörter.]]
+
+local function trim(str)
+    return (str:gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
+local function sanitizeModel(model)
+    if type(model) ~= "string" then return nil end
+    model = trim(model)
+    if model == "" then return nil end
+    if #model > 128 then return nil end
+    -- Allow common OpenAI model id characters
+    if not model:match("^[%w%._:%-]+$") then return nil end
+    return model
+end
+
+local function sanitizePrompt(prompt)
+    if type(prompt) ~= "string" then return nil end
+    prompt = trim(prompt)
+    if prompt == "" then return nil end
+    -- Keep prompts reasonably sized for hs.settings
+    if #prompt > 8000 then return nil end
+    return prompt
+end
 
 function M.getApiKey()
     return settings.get(M.API_KEY_KEY)
@@ -82,6 +111,42 @@ end
 
 function M.setRateLimitWindow(window)
     settings.set(M.RATE_LIMIT_WINDOW_KEY, window)
+end
+
+function M.getCorrectionEnabled()
+    local val = settings.get(M.CORRECTION_ENABLED_KEY)
+    if val == nil then return M.defaultCorrectionEnabled end
+    return val and true or false
+end
+
+function M.setCorrectionEnabled(val)
+    settings.set(M.CORRECTION_ENABLED_KEY, val and true or false)
+end
+
+function M.getCorrectionModel()
+    local model = settings.get(M.CORRECTION_MODEL_KEY)
+    model = sanitizeModel(model) or M.defaultCorrectionModel
+    return model
+end
+
+function M.setCorrectionModel(model)
+    local sanitized = sanitizeModel(model)
+    if not sanitized then return false end
+    settings.set(M.CORRECTION_MODEL_KEY, sanitized)
+    return true
+end
+
+function M.getCorrectionSystemPrompt()
+    local prompt = settings.get(M.CORRECTION_SYSTEM_PROMPT_KEY)
+    prompt = sanitizePrompt(prompt) or M.defaultCorrectionSystemPrompt
+    return prompt
+end
+
+function M.setCorrectionSystemPrompt(prompt)
+    local sanitized = sanitizePrompt(prompt)
+    if not sanitized then return false end
+    settings.set(M.CORRECTION_SYSTEM_PROMPT_KEY, sanitized)
+    return true
 end
 
 return M
