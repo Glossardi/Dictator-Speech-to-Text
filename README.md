@@ -15,9 +15,10 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 
 - **🎙️ Hold-to-Record**: Press and hold `Fn` key (or custom hotkey) to record audio
 - **🤖 OpenAI Whisper**: Accurate transcription via OpenAI's Whisper API
+- **✨ AI Correction (Optional)**: Post-process transcription with a fast LLM (default: `gpt-5-nano`) for punctuation/grammar/paragraphs
 - **📋 Auto-Paste**: Automatically paste transcribed text (toggle on/off)
 - **⚙️ Configurable**: Set API key, custom hotkeys, language, and auto-paste behavior
-- **🎯 Minimal UI**: Clean menubar icon showing current status (🎙️ Idle, 🔴 Recording, ⏳ Processing)
+- **🎯 Minimal UI**: Clean menubar icon showing current status (🎙️ Idle, 🔴 Recording, ⏳ Processing, 🤖 AI)
 - **🌍 Multi-language**: Support for multiple languages via Whisper API
 - **🛡️ Rate Limiting**: Built-in rate limiter prevents exceeding API limits (3 requests/minute default)
 - **🔄 Auto-Retry**: Exponential backoff with automatic retry on API errors (429, 5xx)
@@ -123,8 +124,20 @@ Access all settings via the menubar icon:
 - **API Key**: Set your OpenAI API key
 - **Language**: Set transcription language (`auto`, `en`, `de`, etc.)
 - **Auto-Paste**: Toggle automatic text pasting
+- **Enable AI Correction**: Toggle post-processing of the transcription (default: OFF to avoid extra cost)
+- **Correction Settings**: Configure model + system prompt (only enabled when AI correction is ON)
 - **Use Fn Key (Hold)**: Toggle Fn key as recording hotkey
 - **Set Custom Hotkey**: Configure alternative hotkey (when Fn key is disabled)
+
+### AI Correction (Optional)
+
+When enabled, Dictator will run an extra step after Whisper:
+
+1. Whisper returns the raw transcription
+2. A Chat Completions call corrects punctuation/grammar and adds paragraphs
+3. The corrected text is pasted/copied
+
+**Fail-open behavior:** If the correction call fails (network, API error, rate limit), Dictator will still paste/copy the original Whisper text so you never lose data.
 
 ### Hotkey Options
 
