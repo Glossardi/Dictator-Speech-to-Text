@@ -1,3 +1,7 @@
+-- api.lua
+-- OpenAI API integration for Whisper transcription and AI correction
+-- Handles retries, error handling, and model compatibility (temperature auto-retry)
+
 local M = {}
 local config = require("config")
 local utils = require("utils")
@@ -121,10 +125,11 @@ function M.correctText(text, callback)
         return
     end
 
-    M.correctTextWithRetry(text, apiKey, 0, callback)
+    -- includeTemperature=true by default; some models reject non-default temperatures
+    M.correctTextWithRetry(text, apiKey, 0, callback, true)
 end
 
-function M.correctTextWithRetry(text, apiKey, attemptNumber, callback)
+function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTemperature)
     if attemptNumber >= M.MAX_RETRIES then
         local errorMsg = string.format("Max retries (%d) exceeded", M.MAX_RETRIES)
         print("ERROR: " .. errorMsg)
@@ -132,18 +137,33 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback)
         return
     end
 
+    if includeTemperature == nil then includeTemperature = true end
+
     local url = "https://api.openai.com/v1/chat/completions"
     local model = config.getCorrectionModel()
     local systemPrompt = config.getCorrectionSystemPrompt()
+
+    -- Debug visibility: confirm which prompt is actually used at runtime.
+    -- (Avoid logging user text; only log prompt metadata + a short preview.)
+    local promptLen = type(systemPrompt) == "string" and #systemPrompt or 0
+    local promptPreview = ""
+    if type(systemPrompt) == "string" and systemPrompt ~= "" then
+        promptPreview = systemPrompt:gsub("%s+", " "):sub(1, 160)
+    end
 
     local payload = {
         model = model,
         messages = {
             { role = "system", content = systemPrompt },
             { role = "user", content = text }
-        },
-        temperature = 0.3
+        }
     }
+
+    -- Preferred temperature for correction when supported by the model.
+    -- Some models only support the default temperature; in that case we omit it.
+    if includeTemperature then
+        payload.temperature = 0.5
+    end
 
     local jsonBody = hs.json.encode(payload)
 
@@ -152,7 +172,7 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback)
         "-w", "\\nHTTP_STATUS:%{http_code}",
         "--compressed",
         "--connect-timeout", "10",
-        "--max-time", "30",
+        "--max-time", "15",  -- Timeout reduced for faster fail-open
         "-H", "Authorization: Bearer " .. apiKey,
         "-H", "Content-Type: application/json",
         "-d", jsonBody,
@@ -162,12 +182,24 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback)
     local attemptLog = attemptNumber > 0 and string.format(" (attempt %d/%d)", attemptNumber + 1, M.MAX_RETRIES) or ""
     print("Executing correction request" .. attemptLog .. "...")
     print("Model: " .. tostring(model))
+    print(string.format("System prompt: %d chars", promptLen))
+    if promptPreview ~= "" then
+        local suffix = (promptLen > 160) and "..." or ""
+        print("System prompt preview: " .. promptPreview .. suffix)
+    end
+
+    local requestStart = hs.timer.secondsSinceEpoch()
 
     hs.task.new("/usr/bin/curl", function(exitCode, stdOut, stdErr)
+        local elapsed = hs.timer.secondsSinceEpoch() - requestStart
         if exitCode == 0 then
-            local statusMatch = stdOut:match("\\nHTTP_STATUS:(%d+)$")
+            -- curl appends our status trailer after a real newline. Normalize CRLF just in case.
+            local normalized = (stdOut or ""):gsub("\r\n", "\n")
+            local statusMatch = normalized:match("\nHTTP_STATUS:(%d+)%s*$")
             local statusCode = statusMatch and tonumber(statusMatch) or nil
-            local body = stdOut:gsub("\\nHTTP_STATUS:%d+$", "")
+            local body = normalized:gsub("\nHTTP_STATUS:%d+%s*$", "")
+
+            print(string.format("Correction response received (http=%s) in %.2fs", tostring(statusCode), elapsed))
 
             if statusCode == 429 then
                 local delay = M.calculateRetryDelay(attemptNumber, nil)
@@ -200,6 +232,19 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback)
 
             if response and response.error then
                 local errorMsg = response.error.message or "Unknown API error"
+                print(string.format("Correction API error (http=%s) after %.2fs: %s", tostring(statusCode), elapsed, tostring(errorMsg)))
+
+                -- Professional robustness: some models reject non-default temperatures.
+                -- If we see that specific class of error, retry once without temperature.
+                if statusCode == 400 and includeTemperature and type(errorMsg) == "string" then
+                    local lower = errorMsg:lower()
+                    if lower:find("temperature", 1, true) and (lower:find("only the default", 1, true) or lower:find("does not support", 1, true) or lower:find("unsupported", 1, true)) then
+                        print("Correction: model does not support temperature parameter; retrying without temperature...")
+                        M.correctTextWithRetry(text, apiKey, attemptNumber, callback, false)
+                        return
+                    end
+                end
+
                 if callback then callback(nil, "API Error: " .. errorMsg) end
                 return
             end
@@ -218,7 +263,9 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback)
             end
         else
             if stdErr and #stdErr > 0 then
-                print("ERROR: Curl correction request failed: " .. stdErr)
+                print(string.format("ERROR: Curl correction request failed after %.2fs: %s", elapsed, stdErr))
+            else
+                print(string.format("ERROR: Curl correction request failed after %.2fs (exitCode=%s)", elapsed, tostring(exitCode)))
             end
 
             if attemptNumber < M.MAX_RETRIES - 1 then
@@ -283,7 +330,9 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
     print("Executing API request" .. attemptLog .. "...")
     print("Audio file: " .. audioFilePath)
     print("File size: " .. string.format("%.2f KB", (utils.get_file_size(audioFilePath) or 0) / 1024))
-    print("Command: " .. command)
+    -- Never log secrets (API key) to console
+    local redactedCommand = command:gsub("Authorization: Bearer [^']+", "Authorization: Bearer <redacted>")
+    print("Command: " .. redactedCommand)
     
     hs.task.new("/bin/sh", function(exitCode, stdOut, stdErr)
         print("API Response received. Exit code: " .. exitCode)

@@ -1,3 +1,7 @@
+-- config.lua
+-- Configuration management and persistent settings via hs.settings
+-- Handles API keys, hotkeys, correction settings, and user preferences
+
 local M = {}
 local settings = hs.settings
 
@@ -24,12 +28,8 @@ M.defaultLanguage = "auto"
 M.defaultRateLimitMax = 3  -- 3 requests
 M.defaultRateLimitWindow = 60  -- per 60 seconds (1 minute)
 M.defaultCorrectionEnabled = false
-M.defaultCorrectionModel = "gpt-5-nano"
-M.defaultCorrectionSystemPrompt = [[Clean up this Whisper transcript.
-
-Rules: Keep the same language (DE/EN) and meaning. Fix spelling/grammar/punctuation/case and add paragraphs when helpful. Do not translate, add, remove, summarize, or comment. Preserve names, numbers, dates, units, URLs, emails, and technical terms.
-
-Output ONLY the corrected text.]]
+M.defaultCorrectionModel = "gpt-4o-mini"  -- Fast, stable, <2s typical latency
+M.defaultCorrectionSystemPrompt = [[Correct spelling, punctuation, and grammar. Remove filler words, stutters, and resolve self-corrections (keep the final intended meaning). Strictly maintain the original language(s). Apply logical formatting and paragraphs based on the text's semantic structure (e.g., email layout, lists, code blocks, or standard prose). Do not add content or summarize. Output ONLY the cleaned text.]]
 
 local function trim(str)
     return (str:gsub("^%s+", ""):gsub("%s+$", ""))

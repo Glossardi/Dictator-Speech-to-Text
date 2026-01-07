@@ -1,3 +1,6 @@
+-- ui.lua
+-- Menubar UI management and status indicators
+
 local M = {}
 local config = require("config")
 

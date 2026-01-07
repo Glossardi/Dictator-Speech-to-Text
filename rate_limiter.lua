@@ -6,6 +6,9 @@ Default: 3 requests per minute (based on OpenAI Whisper API community reports)
 Configurable via settings for flexibility.
 --]]
 
+-- rate_limiter.lua
+-- Token bucket rate limiter to prevent exceeding OpenAI API rate limits
+
 local M = {}
 local config = require("config")
 

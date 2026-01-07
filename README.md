@@ -15,7 +15,7 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 
 - **🎙️ Hold-to-Record**: Press and hold `Fn` key (or custom hotkey) to record audio
 - **🤖 OpenAI Whisper**: Accurate transcription via OpenAI's Whisper API
-- **✨ AI Correction (Optional)**: Post-process transcription with a fast LLM (default: `gpt-5-nano`) for punctuation/grammar/paragraphs
+- **✨ AI Correction (Optional)**: Post-process transcription with a fast LLM (default: `gpt-4o-mini`) for punctuation/grammar/paragraphs
 - **📋 Auto-Paste**: Automatically paste transcribed text (toggle on/off)
 - **⚙️ Configurable**: Set API key, custom hotkeys, language, and auto-paste behavior
 - **🎯 Minimal UI**: Clean menubar icon showing current status (🎙️ Idle, 🔴 Recording, ⏳ Processing, 🤖 AI)
@@ -28,29 +28,6 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
   - FLAC compression reduces file sizes by ~50% (faster uploads)
   - Optimized curl flags for maximum transfer speed
   - Lossless quality for perfect transcription accuracy
-
----
-
-## ⚡ Performance Optimizations
-
-### Audio Format
-
-- **FLAC compression** with 16kHz mono (lossless)
-- **~50% file size reduction** vs WAV (e.g., 2 sec: 125KB → 59KB)
-- **Lossless quality**: Perfect for speech transcription, no quality loss
-- **Native SoX support**: Reliable recording without extra dependencies
-
-### Network Transfer
-
-- **HTTP compression** enabled (`--compressed`)
-- **Proper multipart encoding**: Prevents parsing errors
-- **Smart error detection**: Specific handling for SSL, network, and parsing issues
-
-### Processing
-
-- **Shell escaping**: Secure, reliable handling of special characters
-- **Detailed logging**: File sizes, commands, and timing for debugging
-- **Retry intelligence**: Differentiates between retryable and permanent errors
 
 ---
 
@@ -110,11 +87,9 @@ mkdir -p ~/.hammerspoon && cp -v ~/Documents/Dictator/*.lua ~/.hammerspoon/
 
 ## 🚀 Quick Start
 
-1. **Configure API Key**: Dictator menubar icon → Settings → API Key
-   - Get key from: https://platform.openai.com/api-keys
-2. **Test**: Open any text editor, hold `Fn` key, speak, release `Fn`
-3. **Done**: Text appears automatically!
-4. Wait for transcription to appear
+1. **Configure API Key**: Dictator menubar icon → Settings → API Key (get from [OpenAI Platform](https://platform.openai.com/api-keys))
+2. **Test**: Open any text editor, hold `Fn` key, speak, release
+3. Text appears automatically!
 
 ---
 
@@ -141,6 +116,30 @@ When enabled, Dictator will run an extra step after Whisper:
 3. The corrected text is pasted/copied
 
 **Fail-open behavior:** If the correction call fails (network, API error, rate limit), Dictator will still paste/copy the original Whisper text so you never lose data.
+
+#### Verifying your System Prompt is actually used
+
+If you suspect that changing the **Correction System Prompt** in the menubar settings has no effect, you can verify it via the Hammerspoon Console logs.
+
+1. Enable **Enable AI Correction** in the Dictator menubar.
+2. Set **Correction Settings → Set System Prompt...** to your desired prompt.
+3. Trigger a transcription (record > release).
+4. Open **Hammerspoon → Console** and look for the correction request logs:
+
+- `Executing correction request...`
+- `System prompt: <N> chars`
+- `System prompt preview: ...`
+- `Correction response received (http=<status>) in <seconds>s`
+
+If you see these lines, the system prompt is being loaded from `hs.settings` and sent as a `role="system"` message to the Chat Completions endpoint.
+
+**Important:** Because Dictator is fail-open, a fast correction failure (e.g. invalid model, quota, auth issues) will fall back to the raw Whisper transcript, which can look like “correction didn’t run”. In that case, you’ll also see a log line like:
+
+- `Correction API error (http=<status>) ...`
+
+Some models reject non-default sampling parameters (e.g. `temperature`). If that happens, Dictator automatically retries the correction once without `temperature` before falling back.
+
+Fix the underlying API/model issue, then retry.
 
 ### Hotkey Options
 
@@ -177,26 +176,7 @@ When enabled, Dictator will run an extra step after Whisper:
 4. Text is copied to clipboard (notification appears)
 5. Press `Cmd+V` to paste manually
 
-> **Note:** Regardless of auto-paste, the last successful transcription is **always** copied to the clipboard. If auto-paste fails (e.g. focus changed), you can still paste manually with `Cmd+V`.
-
-### Short Tap Behaviour
-
-- Very short hotkey taps (shorter than ~0.4 seconds) are **ignored on purpose**:
-  - Recording starts and stops, but **no API call** is made
-  - No rate-limit token is consumed
-  - The temporary audio file is deleted
-- This prevents accidental triggers when you just "tap" the hotkey.
-
-### Copy Last Transcription (Menubar)
-
-- The menubar menu contains an extra entry: **Copy Last Transcription**
-- After each successful transcription:
-  - The text is stored internally as the "last transcription"
-  - The menu entry becomes enabled
-- Clicking **Copy Last Transcription**:
-  - Copies the last transcription text back to the clipboard
-  - Shows a small confirmation toast
-- This is useful if you missed the auto-paste or switched windows too quickly.
+> **Note:** Text is always copied to clipboard. Very short taps (<0.4s) are ignored to prevent accidental triggers. Use **Copy Last Transcription** from the menubar to retrieve previous results.
 
 ---
 
@@ -213,46 +193,6 @@ Dictator/
 ├── rate_limiter.lua   # Token bucket rate limiter (prevents API abuse)
 └── README.md          # This file
 ```
-
----
-
-## 🔒 Robustness & Security Features
-
-### Rate Limiting
-
-- **Token Bucket Algorithm**: Prevents exceeding OpenAI API rate limits
-- **Default**: 3 requests per 60 seconds (configurable)
-- **Automatic**: Checks rate limit before each API call
-- **User Feedback**: Shows wait time when rate limit is exceeded
-
-### Hotkey Debouncing
-
-- **Prevents Double-Triggers**: 500ms minimum delay between actions
-- **Protects Against**: Accidental double-taps or rapid key presses
-- **Smart State Management**: Only allows one operation at a time
-
-### API Retry Logic
-
-- **Exponential Backoff**: Automatically retries on transient failures
-- **Handles**:
-  - 429 (Rate Limit): Respects `Retry-After` header
-  - 5xx (Server Errors): Automatic retry with backoff
-  - Network Errors: Connection issues handled gracefully
-- **Max Retries**: Up to 3 attempts with increasing delays
-- **Jitter**: Random delay added to prevent thundering herd
-
-### Input Validation
-
-- **API Key**: Validates format (must start with `sk-`, minimum length)
-- **Audio File**: Checks existence and size (<25MB OpenAI limit)
-- **Configuration**: Validates all user inputs before saving
-- **State Guards**: Prevents concurrent operations (recording + processing)
-
-### Structured Logging
-
-- **hs.logger Integration**: Professional logging with levels (debug, info, warning, error)
-- **Console Output**: View detailed logs in Hammerspoon Console
-- **Debugging**: Easy troubleshooting with contextual error messages
 
 ---
 
@@ -351,6 +291,8 @@ Dictator/
 ## 📊 Logging & Debugging
 
 Access the **Hammerspoon Console** (menubar → Console) to view detailed logs:
+
+> **Security note:** Avoid pasting Console logs publicly. Older versions logged the full OpenAI API key in the Whisper curl command; current versions redact it.
 
 **What is logged** (with debounce info):
 

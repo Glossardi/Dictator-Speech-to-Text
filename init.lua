@@ -1,3 +1,8 @@
+-- init.lua
+-- Main entry point for Dictator - Voice-to-Text menubar app
+-- Handles recording lifecycle, menubar UI, hotkey bindings, and orchestrates
+-- the transcription + correction pipeline with fail-open behavior
+
 local M = {}
 local config = require("config")
 local audio = require("audio")
@@ -79,7 +84,7 @@ local function buildMenu()
         end },
         { title = "  Correction Settings", disabled = (not correctionEnabled), menu = {
             { title = "Set Model... (" .. correctionModel .. ")", fn = function()
-                local button, text = hs.dialog.textPrompt("Correction Model", "Enter model id (e.g. 'gpt-5-nano'):", correctionModel, "OK", "Cancel")
+                local button, text = hs.dialog.textPrompt("Correction Model", "Enter model id (e.g. 'gpt-4o-mini', 'gpt-4o'):", correctionModel, "OK", "Cancel")
                 if button == "OK" then
                     local ok = config.setCorrectionModel(text)
                     if ok then

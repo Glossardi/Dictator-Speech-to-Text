@@ -1,3 +1,6 @@
+-- utils.lua
+-- Utility functions for file operations and temp file handling
+
 local M = {}
 
 function M.file_exists(name)

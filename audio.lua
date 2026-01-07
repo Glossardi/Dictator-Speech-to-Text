@@ -1,3 +1,6 @@
+-- audio.lua
+-- Audio recording via SoX (FLAC format, 16kHz mono for optimal Whisper performance)
+
 local M = {}
 local utils = require("utils")
 local config = require("config")
