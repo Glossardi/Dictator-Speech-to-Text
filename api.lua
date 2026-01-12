@@ -299,6 +299,16 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         langArg = string.format("-F language=%s", language)
     end
 
+    -- Retrieve user glossary for Whisper prompt parameter
+    local glossary = config.getGlossary()
+    local glossaryArg = ""
+    if glossary and glossary ~= "" then
+        -- The Whisper API uses the optional 'prompt' parameter to guide transcription
+        -- with technical terms, names, etc. Limited to 224 tokens.
+        -- We need to properly escape for shell.
+        glossaryArg = string.format("-F prompt=%s", shellEscape(glossary))
+    end
+
     -- Properly escape shell arguments using single quotes
     -- For paths and headers, we use single quotes which prevent all shell expansion
     -- We only need to handle single quotes within the strings by escaping them
@@ -322,14 +332,21 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         '%s ' ..
         '-H %s ' ..
         '-F %s ' ..
-        '-F model=whisper-1 %s',
-        url, authHeader, fileArg, langArg
+        '-F model=whisper-1 %s %s',
+        url, authHeader, fileArg, langArg, glossaryArg
     )
 
     local attemptLog = attemptNumber > 0 and string.format(" (attempt %d/%d)", attemptNumber + 1, M.MAX_RETRIES) or ""
     print("Executing API request" .. attemptLog .. "...")
     print("Audio file: " .. audioFilePath)
     print("File size: " .. string.format("%.2f KB", (utils.get_file_size(audioFilePath) or 0) / 1024))
+    if glossary and glossary ~= "" then
+        local glossaryPreview = glossary:sub(1, 100)
+        if #glossary > 100 then
+            glossaryPreview = glossaryPreview .. "..."
+        end
+        print("Glossary: " .. glossaryPreview .. " (" .. #glossary .. " chars)")
+    end
     -- Never log secrets (API key) to console
     local redactedCommand = command:gsub("Authorization: Bearer [^']+", "Authorization: Bearer <redacted>")
     print("Command: " .. redactedCommand)

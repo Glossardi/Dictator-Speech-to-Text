@@ -74,6 +74,21 @@ local function buildMenu()
                  ui.setMenu(buildMenu())
              end
         end },
+        { title = "  Edit Glossary...", fn = function()
+             local currentGlossary = config.getGlossary()
+             local button, text = hs.dialog.textPrompt(
+                 "Dictator Glossary", 
+                 "Enter context words, comma-separated (max ~200 words):\\nUsed to improve recognition of technical terms, names, etc.", 
+                 currentGlossary, 
+                 "Save", 
+                 "Cancel"
+             )
+             if button == "Save" then
+                 config.setGlossary(text)
+                 hs.alert.show("Glossary Saved")
+                 ui.setMenu(buildMenu())
+             end
+        end },
         { title = "  Auto-Paste", checked = autoPaste, fn = function()
             config.setAutoPaste(not autoPaste)
             ui.setMenu(buildMenu())
