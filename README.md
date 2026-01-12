@@ -15,6 +15,7 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 
 - **🎙️ Hold-to-Record**: Press and hold `Fn` key (or custom hotkey) to record audio
 - **🤖 OpenAI Whisper**: Accurate transcription via OpenAI's Whisper API
+- **📝 Manual Glossary**: Provide context words (technical terms, names) to improve transcription accuracy
 - **✨ AI Correction (Optional)**: Post-process transcription with a fast LLM (default: `gpt-4o-mini`) for punctuation/grammar/paragraphs
 - **📋 Auto-Paste**: Automatically paste transcribed text (toggle on/off)
 - **⚙️ Configurable**: Set API key, custom hotkeys, language, and auto-paste behavior
@@ -101,6 +102,7 @@ Access all settings via the menubar icon:
 
 - **API Key**: Set your OpenAI API key
 - **Language**: Set transcription language (`auto`, `en`, `de`, etc.)
+- **Edit Glossary...**: Define context words to improve transcription accuracy
 - **Auto-Paste**: Toggle automatic text pasting
 - **Enable AI Correction**: Toggle post-processing of the transcription (default: OFF to avoid extra cost)
 - **Correction Settings**: Configure model + system prompt (only enabled when AI correction is ON)
@@ -116,6 +118,39 @@ When enabled, Dictator will run an extra step after Whisper:
 3. The corrected text is pasted/copied
 
 **Fail-open behavior:** If the correction call fails (network, API error, rate limit), Dictator will still paste/copy the original Whisper text so you never lose data.
+
+### Manual Glossary (Whisper Prompt Parameter)
+
+The **Edit Glossary...** feature allows you to provide context words to the Whisper API, improving recognition of technical terms, product names, acronyms, and other uncommon words.
+
+#### How it Works
+
+- Navigate to **Settings** → **Edit Glossary...**
+- Enter your terms as a comma-separated list (or any format - it's passed as-is to Whisper)
+- Examples:
+  - `ZyntriQix, Digique Plus, CynapseFive, VortiQore V8`
+  - `Hammerspoon, OpenAI, macOS, hs.settings`
+  - `Dr. Smith, Project Apollo, Q.U.A.R.T.Z.`
+
+#### Technical Details
+
+- **Whisper API Limitation**: The `prompt` parameter is limited to **224 tokens** (~150-200 words). The API uses only the first 224 tokens and ignores the rest.
+- **Best Practices**:
+  - Keep your glossary concise and focused on terms actually used in your dictation
+  - Comma-separated format works well, but any format is acceptable
+  - Test with a few key terms first, then expand as needed
+  - The glossary is stored persistently and used for all transcriptions
+- **Logging**: When a glossary is active, the Hammerspoon Console will show a preview of the first 100 characters
+
+#### When to Use the Glossary
+
+- Technical documentation with specific product names
+- Medical/legal terminology
+- Names of people, companies, or projects
+- Acronyms and abbreviations
+- Domain-specific jargon
+
+The glossary does **not** add content to your transcription - it only guides Whisper to recognize and spell words correctly that are actually spoken.
 
 #### Verifying your System Prompt is actually used
 

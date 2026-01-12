@@ -18,6 +18,7 @@ M.RATE_LIMIT_WINDOW_KEY = M.BUNDLE_ID .. ".rateLimitWindow"
 M.CORRECTION_ENABLED_KEY = M.BUNDLE_ID .. ".correctionEnabled"
 M.CORRECTION_MODEL_KEY = M.BUNDLE_ID .. ".correctionModel"
 M.CORRECTION_SYSTEM_PROMPT_KEY = M.BUNDLE_ID .. ".correctionSystemPrompt"
+M.GLOSSARY_KEY = M.BUNDLE_ID .. ".userGlossary"
 
 -- Defaults
 M.defaultHotkeyMods = {"cmd", "alt"}
@@ -150,6 +151,26 @@ function M.setCorrectionSystemPrompt(prompt)
     local sanitized = sanitizePrompt(prompt)
     if not sanitized then return false end
     settings.set(M.CORRECTION_SYSTEM_PROMPT_KEY, sanitized)
+    return true
+end
+
+-- Glossary management (Whisper API prompt parameter)
+function M.getGlossary()
+    local glossary = settings.get(M.GLOSSARY_KEY)
+    if type(glossary) ~= "string" then return "" end
+    return trim(glossary)
+end
+
+function M.setGlossary(glossary)
+    if type(glossary) ~= "string" then
+        glossary = ""
+    end
+    glossary = trim(glossary)
+    -- Limit to reasonable length (Whisper only uses first 224 tokens anyway)
+    if #glossary > 2000 then
+        glossary = glossary:sub(1, 2000)
+    end
+    settings.set(M.GLOSSARY_KEY, glossary)
     return true
 end
 
