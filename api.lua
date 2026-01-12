@@ -290,6 +290,14 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         return
     end
     
+    -- Properly escape shell arguments using single quotes
+    -- For paths and headers, we use single quotes which prevent all shell expansion
+    -- We only need to handle single quotes within the strings by escaping them
+    local function shellEscape(str)
+        -- Replace single quotes with '\'' (end quote, escaped quote, start quote)
+        return "'" .. str:gsub("'", "'\\''") .. "'"
+    end
+    
     local url = "https://api.openai.com/v1/audio/transcriptions"
     local language = config.getLanguage()
 
@@ -307,14 +315,6 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         -- with technical terms, names, etc. Limited to 224 tokens.
         -- We need to properly escape for shell.
         glossaryArg = string.format("-F prompt=%s", shellEscape(glossary))
-    end
-
-    -- Properly escape shell arguments using single quotes
-    -- For paths and headers, we use single quotes which prevent all shell expansion
-    -- We only need to handle single quotes within the strings by escaping them
-    local function shellEscape(str)
-        -- Replace single quotes with '\'' (end quote, escaped quote, start quote)
-        return "'" .. str:gsub("'", "'\\''") .. "'"
     end
 
     local authHeader = shellEscape("Authorization: Bearer " .. apiKey)
