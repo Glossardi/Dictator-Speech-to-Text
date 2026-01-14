@@ -1,0 +1,17 @@
+-- .busted
+-- Busted configuration file
+
+return {
+    _all = {
+        coverage = false,
+        verbose = true,
+        output = "plainTerminal",
+        pattern = "_spec",
+    },
+    default = {
+        ROOT = {"spec/"},
+    },
+    unit = {
+        ROOT = {"spec/unit/"},
+    },
+}

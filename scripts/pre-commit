@@ -1,0 +1,19 @@
+#!/bin/bash
+# Pre-commit hook to run tests before committing
+# Install: cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+echo "Running tests before commit..."
+
+# Set up LuaRocks environment
+eval "$(luarocks path --bin)"
+
+# Run tests
+if ! busted --output=plainTerminal --quiet; then
+    echo ""
+    echo "❌ Tests failed! Commit aborted."
+    echo "Fix the tests or use 'git commit --no-verify' to skip this check."
+    exit 1
+fi
+
+echo "✅ All tests passed!"
+exit 0

@@ -2,6 +2,7 @@
 
 [![macOS](https://img.shields.io/badge/macOS-14.0+-blue.svg)](https://www.apple.com/macos/)
 [![Hammerspoon](https://img.shields.io/badge/Hammerspoon-0.9.97+-green.svg)](https://www.hammerspoon.org/)
+[![Tests](https://github.com/Glossardi/Dictator-Speech-to-Text/workflows/Tests/badge.svg)](https://github.com/Glossardi/Dictator-Speech-to-Text/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![GitHub stars](https://img.shields.io/github/stars/Glossardi/Dictator-Speech-to-Text?style=social) ![GitHub forks](https://img.shields.io/github/forks/Glossardi/Dictator-Speech-to-Text?style=social) ![GitHub issues](https://img.shields.io/github/issues/Glossardi/Dictator-Speech-to-Text)
 
@@ -398,11 +399,83 @@ print("Processing: " .. tostring(M.isProcessing))
 - **Error handling**: Comprehensive logging for debugging
 - **Event-driven**: Hotkey bindings and UI callbacks
 
+### Testing
+
+This project uses [Busted](https://lunarmodules.github.io/busted/) for automated testing with comprehensive unit test coverage.
+
+#### Setup Test Environment
+
+```bash
+# Install development dependencies
+make setup-dev
+
+# Or manually install busted
+luarocks install --local busted
+```
+
+#### Running Tests
+
+```bash
+# Run all tests
+make test
+
+# Run only unit tests
+make test-unit
+
+# Watch mode (auto-rerun on file changes)
+# Requires: brew install entr
+make test-watch
+
+# Run tests directly with busted
+busted
+```
+
+#### Test Structure
+
+```
+spec/
+├── support/
+│   └── mock_hs.lua          # Mock Hammerspoon APIs
+└── unit/
+    ├── config_spec.lua       # Config module tests
+    ├── utils_spec.lua        # Utility function tests
+    ├── rate_limiter_spec.lua # Rate limiting tests
+    └── api_spec.lua          # API validation tests
+```
+
+#### Writing Tests
+
+Tests use Busted's BDD-style syntax:
+
+```lua
+describe("my module", function()
+    before_each(function()
+        -- Setup mocks
+        mock_hs = require("spec.support.mock_hs")
+        mock_hs.reset()
+        mock_hs.setup()
+    end)
+    
+    it("should do something", function()
+        assert.is_true(myModule.doSomething())
+    end)
+end)
+```
+
+#### Continuous Integration
+
+Tests run automatically on every push and pull request via GitHub Actions:
+- ✅ Multiple Lua versions (5.1, 5.2, 5.3, 5.4, LuaJIT)
+- ✅ Automated linting with luacheck
+- ✅ Test results in PR status checks
+
+See [.github/workflows/test.yml](.github/workflows/test.yml) for CI configuration.
+
 ### Testing Locally
 
 1. Make changes to `.lua` files
-2. Reload Hammerspoon config
-3. Test functionality
+2. Run `make test` to ensure all tests pass
+3. Reload Hammerspoon config to test manually
 4. Check Console for errors
 5. Copy to `~/.hammerspoon/` when ready
 
@@ -411,8 +484,9 @@ print("Processing: " .. tostring(M.isProcessing))
 Contributions welcome! Please:
 
 - Follow existing code style
+- **Add tests for new features** (see `spec/unit/` for examples)
+- Ensure `make test` passes before submitting
 - Add error handling and logging
-- Test thoroughly before submitting
 - Update README if adding features
 
 ---

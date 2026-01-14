@@ -4,6 +4,7 @@
 local M = {}
 
 function M.file_exists(name)
+   if not name then return false end
    local f = io.open(name, "r")
    if f ~= nil then io.close(f) return true end
    return false
