@@ -11,6 +11,10 @@ M.MAX_RETRIES = 3
 M.INITIAL_RETRY_DELAY = 1  -- seconds
 M.MAX_RETRY_DELAY = 60  -- seconds
 
+-- Task management: prevent garbage collection of hs.task objects
+-- which can cause blocking issues in Hammerspoon
+M.activeTasks = {}
+
 -- Validate API key format (basic check)
 function M.validateApiKey(apiKey)
     if not apiKey or apiKey == "" then
@@ -169,7 +173,7 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
 
     local args = {
         "-s",
-        "-w", "\\nHTTP_STATUS:%{http_code}",
+        "-w", "\nHTTP_STATUS:%{http_code}",
         "--compressed",
         "--connect-timeout", "10",
         "--max-time", "15",  -- Timeout reduced for faster fail-open
@@ -189,8 +193,23 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
     end
 
     local requestStart = hs.timer.secondsSinceEpoch()
+    
+    -- Stream callback to prevent blocking
+    local streamCallback = function(task, stdOut, stdErr)
+        if stdOut and #stdOut > 0 then
+            print("[Correction Stream] Received " .. #stdOut .. " bytes")
+        end
+        return true
+    end
 
-    hs.task.new("/usr/bin/curl", function(exitCode, stdOut, stdErr)
+    local task = hs.task.new("/usr/bin/curl", function(exitCode, stdOut, stdErr)
+        -- Remove from active tasks
+        for i, t in ipairs(M.activeTasks) do
+            if t == task then
+                table.remove(M.activeTasks, i)
+                break
+            end
+        end
         local elapsed = hs.timer.secondsSinceEpoch() - requestStart
         if exitCode == 0 then
             -- curl appends our status trailer after a real newline. Normalize CRLF just in case.
@@ -278,7 +297,11 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
                 if callback then callback(nil, "Correction network error after " .. M.MAX_RETRIES .. " attempts") end
             end
         end
-    end, args):start()
+    end, streamCallback, args)
+    
+    -- Persist task to prevent GC-related blocking
+    table.insert(M.activeTasks, task)
+    task:start()
 end
 
 -- Internal function to handle retries
@@ -290,51 +313,32 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         return
     end
     
-    -- Properly escape shell arguments using single quotes
-    -- For paths and headers, we use single quotes which prevent all shell expansion
-    -- We only need to handle single quotes within the strings by escaping them
-    local function shellEscape(str)
-        -- Replace single quotes with '\'' (end quote, escaped quote, start quote)
-        return "'" .. str:gsub("'", "'\\''") .. "'"
-    end
-    
     local url = "https://api.openai.com/v1/audio/transcriptions"
     local language = config.getLanguage()
-
-    local langArg = ""
-    if language and language ~= "auto" then
-        -- language codes are simple (en,de,auto), no complex escaping needed
-        langArg = string.format("-F language=%s", language)
-    end
-
-    -- Retrieve user glossary for Whisper prompt parameter
     local glossary = config.getGlossary()
-    local glossaryArg = ""
-    if glossary and glossary ~= "" then
-        -- The Whisper API uses the optional 'prompt' parameter to guide transcription
-        -- with technical terms, names, etc. Limited to 224 tokens.
-        -- We need to properly escape for shell.
-        glossaryArg = string.format("-F prompt=%s", shellEscape(glossary))
+
+    -- Build curl arguments array (no shell wrapping to avoid forking issues)
+    local args = {
+        "-s",
+        "-w", "\nHTTP_STATUS:%{http_code}",
+        "--compressed",
+        "--connect-timeout", "10",
+        "--max-time", "60",
+        url,
+        "-H", "Authorization: Bearer " .. apiKey,
+        "-F", "file=@" .. audioFilePath,
+        "-F", "model=whisper-1"
+    }
+    
+    if language and language ~= "auto" then
+        table.insert(args, "-F")
+        table.insert(args, "language=" .. language)
     end
-
-    local authHeader = shellEscape("Authorization: Bearer " .. apiKey)
-    local fileArg = shellEscape("file=@" .. audioFilePath)
-
-    -- Use -w flag to get HTTP status code separately from body
-    -- Use proper @ syntax for file upload, let curl auto-generate Content-Type
-    -- Robustness flags only (no low-level TCP tuning which caused timeouts on some networks):
-    --   --compressed: Enable HTTP compression
-    --   --connect-timeout 10 / --max-time 60: Ensure we never hang forever
-    local command = string.format(
-        '/usr/bin/curl -s -w "\\nHTTP_STATUS:%%{http_code}" ' ..
-        '--compressed ' ..
-        '--connect-timeout 10 --max-time 60 ' ..
-        '%s ' ..
-        '-H %s ' ..
-        '-F %s ' ..
-        '-F model=whisper-1 %s %s',
-        url, authHeader, fileArg, langArg, glossaryArg
-    )
+    
+    if glossary and glossary ~= "" then
+        table.insert(args, "-F")
+        table.insert(args, "prompt=" .. glossary)
+    end
 
     local attemptLog = attemptNumber > 0 and string.format(" (attempt %d/%d)", attemptNumber + 1, M.MAX_RETRIES) or ""
     print("Executing API request" .. attemptLog .. "...")
@@ -347,11 +351,25 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         end
         print("Glossary: " .. glossaryPreview .. " (" .. #glossary .. " chars)")
     end
-    -- Never log secrets (API key) to console
-    local redactedCommand = command:gsub("Authorization: Bearer [^']+", "Authorization: Bearer <redacted>")
-    print("Command: " .. redactedCommand)
+    print("Command: /usr/bin/curl -s -w \\nHTTP_STATUS:%{http_code} --compressed --connect-timeout 10 --max-time 60 https://api.openai.com/v1/audio/transcriptions -H 'Authorization: Bearer <redacted>' -F 'file=@" .. audioFilePath .. "' -F model=whisper-1 " .. (language and language ~= "auto" and (" -F language=" .. language) or "") .. (glossary and glossary ~= "" and (" -F prompt='" .. glossary:sub(1, 32) .. "'") or ""))
     
-    hs.task.new("/bin/sh", function(exitCode, stdOut, stdErr)
+    -- Stream callback to prevent blocking (even if we don't need streaming)
+    local streamCallback = function(task, stdOut, stdErr)
+        -- Just log if there's any stream data, but don't process yet
+        if stdOut and #stdOut > 0 then
+            print("[Stream] Received " .. #stdOut .. " bytes")
+        end
+        return true  -- Continue
+    end
+    
+    local task = hs.task.new("/usr/bin/curl", function(exitCode, stdOut, stdErr)
+        -- Remove task from active tasks to allow cleanup
+        for i, t in ipairs(M.activeTasks) do
+            if t == task then
+                table.remove(M.activeTasks, i)
+                break
+            end
+        end
         print("API Response received. Exit code: " .. exitCode)
         
         if exitCode == 0 then
@@ -473,7 +491,11 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
                 if callback then callback(nil, "Network error after " .. M.MAX_RETRIES .. " attempts") end
             end
         end
-    end, {"-c", command}):start()
+    end, streamCallback, args)
+    
+    -- Persist task object to prevent garbage collection blocking
+    table.insert(M.activeTasks, task)
+    task:start()
 end
 
 return M

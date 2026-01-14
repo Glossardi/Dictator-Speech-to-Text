@@ -22,6 +22,8 @@ M.DEBOUNCE_DELAY = 0.5  -- Minimum 500ms between actions
 M.MIN_RECORDING_DURATION = 0.4  -- Minimum duration in seconds to trigger transcription
 M.recordingStartTime = nil
 M.lastTranscription = nil  -- Store last successful transcription text
+M.processingStartTime = nil  -- Track when processing started
+M.MAX_PROCESSING_TIME = 90  -- Maximum allowed processing time in seconds
 
 -- Initialize rate limiter
 rateLimiter.init()
@@ -30,6 +32,21 @@ rateLimiter.init()
 ui.init()
 
 log.i("Dictator initialized")
+
+-- Global watchdog to detect stuck processing state
+-- Checks every 10 seconds if processing has been active for too long
+M.watchdogTimer = hs.timer.doEvery(10, function()
+    if M.isProcessing and M.processingStartTime then
+        local elapsed = hs.timer.secondsSinceEpoch() - M.processingStartTime
+        if elapsed > M.MAX_PROCESSING_TIME then
+            log.e(string.format("WATCHDOG: Processing stuck for %.0fs, forcing reset", elapsed))
+            M.isProcessing = false
+            M.processingStartTime = nil
+            ui.updateStatus("error", "Processing timeout - please try again")
+            hs.alert.show("Processing timeout detected. You can record again now.")
+        end
+    end
+end)
 
 -- Menu Definition
 local function buildMenu()
@@ -242,6 +259,7 @@ function M.stopAndTranscribe()
         ui.updateStatus("idle", "Ready")
     else
         M.isProcessing = true
+        M.processingStartTime = hs.timer.secondsSinceEpoch()  -- Track when processing started
         log.i("Stopping recording and starting transcription")
         ui.updateStatus("processing", "Processing...")
     end
@@ -324,6 +342,7 @@ function M.stopAndTranscribe()
 
             local function finalize(finalText)
                 M.isProcessing = false
+                M.processingStartTime = nil  -- Reset processing timer
                 log.i("Transcription successful (" .. #finalText .. " characters)")
                 ui.updateStatus("idle", "Ready")
 
