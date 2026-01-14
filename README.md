@@ -401,93 +401,37 @@ print("Processing: " .. tostring(M.isProcessing))
 
 ### Testing
 
-This project uses [Busted](https://lunarmodules.github.io/busted/) for automated testing with comprehensive unit test coverage.
-
-#### Setup Test Environment
+This project uses [Busted](https://lunarmodules.github.io/busted/) for automated testing with 92 unit tests covering all core modules (config, utils, rate_limiter, api).
 
 ```bash
-# Install development dependencies
+# Setup (one-time)
 make setup-dev
 
-# Or manually install busted
-luarocks install --local busted
-```
-
-#### Running Tests
-
-```bash
-# Run all tests
+# Run all tests (~100ms)
 make test
 
-# Run only unit tests
-make test-unit
-
-# Watch mode (auto-rerun on file changes)
-# Requires: brew install entr
+# Watch mode (auto-rerun on changes)
 make test-watch
-
-# Run tests directly with busted
-busted
 ```
 
-#### Test Structure
+**Test Coverage**: 92 tests covering configuration, validation, rate limiting, and API logic. All tests run without Hammerspoon using mocks. Tests automatically run on GitHub Actions for every push/PR across multiple Lua versions (5.1-5.4, LuaJIT).
 
-```
-spec/
-├── support/
-│   └── mock_hs.lua          # Mock Hammerspoon APIs
-└── unit/
-    ├── config_spec.lua       # Config module tests
-    ├── utils_spec.lua        # Utility function tests
-    ├── rate_limiter_spec.lua # Rate limiting tests
-    └── api_spec.lua          # API validation tests
-```
-
-#### Writing Tests
-
-Tests use Busted's BDD-style syntax:
-
-```lua
-describe("my module", function()
-    before_each(function()
-        -- Setup mocks
-        mock_hs = require("spec.support.mock_hs")
-        mock_hs.reset()
-        mock_hs.setup()
-    end)
-    
-    it("should do something", function()
-        assert.is_true(myModule.doSomething())
-    end)
-end)
-```
-
-#### Continuous Integration
-
-Tests run automatically on every push and pull request via GitHub Actions:
-- ✅ Multiple Lua versions (5.1, 5.2, 5.3, 5.4, LuaJIT)
-- ✅ Automated linting with luacheck
-- ✅ Test results in PR status checks
-
-See [.github/workflows/test.yml](.github/workflows/test.yml) for CI configuration.
-
-### Testing Locally
+### Local Development
 
 1. Make changes to `.lua` files
-2. Run `make test` to ensure all tests pass
-3. Reload Hammerspoon config to test manually
-4. Check Console for errors
-5. Copy to `~/.hammerspoon/` when ready
+2. Run `make test` to verify changes
+3. Reload Hammerspoon config (`⌘+R` in Hammerspoon menu)
+4. Test manually and check Console for errors
 
 ### Contributing
 
 Contributions welcome! Please:
 
-- Follow existing code style
-- **Add tests for new features** (see `spec/unit/` for examples)
+- Follow existing code style and modular design
+- Add tests for new features (92 existing tests in `spec/unit/`)
 - Ensure `make test` passes before submitting
-- Add error handling and logging
-- Update README if adding features
+- Add comprehensive error handling and logging
+- Update README for new features or changes
 
 ---
 
