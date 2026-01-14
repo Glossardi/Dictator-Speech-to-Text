@@ -7,6 +7,7 @@ return {
         verbose = true,
         output = "plainTerminal",
         pattern = "_spec",
+        ROOT = {"spec/"},
     },
     default = {
         ROOT = {"spec/"},

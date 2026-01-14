@@ -241,19 +241,22 @@ Dictator/
 **Cause**: This was a known issue caused by Hammerspoon task garbage collection and shell subprocess forking.
 
 **Fix (Version 1.1.0+)**:
+
 - **Task Persistence**: All curl tasks are now persisted to prevent garbage collection blocking
-- **Direct curl invocation**: Removed shell wrapping (`/bin/sh -c`) to avoid subprocess forking issues  
+- **Direct curl invocation**: Removed shell wrapping (`/bin/sh -c`) to avoid subprocess forking issues
 - **Stream callbacks**: Added to prevent blocking in edge cases
 - **Global watchdog**: Automatically detects and resets stuck processing state after 90 seconds
 - **Improved logging**: Better visibility into task lifecycle
 
 **If you still experience hangs**:
+
 1. Check Hammerspoon Console for `WATCHDOG: Processing stuck` messages
 2. The app should auto-recover after 90 seconds maximum
 3. If not, manually reload Hammerspoon config
 4. Report issue with Console logs (API key is now automatically redacted)
 
 **Technical Details** (for developers):
+
 - Previous versions used `/bin/sh -c "curl ..."` which could cause Hammerspoon to block waiting for subprocess groups
 - Task objects that were garbage collected could cause indefinite blocking without callback execution
 - The 35-second timeout couldn't interrupt already-blocked tasks at the OS level
