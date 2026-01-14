@@ -1,5 +1,5 @@
 -- .busted
--- Busted configuration file
+-- Busted configuration file for local testing
 
 return {
     _all = {
@@ -7,12 +7,8 @@ return {
         verbose = true,
         output = "plainTerminal",
         pattern = "_spec",
-        ROOT = {"spec/"},
     },
     default = {
         ROOT = {"spec/"},
-    },
-    unit = {
-        ROOT = {"spec/unit/"},
     },
 }

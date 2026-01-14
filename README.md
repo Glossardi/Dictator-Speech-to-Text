@@ -2,7 +2,6 @@
 
 [![macOS](https://img.shields.io/badge/macOS-14.0+-blue.svg)](https://www.apple.com/macos/)
 [![Hammerspoon](https://img.shields.io/badge/Hammerspoon-0.9.97+-green.svg)](https://www.hammerspoon.org/)
-[![Tests](https://github.com/Glossardi/Dictator-Speech-to-Text/workflows/Tests/badge.svg)](https://github.com/Glossardi/Dictator-Speech-to-Text/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![GitHub stars](https://img.shields.io/github/stars/Glossardi/Dictator-Speech-to-Text?style=social) ![GitHub forks](https://img.shields.io/github/forks/Glossardi/Dictator-Speech-to-Text?style=social) ![GitHub issues](https://img.shields.io/github/issues/Glossardi/Dictator-Speech-to-Text)
 
@@ -415,12 +414,18 @@ make test
 
 # Watch mode (auto-rerun on changes)
 make test-watch
+
+# Optional: Install pre-commit hook
+cp scripts/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
 ```
 
-**Test Coverage**: 92 tests covering configuration, validation, rate limiting, and API logic. All tests run without Hammerspoon using mocks. Tests automatically run on GitHub Actions for every push/PR across multiple Lua versions (5.1-5.4, LuaJIT).
+**Test Coverage**: 92 tests covering configuration, validation, rate limiting, and API logic. All tests run without Hammerspoon using mocks, ensuring fast and reliable testing (~100ms execution time).
+ (all 92 tests should pass)
+3. Reload Hammerspoon config (`⌘+R` in Hammerspoon menu)
+4. Test manually and check Console for errors
 
-### Local Development
-
+**Note**: Tests run locally only. As a macOS-specific Hammerspoon project, CI/CD provides limited value since the app requires macOS and Hammerspoon runtime. Local testing with comprehensive mocks ensures code quality.
 1. Make changes to `.lua` files
 2. Run `make test` to verify changes
 3. Reload Hammerspoon config (`⌘+R` in Hammerspoon menu)
