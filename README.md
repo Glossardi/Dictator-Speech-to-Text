@@ -118,6 +118,7 @@ cd ~/Documents/Dictator
 ```
 
 **What the installer does:**
+
 - ✅ Checks that Hammerspoon and SoX are installed
 - ✅ Creates automatic backup of any existing files
 - ✅ Installs all Dictator files to `~/.hammerspoon/`
@@ -177,6 +178,7 @@ cp -v *.lua ~/.hammerspoon/
 After installation, grant these permissions for Dictator to work:
 
 1. **Accessibility Permission** (for Fn key detection)
+
    - Go to: **System Settings** → **Privacy & Security** → **Accessibility**
    - Enable **Hammerspoon**
 
@@ -208,6 +210,7 @@ cd ~/Documents/Dictator
 ```
 
 **What the update script does:**
+
 - ✅ Pulls latest changes from Git (if repository)
 - ✅ Creates automatic backup of current installation
 - ✅ Updates all files to latest version
@@ -256,6 +259,7 @@ cd ~/Documents/Dictator
 ```
 
 **What the uninstaller does:**
+
 - ✅ Creates final backup of all files
 - ✅ Removes all Dictator files from Hammerspoon
 - ✅ Optionally removes settings (API key, preferences)
@@ -651,6 +655,7 @@ Contributions welcome! Please:
 ### How do I know if the installation was successful?
 
 After running `./install.sh`, you should see:
+
 - ✓ A green checkmark for each step
 - The Dictator menubar icon (🎙️) in your menubar
 - No errors in the Hammerspoon Console
@@ -658,6 +663,7 @@ After running `./install.sh`, you should see:
 ### Will updating Dictator delete my API key and settings?
 
 No! The update script automatically preserves all your settings including:
+
 - API key
 - Language preferences
 - Glossary
@@ -669,6 +675,7 @@ A backup is created before updating, just in case.
 ### Can I use Dictator with other Hammerspoon scripts?
 
 Yes! Dictator is designed to coexist with other Hammerspoon configurations. The installer:
+
 - Creates backups before overwriting files
 - Only installs Dictator-specific files
 - Doesn't modify other Hammerspoon scripts
@@ -699,6 +706,7 @@ Use the [Manual Installation](#️-option-3-manual-installation-advanced-users) 
 ### How much does it cost to use Dictator?
 
 Dictator itself is free and open-source (MIT license). However, you need:
+
 - **OpenAI API key** with Whisper access (pay-per-use)
 - Typical cost: ~$0.006 per minute of audio
 - 1 hour of dictation ≈ $0.36
@@ -712,6 +720,7 @@ No, Dictator requires an internet connection to use OpenAI's Whisper API. The au
 ### Does Dictator store my voice recordings?
 
 No! Dictator:
+
 - Records audio to a temporary file
 - Sends it to OpenAI API
 - Immediately deletes the local recording after transcription
@@ -722,6 +731,7 @@ OpenAI may retain data according to their [data policy](https://openai.com/polic
 ### Which languages are supported?
 
 Whisper supports 50+ languages including:
+
 - English, German, Spanish, French, Italian
 - Chinese, Japanese, Korean
 - Arabic, Russian, Portuguese, Dutch
