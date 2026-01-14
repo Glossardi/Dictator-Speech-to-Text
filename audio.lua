@@ -8,6 +8,7 @@ local config = require("config")
 M.isRecording = false
 M.currentTask = nil
 M.currentFilePath = nil
+M.pendingCallback = nil  -- Retain timer to prevent GC
 
 function M.startRecording()
     if M.isRecording then return end
@@ -57,7 +58,9 @@ function M.stopRecording(callback)
     
     -- Give file system a brief moment to flush and close the FLAC file
     -- This ensures the file is fully written before we try to upload it
-    hs.timer.doAfter(0.1, function()
+    -- CRITICAL: Must retain timer object to prevent garbage collection
+    M.pendingCallback = hs.timer.doAfter(0.1, function()
+        M.pendingCallback = nil  -- Clear reference after firing
         if callback then callback(filePath, nil) end
     end)
 end
