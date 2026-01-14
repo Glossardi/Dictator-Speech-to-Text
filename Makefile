@@ -1,17 +1,22 @@
 # Makefile for Dictator Project
 # Provides convenient commands for testing, installation, and development
 
-.PHONY: help test test-unit test-watch install clean setup-dev
+.PHONY: help test test-unit test-watch install update uninstall clean setup-dev
 
 # Default target: show help
 help:
 	@echo "Dictator - Makefile Commands"
 	@echo "============================"
 	@echo ""
+	@echo "Installation & Management:"
+	@echo "  make install      - Install Dictator to Hammerspoon (with backup)"
+	@echo "  make update       - Update to latest version (with backup)"
+	@echo "  make uninstall    - Remove Dictator from Hammerspoon"
+	@echo ""
+	@echo "Development & Testing:"
 	@echo "  make test         - Run all tests"
 	@echo "  make test-unit    - Run only unit tests"
 	@echo "  make test-watch   - Run tests in watch mode (auto-rerun on file changes)"
-	@echo "  make install      - Copy Lua files to Hammerspoon directory"
 	@echo "  make setup-dev    - Install development dependencies (busted)"
 	@echo "  make clean        - Remove test artifacts"
 	@echo ""
@@ -41,11 +46,23 @@ test-watch:
 	@echo "Watching for file changes... (Ctrl+C to stop)"
 	@find . -name "*.lua" | entr -c make test
 
-# Install to Hammerspoon
+# Install to Hammerspoon (recommended - uses install script with backup)
 install:
-	@echo "Installing to Hammerspoon..."
-	mkdir -p ~/.hammerspoon
-	cp -v *.lua ~/.hammerspoon/
+	@./install.sh
+
+# Update to latest version (with backup)
+update:
+	@./update.sh
+
+# Uninstall from Hammerspoon
+uninstall:
+	@./uninstall.sh
+
+# Quick install (copy files only, no checks or backup - for developers)
+quick-install:
+	@echo "Quick installing to Hammerspoon (no backup)..."
+	@mkdir -p ~/.hammerspoon
+	@cp -v *.lua ~/.hammerspoon/
 	@echo ""
 	@echo "Installation complete! Reload Hammerspoon config."
 

@@ -11,6 +11,47 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 
 ---
 
+## 📋 Table of Contents
+
+- [Features](#-features)
+- [Prerequisites](#-prerequisites)
+- **[Installation](#-installation)** ⭐
+- **[Updating](#-updating-dictator)** 🔄
+- **[Uninstalling](#️-uninstalling-dictator)** 🗑️
+- [Quick Start](#-quick-start)
+- [Configuration](#️-configuration)
+- [Usage](#-usage)
+- [Project Structure](#️-project-structure)
+- [Troubleshooting](#-troubleshooting)
+- [Development](#️-development)
+
+---
+
+## 🚀 Quick Start Guide
+
+**New to Dictator? Start here!**
+
+```bash
+# 1. Install dependencies
+brew install --cask hammerspoon
+brew install sox
+
+# 2. Clone and install
+git clone https://github.com/Glossardi/Dictator-Speech-to-Text.git ~/Documents/Dictator
+cd ~/Documents/Dictator
+./install.sh
+
+# 3. Grant permissions (System Settings → Privacy & Security)
+#    - Accessibility → Enable Hammerspoon
+#    - Microphone → Enable Hammerspoon
+
+# 4. Add API key (Dictator menubar icon → Settings → Set API Key)
+
+# 5. Start dictating! Hold Fn key, speak, release
+```
+
+---
+
 ## ✨ Features
 
 - **🎙️ Hold-to-Record**: Press and hold `Fn` key (or custom hotkey) to record audio
@@ -61,27 +102,190 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 
 ## 📦 Installation
 
+Dictator offers multiple installation methods to suit different user preferences. Choose the one that works best for you!
+
+### 🌟 Option 1: Automated Installer (Recommended for Beginners)
+
+The easiest way to install Dictator with automatic dependency checks, backup, and Hammerspoon reload:
+
+```bash
+# Clone the repository
+git clone https://github.com/Glossardi/Dictator-Speech-to-Text.git ~/Documents/Dictator
+
+# Run the installer
+cd ~/Documents/Dictator
+./install.sh
+```
+
+**What the installer does:**
+- ✅ Checks that Hammerspoon and SoX are installed
+- ✅ Creates automatic backup of any existing files
+- ✅ Installs all Dictator files to `~/.hammerspoon/`
+- ✅ Reloads Hammerspoon configuration automatically
+- ✅ Shows clear instructions for required permissions
+
+---
+
+### 🚀 Option 2: Quick Install (Using Makefile)
+
+For users who already have dependencies installed:
+
+```bash
+# Clone the repository
+git clone https://github.com/Glossardi/Dictator-Speech-to-Text.git ~/Documents/Dictator
+cd ~/Documents/Dictator
+
+# Install using make
+make install
+```
+
+This uses the same automated installer script as Option 1.
+
+---
+
+### ⚙️ Option 3: Manual Installation (Advanced Users)
+
+For users who want full control:
+
 ```bash
 # 1. Install dependencies
-brew install hammerspoon --cask
+brew install --cask hammerspoon
 brew install sox
 
 # 2. Clone repository
-git clone https://github.com/Glossardi/Dictator.git ~/Documents/Dictator
+git clone https://github.com/Glossardi/Dictator-Speech-to-Text.git ~/Documents/Dictator
 cd ~/Documents/Dictator
 
-# 3. Copy files to Hammerspoon
-# Create the Hammerspoon config directory (if needed) and copy the Lua files from this repo:
-mkdir -p ~/.hammerspoon && cp -v ~/Documents/Dictator/*.lua ~/.hammerspoon/
+# 3. Copy files to Hammerspoon (with optional backup)
+mkdir -p ~/.hammerspoon
 
-# Optional: make a quick backup of existing Hammerspoon scripts before overwriting
-# mkdir -p ~/.hammerspoon_backup && cp -v ~/.hammerspoon/*.lua ~/.hammerspoon_backup/
+# Optional: Backup existing files
+mkdir -p ~/.hammerspoon_backup
+cp -v ~/.hammerspoon/*.lua ~/.hammerspoon_backup/ 2>/dev/null || true
 
-# 4. Grant permissions
-# System Settings → Privacy & Security → Accessibility → Enable Hammerspoon
-# System Settings → Privacy & Security → Microphone → Enable Hammerspoon
+# Copy Dictator files
+cp -v *.lua ~/.hammerspoon/
 
-# 5. Reload Hammerspoon (menubar → Reload Config)
+# 4. Reload Hammerspoon
+# Click: Hammerspoon menubar icon → Reload Config
+```
+
+---
+
+### 🔐 Required Permissions
+
+After installation, grant these permissions for Dictator to work:
+
+1. **Accessibility Permission** (for Fn key detection)
+   - Go to: **System Settings** → **Privacy & Security** → **Accessibility**
+   - Enable **Hammerspoon**
+
+2. **Microphone Permission** (for audio recording)
+   - Go to: **System Settings** → **Privacy & Security** → **Microphone**
+   - Enable **Hammerspoon**
+
+---
+
+### ✅ Verify Installation
+
+1. Look for the Dictator menubar icon (🎙️)
+2. Click it and go to **Settings** → **Set API Key**
+3. Add your OpenAI API key from [platform.openai.com](https://platform.openai.com/api-keys)
+4. Test: Open any text editor, hold `Fn` key, speak, release
+5. Text should appear automatically!
+
+---
+
+## 🔄 Updating Dictator
+
+Keep Dictator up-to-date with the latest features and fixes:
+
+### 🌟 Automated Update (Recommended)
+
+```bash
+cd ~/Documents/Dictator
+./update.sh
+```
+
+**What the update script does:**
+- ✅ Pulls latest changes from Git (if repository)
+- ✅ Creates automatic backup of current installation
+- ✅ Updates all files to latest version
+- ✅ Preserves your settings and API key
+- ✅ Reloads Hammerspoon automatically
+
+**Your API key and all settings are preserved!**
+
+---
+
+### ⚙️ Using Makefile
+
+```bash
+cd ~/Documents/Dictator
+make update
+```
+
+---
+
+### 🔧 Manual Update
+
+```bash
+cd ~/Documents/Dictator
+
+# Pull latest changes
+git pull
+
+# Copy updated files
+cp -v *.lua ~/.hammerspoon/
+
+# Reload Hammerspoon
+# Click: Hammerspoon menubar icon → Reload Config
+```
+
+---
+
+## 🗑️ Uninstalling Dictator
+
+Remove Dictator cleanly from your system:
+
+### 🌟 Automated Uninstaller (Recommended)
+
+```bash
+cd ~/Documents/Dictator
+./uninstall.sh
+```
+
+**What the uninstaller does:**
+- ✅ Creates final backup of all files
+- ✅ Removes all Dictator files from Hammerspoon
+- ✅ Optionally removes settings (API key, preferences)
+- ✅ Reloads Hammerspoon configuration
+- ✅ Shows how to restore if needed
+
+---
+
+### ⚙️ Using Makefile
+
+```bash
+cd ~/Documents/Dictator
+make uninstall
+```
+
+---
+
+### 🔧 Manual Uninstallation
+
+```bash
+# Remove Dictator files
+cd ~/.hammerspoon
+rm -f init.lua config.lua audio.lua api.lua ui.lua utils.lua rate_limiter.lua
+
+# Optional: Remove settings
+# Settings are stored in: ~/Library/Preferences/org.hammerspoon.Hammerspoon.plist
+# They will be automatically reused if you reinstall
+
+# Reload Hammerspoon
+# Click: Hammerspoon menubar icon → Reload Config
 ```
 
 ---
@@ -421,11 +625,10 @@ chmod +x .git/hooks/pre-commit
 ```
 
 **Test Coverage**: 92 tests covering configuration, validation, rate limiting, and API logic. All tests run without Hammerspoon using mocks, ensuring fast and reliable testing (~100ms execution time).
- (all 92 tests should pass)
-3. Reload Hammerspoon config (`⌘+R` in Hammerspoon menu)
-4. Test manually and check Console for errors
+(all 92 tests should pass) 3. Reload Hammerspoon config (`⌘+R` in Hammerspoon menu) 4. Test manually and check Console for errors
 
 **Note**: Tests run locally only. As a macOS-specific Hammerspoon project, CI/CD provides limited value since the app requires macOS and Hammerspoon runtime. Local testing with comprehensive mocks ensures code quality.
+
 1. Make changes to `.lua` files
 2. Run `make test` to verify changes
 3. Reload Hammerspoon config (`⌘+R` in Hammerspoon menu)
@@ -440,6 +643,143 @@ Contributions welcome! Please:
 - Ensure `make test` passes before submitting
 - Add comprehensive error handling and logging
 - Update README for new features or changes
+
+---
+
+## ❓ FAQ (Frequently Asked Questions)
+
+### How do I know if the installation was successful?
+
+After running `./install.sh`, you should see:
+- ✓ A green checkmark for each step
+- The Dictator menubar icon (🎙️) in your menubar
+- No errors in the Hammerspoon Console
+
+### Will updating Dictator delete my API key and settings?
+
+No! The update script automatically preserves all your settings including:
+- API key
+- Language preferences
+- Glossary
+- Hotkey configuration
+- Auto-paste settings
+
+A backup is created before updating, just in case.
+
+### Can I use Dictator with other Hammerspoon scripts?
+
+Yes! Dictator is designed to coexist with other Hammerspoon configurations. The installer:
+- Creates backups before overwriting files
+- Only installs Dictator-specific files
+- Doesn't modify other Hammerspoon scripts
+
+**Note:** If you have a custom `init.lua`, you may need to merge it manually or rename Dictator's modules.
+
+### How do I switch between different versions?
+
+```bash
+cd ~/Documents/Dictator
+
+# Check available versions
+git tag
+
+# Switch to specific version
+git checkout v1.0.0
+./install.sh
+
+# Return to latest version
+git checkout main
+./update.sh
+```
+
+### What if the automated installer fails?
+
+Use the [Manual Installation](#️-option-3-manual-installation-advanced-users) method instead. The automated installer performs additional checks, but manual installation is just as effective.
+
+### How much does it cost to use Dictator?
+
+Dictator itself is free and open-source (MIT license). However, you need:
+- **OpenAI API key** with Whisper access (pay-per-use)
+- Typical cost: ~$0.006 per minute of audio
+- 1 hour of dictation ≈ $0.36
+
+AI correction (optional) adds minimal cost with `gpt-4o-mini`.
+
+### Can I use Dictator offline?
+
+No, Dictator requires an internet connection to use OpenAI's Whisper API. The audio is processed in the cloud, not locally.
+
+### Does Dictator store my voice recordings?
+
+No! Dictator:
+- Records audio to a temporary file
+- Sends it to OpenAI API
+- Immediately deletes the local recording after transcription
+- Does not keep any audio files
+
+OpenAI may retain data according to their [data policy](https://openai.com/policies/usage-policies).
+
+### Which languages are supported?
+
+Whisper supports 50+ languages including:
+- English, German, Spanish, French, Italian
+- Chinese, Japanese, Korean
+- Arabic, Russian, Portuguese, Dutch
+- And many more!
+
+Set language in: **Settings → Set Language** (use `auto` for automatic detection)
+
+---
+
+## 💡 Tips & Best Practices
+
+### 🎤 Recording Tips
+
+- **Hold, don't tap**: Keep the hotkey pressed while speaking
+- **Speak clearly**: Natural pace, not too fast or slow
+- **Reduce noise**: Recording in a quiet environment improves accuracy
+- **Microphone position**: Speak 15-30cm from your mic
+- **Pause for punctuation**: Brief pauses help AI correction add proper punctuation
+
+### ⚡ Performance Tips
+
+- **Use AI correction sparingly**: It adds cost and latency (enable only when needed)
+- **Keep glossary focused**: Add only terms you actually use
+- **Monitor rate limits**: Default is 3 requests/minute (adjustable)
+- **Check API quota**: Ensure you have sufficient OpenAI credits
+
+### 🔒 Security Tips
+
+- **Protect your API key**: Never share it publicly
+- **Use environment variables**: For automation, consider storing keys securely
+- **Monitor usage**: Check OpenAI dashboard for unexpected usage
+- **Backup regularly**: Use the built-in backup feature
+
+### 🛠️ Workflow Tips
+
+- **Create keyboard shortcuts**: Use custom hotkeys for easier access
+- **Combine with text expansion**: Use with tools like TextExpander
+- **Use glossary effectively**: Add technical terms, names, acronyms
+- **Test before important work**: Try a quick recording first
+- **Keep Dictator updated**: Run `./update.sh` periodically
+
+---
+
+## 🤝 Contributing & Support
+
+### Found a Bug?
+
+1. Check the [Troubleshooting](#-troubleshooting) section
+2. Look for errors in Hammerspoon Console
+3. [Open an issue](https://github.com/Glossardi/Dictator-Speech-to-Text/issues) with:
+   - OS version
+   - Hammerspoon version
+   - Steps to reproduce
+   - Console logs (API key redacted)
+
+### Want to Contribute?
+
+Contributions are welcome! See [Development](#️-development) section for setup instructions.
 
 ---
 
