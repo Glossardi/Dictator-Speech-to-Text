@@ -193,14 +193,6 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
     end
 
     local requestStart = hs.timer.secondsSinceEpoch()
-    
-    -- Stream callback to prevent blocking
-    local streamCallback = function(task, stdOut, stdErr)
-        if stdOut and #stdOut > 0 then
-            print("[Correction Stream] Received " .. #stdOut .. " bytes")
-        end
-        return true
-    end
 
     local task = hs.task.new("/usr/bin/curl", function(exitCode, stdOut, stdErr)
         -- Remove from active tasks
@@ -297,7 +289,7 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
                 if callback then callback(nil, "Correction network error after " .. M.MAX_RETRIES .. " attempts") end
             end
         end
-    end, streamCallback, args)
+    end, args)
     
     -- Persist task to prevent GC-related blocking
     table.insert(M.activeTasks, task)
@@ -352,15 +344,6 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         print("Glossary: " .. glossaryPreview .. " (" .. #glossary .. " chars)")
     end
     print("Command: /usr/bin/curl -s -w \\nHTTP_STATUS:%{http_code} --compressed --connect-timeout 10 --max-time 60 https://api.openai.com/v1/audio/transcriptions -H 'Authorization: Bearer <redacted>' -F 'file=@" .. audioFilePath .. "' -F model=whisper-1 " .. (language and language ~= "auto" and (" -F language=" .. language) or "") .. (glossary and glossary ~= "" and (" -F prompt='" .. glossary:sub(1, 32) .. "'") or ""))
-    
-    -- Stream callback to prevent blocking (even if we don't need streaming)
-    local streamCallback = function(task, stdOut, stdErr)
-        -- Just log if there's any stream data, but don't process yet
-        if stdOut and #stdOut > 0 then
-            print("[Stream] Received " .. #stdOut .. " bytes")
-        end
-        return true  -- Continue
-    end
     
     local task = hs.task.new("/usr/bin/curl", function(exitCode, stdOut, stdErr)
         -- Remove task from active tasks to allow cleanup
@@ -491,7 +474,7 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
                 if callback then callback(nil, "Network error after " .. M.MAX_RETRIES .. " attempts") end
             end
         end
-    end, streamCallback, args)
+    end, args)
     
     -- Persist task object to prevent garbage collection blocking
     table.insert(M.activeTasks, task)
