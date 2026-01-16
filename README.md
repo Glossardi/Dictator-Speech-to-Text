@@ -45,9 +45,17 @@ cd ~/Documents/Dictator
 #    - Accessibility → Enable Hammerspoon
 #    - Microphone → Enable Hammerspoon
 
-# 4. Add API key (Dictator menubar icon → Settings → Set API Key)
+# 4. Get API key from DeepInfra (recommended) or OpenAI
+#    - DeepInfra: https://deepinfra.com/ (faster & cheaper!)
+#    - OpenAI: https://platform.openai.com/api-keys
 
-# 5. Start dictating! Hold Fn key, speak, release
+# 5. Configure Dictator (menubar icon → Settings)
+#    For DeepInfra (recommended):
+#    - API Key: Your DeepInfra key
+#    - Transcription API URL: https://api.deepinfra.com/v1/openai
+#    - Transcription Model: openai/whisper-large-v3-turbo
+
+# 6. Start dictating! Hold Fn key, speak, release ⚡
 ```
 
 ---
@@ -56,7 +64,8 @@ cd ~/Documents/Dictator
 
 - **🎙️ Hold-to-Record**: Press and hold `Fn` key (or custom hotkey) to record audio
 - **🤖 OpenAI Whisper**: Accurate transcription via OpenAI's Whisper API
-- **� Multi-Provider Support**: Switch between OpenAI, DeepInfra, or any OpenAI-compatible API
+- **🔌 Multi-Provider Support**: Switch between OpenAI, DeepInfra, or any OpenAI-compatible API
+- **⚡ DeepInfra Integration**: 2-5x faster and 50-70% cheaper than OpenAI!
 - **📝 Manual Glossary**: Provide context words (technical terms, names) to improve transcription accuracy
 - **✨ AI Correction (Optional)**: Post-process transcription with a fast LLM (default: `gpt-4o-mini`) for punctuation/grammar/paragraphs
 - **📋 Auto-Paste**: Automatically paste transcribed text (toggle on/off)
@@ -328,16 +337,18 @@ Access all settings via the menubar icon:
 
 Dictator supports **OpenAI-compatible APIs**, allowing you to choose your preferred provider for both transcription and AI correction.
 
+**💡 Recommended: DeepInfra** for significantly faster processing and lower costs!
+
 #### Supported Providers
 
 | Provider | Transcription Base URL | Example Models | Notes |
 |----------|------------------------|----------------|-------|
-| **OpenAI** (Default) | `https://api.openai.com/v1` | `whisper-1` | Standard Whisper API |
-| **DeepInfra** | `https://api.deepinfra.com/v1/openai` | `openai/whisper-large-v3-turbo`<br>`openai/whisper-large-v3` | 50-70% cheaper, 2-5x faster, OpenAI-compatible endpoint |
+| **OpenAI** | `https://api.openai.com/v1` | `whisper-1` | Standard, reliable |
+| **DeepInfra** ⚡ | `https://api.deepinfra.com/v1/openai` | `openai/whisper-large-v3-turbo` ✨<br>`openai/whisper-large-v3` | **50-70% cheaper, 2-5x faster**<br>OpenAI-compatible, recommended! |
 
 #### Configuration Examples
 
-##### OpenAI (Default)
+##### OpenAI
 
 **Transcription:**
 - Base URL: `https://api.openai.com/v1`
@@ -345,33 +356,57 @@ Dictator supports **OpenAI-compatible APIs**, allowing you to choose your prefer
 
 **Correction:**
 - Base URL: `https://api.openai.com/v1`
-- Model: `gpt-4o-mini` (default), `gpt-4o`, `o1-mini`, etc.
+- Model: `gpt-4o-mini`, `gpt-4o`, `o1-mini`, etc.
 
-##### DeepInfra
+##### DeepInfra ⚡ (Recommended)
+
+**Why DeepInfra?**
+- ⚡ **2-5x faster** transcription and correction
+- 💰 **50-70% cheaper** than OpenAI
+- 🔄 **Drop-in compatible** - same API format
+- ✅ **Excellent quality** - same Whisper models
 
 **Transcription:**
 - Base URL: `https://api.deepinfra.com/v1/openai`
-- Model: `openai/whisper-large-v3-turbo` (recommended, faster) or `openai/whisper-large-v3`
+- Model: `openai/whisper-large-v3-turbo` ✨ **(recommended - fastest!)**
+- Alternative: `openai/whisper-large-v3` (even more accurate)
 - API Key: Get from [DeepInfra Console](https://deepinfra.com/)
-- Note: Uses OpenAI-compatible `/audio/transcriptions` endpoint
 
 **Correction:**
 - Base URL: `https://api.deepinfra.com/v1/openai`
-- Model: Compatible LLM models from DeepInfra catalog
+- Model: Choose from [DeepInfra's LLM catalog](https://deepinfra.com/models/text-generation)
+  - Fast & Good: `Qwen/Qwen2.5-7B-Instruct`, `meta-llama/Llama-3.3-70B-Instruct`
+  - Premium: `Qwen/QwQ-32B-Preview`, `deepseek-ai/DeepSeek-V3`
 
 #### How to Switch Providers
+
+**Quick Start with DeepInfra (Recommended):**
+
+1. Get API key from [DeepInfra Console](https://deepinfra.com/) (free credits available!)
+2. In Dictator menubar → **Settings** → **API Key**: Enter your DeepInfra API key
+3. **Transcription API Settings** → **Set API Base URL**: `https://api.deepinfra.com/v1/openai`
+4. **Transcription API Settings** → **Set Model**: `openai/whisper-large-v3-turbo`
+5. (Optional) **Enable AI Correction** and configure:
+   - **Correction Settings** → **Set API Base URL**: `https://api.deepinfra.com/v1/openai`
+   - **Correction Settings** → **Set Model**: `Qwen/Qwen2.5-7B-Instruct` or similar
+6. Test with a short recording - enjoy the speed! ⚡
+
+**Switching back to OpenAI:**
 
 1. Get API key from your chosen provider
 2. In Dictator menubar → **Settings** → **API Key**: Enter the new API key
 3. **Transcription API Settings** → **Set API Base URL**: Enter provider's base URL
 4. **Transcription API Settings** → **Set Model**: Enter model name
-5. (Optional) **Correction Settings** → **Set API Base URL**: Configure correction provider
-6. (Optional) **Correction Settings** → **Set Model**: Select correction model
+5. (Optional) **Enable AI Correction** if desired
+6. (Optional) **Correction Settings** → **Set API Base URL**: Configure correction provider
+7. (Optional) **Correction Settings** → **Set Model**: Select correction model
+8. Test with a short recording to verify configuration
 
 **Important Notes:**
 - Each provider requires its own API key format
 - URLs should NOT include the endpoint path (e.g., `/audio/transcriptions`)
-- Model names must match the provider's format exactly
+- Model names must match the provider's format exactly (e.g., `openai/whisper-large-v3-turbo` for DeepInfra)
+- DeepInfra requires the full model path including namespace (e.g., `openai/...`, `Qwen/...`)
 - Test with a short recording to verify configuration
 
 ### AI Correction (Optional)
@@ -440,6 +475,19 @@ If you see these lines, the system prompt is being loaded from `hs.settings` and
 Some models reject non-default sampling parameters (e.g. `temperature`). If that happens, Dictator automatically retries the correction once without `temperature` before falling back.
 
 Fix the underlying API/model issue, then retry.
+
+### Performance Benefits (DeepInfra vs OpenAI)
+
+When using DeepInfra instead of OpenAI:
+- ⚡ **Speed**: 2-5x faster transcription and correction
+- 💰 **Cost**: 50-70% cheaper
+- 🎯 **Quality**: Same Whisper models, identical accuracy
+- 🔄 **Compatibility**: 100% OpenAI-compatible API - just change URL and model name!
+
+Example savings:
+- OpenAI Whisper: ~$0.006/minute
+- DeepInfra Whisper: ~$0.0013-$0.0029/minute
+- **1 hour of transcription**: OpenAI $0.36 vs DeepInfra $0.08-$0.17
 
 ### Hotkey Options
 
@@ -795,13 +843,19 @@ Use the [Manual Installation](#️-option-3-manual-installation-advanced-users) 
 
 ### How much does it cost to use Dictator?
 
-Dictator itself is free and open-source (MIT license). However, you need:
+Dictator itself is free and open-source (MIT license). You need an API key for transcription:
 
-- **OpenAI API key** with Whisper access (pay-per-use)
-- Typical cost: ~$0.006 per minute of audio
+**DeepInfra (Recommended):**
+- ~$0.0013-$0.0029 per minute of audio
+- 1 hour of dictation ≈ $0.08-$0.17
+- Free credits available for new accounts!
+- **50-70% cheaper than OpenAI**
+
+**OpenAI:**
+- ~$0.006 per minute of audio
 - 1 hour of dictation ≈ $0.36
 
-AI correction (optional) adds minimal cost with `gpt-4o-mini`.
+AI correction (optional) adds minimal cost with efficient models like `Qwen/Qwen2.5-7B-Instruct` on DeepInfra.
 
 ### Can I use Dictator offline?
 
