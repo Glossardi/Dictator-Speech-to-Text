@@ -333,7 +333,7 @@ Dictator supports **OpenAI-compatible APIs**, allowing you to choose your prefer
 | Provider | Transcription Base URL | Example Models | Notes |
 |----------|------------------------|----------------|-------|
 | **OpenAI** (Default) | `https://api.openai.com/v1` | `whisper-1` | Standard Whisper API |
-| **DeepInfra** | `https://api.deepinfra.com/v1/openai` | `openai/whisper-large-v3`<br>`openai/whisper-large-v2-turbo`<br>`distil-whisper-large-v3` | 50-70% cheaper, 2-5x faster |
+| **DeepInfra** | `https://api.deepinfra.com/v1/openai` | `openai/whisper-large-v3-turbo`<br>`openai/whisper-large-v3` | 50-70% cheaper, 2-5x faster, OpenAI-compatible endpoint |
 
 #### Configuration Examples
 
@@ -351,8 +351,9 @@ Dictator supports **OpenAI-compatible APIs**, allowing you to choose your prefer
 
 **Transcription:**
 - Base URL: `https://api.deepinfra.com/v1/openai`
-- Model: `openai/whisper-large-v3` (recommended)
+- Model: `openai/whisper-large-v3-turbo` (recommended, faster) or `openai/whisper-large-v3`
 - API Key: Get from [DeepInfra Console](https://deepinfra.com/)
+- Note: Uses OpenAI-compatible `/audio/transcriptions` endpoint
 
 **Correction:**
 - Base URL: `https://api.deepinfra.com/v1/openai`
@@ -607,7 +608,7 @@ Dictator/
      - ❌ `https://api.openai.com/v1/`
 3. **Verify Model Name**: Model names are provider-specific
    - OpenAI: `whisper-1`, `gpt-4o-mini`
-   - DeepInfra: `openai/whisper-large-v3` (note the namespace)
+   - DeepInfra: `openai/whisper-large-v3-turbo` or `openai/whisper-large-v3` (note the namespace)
 4. **Check Console Logs**: Open Hammerspoon Console to see exact API request details
    - Look for: `API Base URL: ...`, `Model: ...`
    - Check HTTP status codes in response logs
@@ -616,7 +617,7 @@ Dictator/
    curl -X POST https://api.deepinfra.com/v1/openai/audio/transcriptions \
      -H "Authorization: Bearer YOUR_API_KEY" \
      -F "file=@test.flac" \
-     -F "model=openai/whisper-large-v3"
+     -F "model=openai/whisper-large-v3-turbo"
    ```
 
 ### Rate Limit Errors

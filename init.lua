@@ -117,7 +117,7 @@ local function buildMenu()
             { title = "Set Model... (" .. transcriptionModel .. ")", fn = function()
                 local button, text = hs.dialog.textPrompt(
                     "Transcription Model",
-                    "Enter model name:\\n\\nExamples:\\n- OpenAI: whisper-1\\n- DeepInfra: openai/whisper-large-v3",
+                    "Enter model name:\\n\\nExamples:\\n- OpenAI: whisper-1\\n- DeepInfra: openai/whisper-large-v3-turbo",
                     transcriptionModel,
                     "Save",
                     "Cancel"

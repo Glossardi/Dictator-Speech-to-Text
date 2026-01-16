@@ -27,7 +27,7 @@ Added support for OpenAI-compatible API providers, enabling users to switch betw
 - Correction: `https://api.openai.com/v1` + `gpt-4o-mini`
 
 ##### DeepInfra
-- Transcription: `https://api.deepinfra.com/v1/openai` + `openai/whisper-large-v3`
+- Transcription: `https://api.deepinfra.com/v1/openai` + `openai/whisper-large-v3-turbo`
 - Benefits: 50-70% cheaper, 2-5x faster than OpenAI
 - Correction: Compatible with various LLM models
 
