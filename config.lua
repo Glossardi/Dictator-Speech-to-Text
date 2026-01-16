@@ -19,6 +19,9 @@ M.CORRECTION_ENABLED_KEY = M.BUNDLE_ID .. ".correctionEnabled"
 M.CORRECTION_MODEL_KEY = M.BUNDLE_ID .. ".correctionModel"
 M.CORRECTION_SYSTEM_PROMPT_KEY = M.BUNDLE_ID .. ".correctionSystemPrompt"
 M.GLOSSARY_KEY = M.BUNDLE_ID .. ".userGlossary"
+M.TRANSCRIPTION_API_BASE_URL_KEY = M.BUNDLE_ID .. ".transcriptionApiBaseUrl"
+M.TRANSCRIPTION_MODEL_KEY = M.BUNDLE_ID .. ".transcriptionModel"
+M.CORRECTION_API_BASE_URL_KEY = M.BUNDLE_ID .. ".correctionApiBaseUrl"
 
 -- Defaults
 M.defaultHotkeyMods = {"cmd", "alt"}
@@ -31,6 +34,9 @@ M.defaultRateLimitWindow = 60  -- per 60 seconds (1 minute)
 M.defaultCorrectionEnabled = false
 M.defaultCorrectionModel = "gpt-4o-mini"  -- Fast, stable, <2s typical latency
 M.defaultCorrectionSystemPrompt = [[Correct spelling, punctuation, and grammar. Remove filler words, stutters, and resolve self-corrections (keep the final intended meaning). Strictly maintain the original language(s). Apply logical formatting and paragraphs based on the text's semantic structure (e.g., email layout, lists, code blocks, or standard prose). Do not add content or summarize. Output ONLY the cleaned text.]]
+M.defaultTranscriptionApiBaseUrl = "https://api.openai.com/v1"  -- OpenAI API base URL
+M.defaultTranscriptionModel = "whisper-1"  -- Standard OpenAI Whisper model
+M.defaultCorrectionApiBaseUrl = "https://api.openai.com/v1"  -- OpenAI API base URL for corrections
 
 local function trim(str)
     return (str:gsub("^%s+", ""):gsub("%s+$", ""))
@@ -171,6 +177,59 @@ function M.setGlossary(glossary)
         glossary = glossary:sub(1, 2000)
     end
     settings.set(M.GLOSSARY_KEY, glossary)
+    return true
+end
+
+-- API Base URLs and Model Configuration
+local function sanitizeUrl(url)
+    if type(url) ~= "string" then return nil end
+    url = trim(url)
+    if url == "" then return nil end
+    -- Remove trailing slash for consistency
+    url = url:gsub("/+$", "")
+    -- Basic URL validation: must start with http:// or https://
+    if not url:match("^https?://") then return nil end
+    -- Length check
+    if #url > 500 then return nil end
+    return url
+end
+
+function M.getTranscriptionApiBaseUrl()
+    local url = settings.get(M.TRANSCRIPTION_API_BASE_URL_KEY)
+    url = sanitizeUrl(url) or M.defaultTranscriptionApiBaseUrl
+    return url
+end
+
+function M.setTranscriptionApiBaseUrl(url)
+    local sanitized = sanitizeUrl(url)
+    if not sanitized then return false end
+    settings.set(M.TRANSCRIPTION_API_BASE_URL_KEY, sanitized)
+    return true
+end
+
+function M.getTranscriptionModel()
+    local model = settings.get(M.TRANSCRIPTION_MODEL_KEY)
+    model = sanitizeModel(model) or M.defaultTranscriptionModel
+    return model
+end
+
+function M.setTranscriptionModel(model)
+    local sanitized = sanitizeModel(model)
+    if not sanitized then return false end
+    settings.set(M.TRANSCRIPTION_MODEL_KEY, sanitized)
+    return true
+end
+
+function M.getCorrectionApiBaseUrl()
+    local url = settings.get(M.CORRECTION_API_BASE_URL_KEY)
+    url = sanitizeUrl(url) or M.defaultCorrectionApiBaseUrl
+    return url
+end
+
+function M.setCorrectionApiBaseUrl(url)
+    local sanitized = sanitizeUrl(url)
+    if not sanitized then return false end
+    settings.set(M.CORRECTION_API_BASE_URL_KEY, sanitized)
     return true
 end
 

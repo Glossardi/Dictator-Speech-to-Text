@@ -16,19 +16,22 @@ M.MAX_RETRY_DELAY = 60  -- seconds
 M.activeTasks = {}
 
 -- Validate API key format (basic check)
+-- Supports multiple providers: OpenAI (sk-...), DeepInfra, and others
 function M.validateApiKey(apiKey)
     if not apiKey or apiKey == "" then
         return false, "API key is empty"
     end
     
-    -- OpenAI API keys start with 'sk-' and are at least 20 characters
-    if not string.match(apiKey, "^sk%-") then
-        return false, "Invalid API key format (should start with 'sk-')"
+    -- Basic length check - most API keys are at least 20 characters
+    if #apiKey < 20 then
+        return false, "API key too short (minimum 20 characters)"
     end
     
-    if #apiKey < 20 then
-        return false, "API key too short"
-    end
+    -- Flexible validation: allow various formats for different providers
+    -- OpenAI: sk-...
+    -- DeepInfra: different format
+    -- Other providers: may have different formats
+    -- We just check for reasonable length and non-empty
     
     return true, nil
 end
@@ -143,7 +146,8 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
 
     if includeTemperature == nil then includeTemperature = true end
 
-    local url = "https://api.openai.com/v1/chat/completions"
+    local baseUrl = config.getCorrectionApiBaseUrl()
+    local url = baseUrl .. "/chat/completions"
     local model = config.getCorrectionModel()
     local systemPrompt = config.getCorrectionSystemPrompt()
 
@@ -305,7 +309,9 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         return
     end
     
-    local url = "https://api.openai.com/v1/audio/transcriptions"
+    local baseUrl = config.getTranscriptionApiBaseUrl()
+    local url = baseUrl .. "/audio/transcriptions"
+    local model = config.getTranscriptionModel()
     local language = config.getLanguage()
     local glossary = config.getGlossary()
 
@@ -319,7 +325,7 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         url,
         "-H", "Authorization: Bearer " .. apiKey,
         "-F", "file=@" .. audioFilePath,
-        "-F", "model=whisper-1"
+        "-F", "model=" .. model
     }
     
     if language and language ~= "auto" then
@@ -334,6 +340,8 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
 
     local attemptLog = attemptNumber > 0 and string.format(" (attempt %d/%d)", attemptNumber + 1, M.MAX_RETRIES) or ""
     print("Executing API request" .. attemptLog .. "...")
+    print("API Base URL: " .. baseUrl)
+    print("Model: " .. model)
     print("Audio file: " .. audioFilePath)
     print("File size: " .. string.format("%.2f KB", (utils.get_file_size(audioFilePath) or 0) / 1024))
     if glossary and glossary ~= "" then
@@ -343,7 +351,7 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         end
         print("Glossary: " .. glossaryPreview .. " (" .. #glossary .. " chars)")
     end
-    print("Command: /usr/bin/curl -s -w \\nHTTP_STATUS:%{http_code} --compressed --connect-timeout 10 --max-time 60 https://api.openai.com/v1/audio/transcriptions -H 'Authorization: Bearer <redacted>' -F 'file=@" .. audioFilePath .. "' -F model=whisper-1 " .. (language and language ~= "auto" and (" -F language=" .. language) or "") .. (glossary and glossary ~= "" and (" -F prompt='" .. glossary:sub(1, 32) .. "'") or ""))
+    print("Command: /usr/bin/curl -s -w \\nHTTP_STATUS:%{http_code} --compressed --connect-timeout 10 --max-time 60 " .. url .. " -H 'Authorization: Bearer <redacted>' -F 'file=@" .. audioFilePath .. "' -F model=" .. model .. " " .. (language and language ~= "auto" and (" -F language=" .. language) or "") .. (glossary and glossary ~= "" and (" -F prompt='" .. glossary:sub(1, 32) .. "'") or ""))
     
     local task = hs.task.new("/usr/bin/curl", function(exitCode, stdOut, stdErr)
         -- Remove task from active tasks to allow cleanup

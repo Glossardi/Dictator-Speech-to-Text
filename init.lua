@@ -60,6 +60,9 @@ local function buildMenu()
     local useFnKey = config.getUseFnKey()
     local correctionEnabled = config.getCorrectionEnabled()
     local correctionModel = config.getCorrectionModel()
+    local transcriptionApiBaseUrl = config.getTranscriptionApiBaseUrl()
+    local transcriptionModel = config.getTranscriptionModel()
+    local correctionApiBaseUrl = config.getCorrectionApiBaseUrl()
 
     return {
         { title = "Status: " .. ui.currentStatus:upper(), disabled = true },
@@ -91,6 +94,45 @@ local function buildMenu()
                  ui.setMenu(buildMenu())
              end
         end },
+        { title = "  Transcription API Settings", menu = {
+            { title = "Set API Base URL...", fn = function()
+                local current = transcriptionApiBaseUrl
+                local button, text = hs.dialog.textPrompt(
+                    "Transcription API Base URL",
+                    "Enter base URL (without /audio/transcriptions):\\n\\nExamples:\\n- OpenAI: https://api.openai.com/v1\\n- DeepInfra: https://api.deepinfra.com/v1/openai",
+                    current,
+                    "Save",
+                    "Cancel"
+                )
+                if button == "Save" then
+                    local ok = config.setTranscriptionApiBaseUrl(text)
+                    if ok then
+                        hs.alert.show("Transcription API URL saved")
+                        ui.setMenu(buildMenu())
+                    else
+                        hs.alert.show("Invalid URL format")
+                    end
+                end
+            end },
+            { title = "Set Model... (" .. transcriptionModel .. ")", fn = function()
+                local button, text = hs.dialog.textPrompt(
+                    "Transcription Model",
+                    "Enter model name:\\n\\nExamples:\\n- OpenAI: whisper-1\\n- DeepInfra: openai/whisper-large-v3",
+                    transcriptionModel,
+                    "Save",
+                    "Cancel"
+                )
+                if button == "Save" then
+                    local ok = config.setTranscriptionModel(text)
+                    if ok then
+                        hs.alert.show("Transcription model saved")
+                        ui.setMenu(buildMenu())
+                    else
+                        hs.alert.show("Invalid model name")
+                    end
+                end
+            end }
+        } },
         { title = "  Edit Glossary...", fn = function()
              local currentGlossary = config.getGlossary()
              local button, text = hs.dialog.textPrompt(
@@ -115,6 +157,25 @@ local function buildMenu()
             ui.setMenu(buildMenu())
         end },
         { title = "  Correction Settings", disabled = (not correctionEnabled), menu = {
+            { title = "Set API Base URL...", fn = function()
+                local current = correctionApiBaseUrl
+                local button, text = hs.dialog.textPrompt(
+                    "Correction API Base URL",
+                    "Enter base URL (without /chat/completions):\\n\\nExamples:\\n- OpenAI: https://api.openai.com/v1\\n- DeepInfra: https://api.deepinfra.com/v1/openai",
+                    current,
+                    "Save",
+                    "Cancel"
+                )
+                if button == "Save" then
+                    local ok = config.setCorrectionApiBaseUrl(text)
+                    if ok then
+                        hs.alert.show("Correction API URL saved")
+                        ui.setMenu(buildMenu())
+                    else
+                        hs.alert.show("Invalid URL format")
+                    end
+                end
+            end },
             { title = "Set Model... (" .. correctionModel .. ")", fn = function()
                 local button, text = hs.dialog.textPrompt("Correction Model", "Enter model id (e.g. 'gpt-4o-mini', 'gpt-4o'):", correctionModel, "OK", "Cancel")
                 if button == "OK" then

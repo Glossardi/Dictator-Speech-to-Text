@@ -56,16 +56,17 @@ cd ~/Documents/Dictator
 
 - **🎙️ Hold-to-Record**: Press and hold `Fn` key (or custom hotkey) to record audio
 - **🤖 OpenAI Whisper**: Accurate transcription via OpenAI's Whisper API
+- **� Multi-Provider Support**: Switch between OpenAI, DeepInfra, or any OpenAI-compatible API
 - **📝 Manual Glossary**: Provide context words (technical terms, names) to improve transcription accuracy
 - **✨ AI Correction (Optional)**: Post-process transcription with a fast LLM (default: `gpt-4o-mini`) for punctuation/grammar/paragraphs
 - **📋 Auto-Paste**: Automatically paste transcribed text (toggle on/off)
-- **⚙️ Configurable**: Set API key, custom hotkeys, language, and auto-paste behavior
+- **⚙️ Configurable**: Set API key, custom hotkeys, language, API providers, and models
 - **🎯 Minimal UI**: Clean menubar icon showing current status (🎙️ Idle, 🔴 Recording, ⏳ Processing, 🤖 AI)
 - **🌍 Multi-language**: Support for multiple languages via Whisper API
 - **🛡️ Rate Limiting**: Built-in rate limiter prevents exceeding API limits (3 requests/minute default)
 - **🔄 Auto-Retry**: Exponential backoff with automatic retry on API errors (429, 5xx)
 - **⚡ Debouncing**: Prevents accidental double-triggers from rapid hotkey presses
-- **✅ Input Validation**: Validates API keys, audio file size (<25MB), and configuration
+- **✅ Input Validation**: Validates API keys, audio file size (<25MB), URLs, and model names
 - **🚀 Performance Optimized**:
   - FLAC compression reduces file sizes by ~50% (faster uploads)
   - Optimized curl flags for maximum transfer speed
@@ -308,14 +309,69 @@ Access all settings via the menubar icon:
 
 ### Settings Menu
 
-- **API Key**: Set your OpenAI API key
+- **API Key**: Set your OpenAI API key (or API key from alternative provider)
 - **Language**: Set transcription language (`auto`, `en`, `de`, etc.)
+- **Transcription API Settings**: Configure API provider for speech-to-text
+  - **Set API Base URL**: Choose provider (OpenAI, DeepInfra, etc.)
+  - **Set Model**: Select transcription model
 - **Edit Glossary...**: Define context words to improve transcription accuracy
 - **Auto-Paste**: Toggle automatic text pasting
 - **Enable AI Correction**: Toggle post-processing of the transcription (default: OFF to avoid extra cost)
-- **Correction Settings**: Configure model + system prompt (only enabled when AI correction is ON)
+- **Correction Settings**: Configure API provider, model, and system prompt for AI correction
+  - **Set API Base URL**: Choose provider for correction
+  - **Set Model**: Select correction model
+  - **Set System Prompt**: Customize correction behavior
 - **Use Fn Key (Hold)**: Toggle Fn key as recording hotkey
 - **Set Custom Hotkey**: Configure alternative hotkey (when Fn key is disabled)
+
+### API Provider Configuration
+
+Dictator supports **OpenAI-compatible APIs**, allowing you to choose your preferred provider for both transcription and AI correction.
+
+#### Supported Providers
+
+| Provider | Transcription Base URL | Example Models | Notes |
+|----------|------------------------|----------------|-------|
+| **OpenAI** (Default) | `https://api.openai.com/v1` | `whisper-1` | Standard Whisper API |
+| **DeepInfra** | `https://api.deepinfra.com/v1/openai` | `openai/whisper-large-v3`<br>`openai/whisper-large-v2-turbo`<br>`distil-whisper-large-v3` | 50-70% cheaper, 2-5x faster |
+
+#### Configuration Examples
+
+##### OpenAI (Default)
+
+**Transcription:**
+- Base URL: `https://api.openai.com/v1`
+- Model: `whisper-1`
+
+**Correction:**
+- Base URL: `https://api.openai.com/v1`
+- Model: `gpt-4o-mini` (default), `gpt-4o`, `o1-mini`, etc.
+
+##### DeepInfra
+
+**Transcription:**
+- Base URL: `https://api.deepinfra.com/v1/openai`
+- Model: `openai/whisper-large-v3` (recommended)
+- API Key: Get from [DeepInfra Console](https://deepinfra.com/)
+
+**Correction:**
+- Base URL: `https://api.deepinfra.com/v1/openai`
+- Model: Compatible LLM models from DeepInfra catalog
+
+#### How to Switch Providers
+
+1. Get API key from your chosen provider
+2. In Dictator menubar → **Settings** → **API Key**: Enter the new API key
+3. **Transcription API Settings** → **Set API Base URL**: Enter provider's base URL
+4. **Transcription API Settings** → **Set Model**: Enter model name
+5. (Optional) **Correction Settings** → **Set API Base URL**: Configure correction provider
+6. (Optional) **Correction Settings** → **Set Model**: Select correction model
+
+**Important Notes:**
+- Each provider requires its own API key format
+- URLs should NOT include the endpoint path (e.g., `/audio/transcriptions`)
+- Model names must match the provider's format exactly
+- Test with a short recording to verify configuration
 
 ### AI Correction (Optional)
 
@@ -528,7 +584,40 @@ Dictator/
 - `"could not parse multi-part form"` - Fixed in latest version (proper shell escaping)
 - `"Network error"` - Check internet connection, DNS resolution
 - `"SSL/Certificate error"` - System time may be wrong, or SSL issues
-- `"API Error: <message>"` - Check OpenAI status and API key validity
+- `"API Error: <message>"` - Check API status and API key validity
+- `"Invalid API key format"` - Verify API key matches provider's format (OpenAI: `sk-...`, DeepInfra: different format)
+
+### API Provider Issues
+
+**Symptom**: Transcription fails with API errors after switching providers
+
+**Solutions**:
+
+1. **Verify API Key Format**: Each provider has different key formats
+   - OpenAI: Starts with `sk-`
+   - DeepInfra: Different format - check their documentation
+2. **Check Base URL Format**:
+   - Must start with `http://` or `https://`
+   - Should NOT include endpoint path (no `/audio/transcriptions`)
+   - Remove trailing slashes
+   - Examples:
+     - ✅ `https://api.openai.com/v1`
+     - ✅ `https://api.deepinfra.com/v1/openai`
+     - ❌ `https://api.openai.com/v1/audio/transcriptions`
+     - ❌ `https://api.openai.com/v1/`
+3. **Verify Model Name**: Model names are provider-specific
+   - OpenAI: `whisper-1`, `gpt-4o-mini`
+   - DeepInfra: `openai/whisper-large-v3` (note the namespace)
+4. **Check Console Logs**: Open Hammerspoon Console to see exact API request details
+   - Look for: `API Base URL: ...`, `Model: ...`
+   - Check HTTP status codes in response logs
+5. **Test with curl**: Manually test the API endpoint
+   ```bash
+   curl -X POST https://api.deepinfra.com/v1/openai/audio/transcriptions \
+     -H "Authorization: Bearer YOUR_API_KEY" \
+     -F "file=@test.flac" \
+     -F "model=openai/whisper-large-v3"
+   ```
 
 ### Rate Limit Errors
 
