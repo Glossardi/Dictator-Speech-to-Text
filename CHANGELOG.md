@@ -1,4 +1,31 @@
-# Changelog - API Provider Support Feature
+# Changelog
+
+## Version 1.2.1 - Critical Bug Fixes & Stability Improvements (January 2026)
+
+### 🐛 Critical Fixes
+
+#### App Hanging Issues Resolved
+- **Fixed undefined variable error**: Resolved `attempt to concatenate a nil value (global 'command')` error on line 450 that caused app to hang
+- **Robust error handling**: All API callbacks now wrapped in `pcall` to prevent exceptions from freezing the app
+- **Network error recovery**: Improved handling of curl exit code 6 (DNS resolution failure) and other network issues
+- **State management**: Ensured processing flag is always reset on errors, preventing "already processing" lock
+
+#### Stability Improvements
+- **Error propagation**: Callback always invoked even on internal errors, preventing indefinite hangs
+- **Variable scope fix**: Stored command string in proper scope for error logging
+- **Graceful degradation**: App now recovers automatically from all callback exceptions
+
+### 🧹 Repository Cleanup
+- **Removed**: `SETUP_DEEPINFRA.md` - no longer needed (instructions integrated in main README)
+- **Updated**: README troubleshooting section with comprehensive error recovery documentation
+
+### 📝 Technical Details
+- All `hs.task` callbacks protected with `pcall` error wrapping
+- Fixed command variable reference in error handler
+- Improved error messages with automatic API key redaction
+- Better logging for debugging network and API issues
+
+---
 
 ## Version 1.2.0 - Multi-Provider API Support
 

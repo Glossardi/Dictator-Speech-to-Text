@@ -550,29 +550,39 @@ Dictator/
 
 **Symptom**: App remains in "Processing" state (⏳) indefinitely, nothing is pasted
 
-**Cause**: This was a known issue caused by Hammerspoon task garbage collection and shell subprocess forking.
+**Cause**: This was a known issue caused by network errors, callback exceptions, and task management problems.
 
-**Fix (Version 1.1.0+)**:
+**✅ Fixed (Version 1.2.0+)**:
 
-- **Task Persistence**: All curl tasks are now persisted to prevent garbage collection blocking
+- **Robust Error Handling**: All API callbacks wrapped in pcall to prevent exceptions from hanging the app
+- **Variable Scope Fix**: Fixed undefined `command` variable that caused callback crashes
+- **Task Persistence**: All curl tasks are persisted to prevent garbage collection blocking
 - **Direct curl invocation**: Removed shell wrapping (`/bin/sh -c`) to avoid subprocess forking issues
-- **Stream callbacks**: Added to prevent blocking in edge cases
 - **Global watchdog**: Automatically detects and resets stuck processing state after 90 seconds
-- **Improved logging**: Better visibility into task lifecycle
+- **Automatic Recovery**: App now gracefully handles all network and API errors without hanging
+- **Improved logging**: Better visibility into errors with automatic API key redaction
 
-**If you still experience hangs**:
+**Built-in Recovery Mechanisms**:
 
-1. Check Hammerspoon Console for `WATCHDOG: Processing stuck` messages
-2. The app should auto-recover after 90 seconds maximum
-3. If not, manually reload Hammerspoon config
-4. Report issue with Console logs (API key is now automatically redacted)
+1. **pcall Error Wrapping**: All callbacks protected against Lua errors
+2. **Automatic State Reset**: Processing flag always cleared on errors
+3. **Network Error Handling**: Graceful handling of DNS failures, timeouts, SSL errors
+4. **Watchdog Timer**: Force-resets after 90 seconds if processing gets stuck
+5. **Rate Limiting**: Prevents API abuse and shows clear wait times
+
+**If you still experience issues**:
+
+1. Check Hammerspoon Console for error messages (API key automatically redacted)
+2. The app should auto-recover within 90 seconds maximum
+3. If not, manually reload Hammerspoon: Click menubar icon → Reload Config
+4. Report persistent issues with Console logs on GitHub
 
 **Technical Details** (for developers):
 
-- Previous versions used `/bin/sh -c "curl ..."` which could cause Hammerspoon to block waiting for subprocess groups
-- Task objects that were garbage collected could cause indefinite blocking without callback execution
-- The 35-second timeout couldn't interrupt already-blocked tasks at the OS level
-- Fixed by: direct `/usr/bin/curl` invocation with args array, task persistence table, and stream callbacks
+- Previous versions had unhandled exceptions in hs.task callbacks that could leave the app in "processing" state
+- Line 450 referenced undefined `command` variable causing "attempt to concatenate a nil value" error
+- All critical callbacks now wrapped in pcall with proper error propagation
+- Ensures callback is always invoked even on internal errors, preventing indefinite hangs
 
 ---
 

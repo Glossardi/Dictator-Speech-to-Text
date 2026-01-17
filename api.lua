@@ -199,15 +199,17 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
     local requestStart = hs.timer.secondsSinceEpoch()
 
     local task = hs.task.new("/usr/bin/curl", function(exitCode, stdOut, stdErr)
-        -- Remove from active tasks
-        for i, t in ipairs(M.activeTasks) do
-            if t == task then
-                table.remove(M.activeTasks, i)
-                break
+        -- Wrap entire callback in pcall to prevent errors from hanging the app
+        local success, callbackError = pcall(function()
+            -- Remove from active tasks
+            for i, t in ipairs(M.activeTasks) do
+                if t == task then
+                    table.remove(M.activeTasks, i)
+                    break
+                end
             end
-        end
-        local elapsed = hs.timer.secondsSinceEpoch() - requestStart
-        if exitCode == 0 then
+            local elapsed = hs.timer.secondsSinceEpoch() - requestStart
+            if exitCode == 0 then
             -- curl appends our status trailer after a real newline. Normalize CRLF just in case.
             local normalized = (stdOut or ""):gsub("\r\n", "\n")
             local statusMatch = normalized:match("\nHTTP_STATUS:(%d+)%s*$")
@@ -293,6 +295,16 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
                 if callback then callback(nil, "Correction network error after " .. M.MAX_RETRIES .. " attempts") end
             end
         end
+        end) -- End of pcall
+        
+        -- Handle pcall errors
+        if not success then
+            print("ERROR: Critical error in correction callback: " .. tostring(callbackError))
+            -- Ensure callback is called with error to prevent app from hanging
+            if callback then 
+                pcall(callback, nil, "Internal error: " .. tostring(callbackError))
+            end
+        end
     end, args)
     
     -- Persist task to prevent GC-related blocking
@@ -351,17 +363,21 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         end
         print("Glossary: " .. glossaryPreview .. " (" .. #glossary .. " chars)")
     end
-    print("Command: /usr/bin/curl -s -w \\nHTTP_STATUS:%{http_code} --compressed --connect-timeout 10 --max-time 60 " .. url .. " -H 'Authorization: Bearer <redacted>' -F 'file=@" .. audioFilePath .. "' -F model=" .. model .. " " .. (language and language ~= "auto" and (" -F language=" .. language) or "") .. (glossary and glossary ~= "" and (" -F prompt='" .. glossary:sub(1, 32) .. "'") or ""))
+    -- Store command for error logging
+    local commandForLog = "/usr/bin/curl -s -w \\nHTTP_STATUS:%{http_code} --compressed --connect-timeout 10 --max-time 60 " .. url .. " -H 'Authorization: Bearer <redacted>' -F 'file=@" .. audioFilePath .. "' -F model=" .. model .. " " .. (language and language ~= "auto" and (" -F language=" .. language) or "") .. (glossary and glossary ~= "" and (" -F prompt='" .. glossary:sub(1, 32) .. "'") or "")
+    print("Command: " .. commandForLog)
     
     local task = hs.task.new("/usr/bin/curl", function(exitCode, stdOut, stdErr)
-        -- Remove task from active tasks to allow cleanup
-        for i, t in ipairs(M.activeTasks) do
-            if t == task then
-                table.remove(M.activeTasks, i)
-                break
+        -- Wrap entire callback in pcall to prevent errors from hanging the app
+        local success, callbackError = pcall(function()
+            -- Remove task from active tasks to allow cleanup
+            for i, t in ipairs(M.activeTasks) do
+                if t == task then
+                    table.remove(M.activeTasks, i)
+                    break
+                end
             end
-        end
-        print("API Response received. Exit code: " .. exitCode)
+            print("API Response received. Exit code: " .. exitCode)
         
         if exitCode == 0 then
             -- Extract HTTP status code from end of response
@@ -447,7 +463,7 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         else
             -- Curl command failed
             print("ERROR: Curl command failed with exit code: " .. exitCode)
-            print("Command was: " .. command)
+            print("Command was: " .. commandForLog)
             if stdOut and #stdOut > 0 then
                 print("Stdout: " .. stdOut)
             end
@@ -480,6 +496,16 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
                 end)
             else
                 if callback then callback(nil, "Network error after " .. M.MAX_RETRIES .. " attempts") end
+            end
+        end
+        end) -- End of pcall
+        
+        -- Handle pcall errors
+        if not success then
+            print("ERROR: Critical error in API callback: " .. tostring(callbackError))
+            -- Ensure callback is called with error to prevent app from hanging
+            if callback then 
+                pcall(callback, nil, "Internal error: " .. tostring(callbackError))
             end
         end
     end, args)
