@@ -338,8 +338,16 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
             end
 
             local content = nil
+            -- OpenAI/DeepInfra format: choices[0].message.content
             if response and response.choices and response.choices[1] and response.choices[1].message then
                 content = response.choices[1].message.content
+            -- Cloudflare format: result.response (if they use their wrapper format)
+            elseif response and response.success == true and response.result then
+                if type(response.result) == "table" and response.result.response then
+                    content = response.result.response
+                elseif type(response.result) == "string" then
+                    content = response.result
+                end
             end
 
             if type(content) == "string" and content ~= "" then
@@ -559,9 +567,15 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
                 return
             end
             
+            -- Check for successful transcription (OpenAI format)
             if response and response.text then
                 print("Transcription successful. Text length: " .. #response.text)
                 if callback then callback(response.text, nil) end
+            -- Check for successful transcription (Cloudflare format)
+            elseif response and response.success == true and response.result and response.result.text then
+                local text = response.result.text
+                print("Transcription successful (Cloudflare). Text length: " .. #text)
+                if callback then callback(text, nil) end
             elseif response and response.error then
                 -- OpenAI/DeepInfra error format
                 local errorMsg = response.error.message or "Unknown API error"
