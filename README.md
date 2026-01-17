@@ -374,180 +374,41 @@ Access all settings via the menubar icon:
 
 ### API Provider Configuration
 
-Dictator supports **OpenAI-compatible APIs**, allowing you to choose your preferred provider for both transcription and AI correction.
-
-**💡 Recommended: DeepInfra** for significantly faster processing and lower costs!
+Dictator supports **multiple AI providers** via OpenAI-compatible APIs. All providers work the same way - just change the API key, base URL, and model name.
 
 #### Supported Providers
 
-| Provider         | Transcription Base URL                | Example Models                                                  | Notes                                                              |
-| ---------------- | ------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------ |
-| **OpenAI**       | `https://api.openai.com/v1`           | `whisper-1`                                                     | Standard, reliable                                                 |
-| **DeepInfra** ⚡ | `https://api.deepinfra.com/v1/openai` | `openai/whisper-large-v3-turbo` ✨<br>`openai/whisper-large-v3` | **50-70% cheaper, 2-5x faster**<br>OpenAI-compatible, recommended! |
-| **Groq** 🚀      | `https://api.groq.com/openai/v1`      | `whisper-large-v3-turbo`<br>`whisper-large-v3`                  | **Extremely fast (200+ tokens/s)**<br>Free tier available!         |
+| Provider            | Base URL                                                          | Models                             | Best For                             |
+| ------------------- | ----------------------------------------------------------------- | ---------------------------------- | ------------------------------------ |
+| **Groq** 🚀         | `https://api.groq.com/openai/v1`                                  | `whisper-large-v3-turbo`           | **Fastest** (200-300+ tokens/s), Free tier |
+| **DeepInfra** ⚡    | `https://api.deepinfra.com/v1/openai`                             | `openai/whisper-large-v3-turbo`    | **Cost-effective** (50-70% cheaper) |
+| **OpenAI**          | `https://api.openai.com/v1`                                       | `whisper-1`                        | Standard, reliable                   |
+| **Cloudflare** ☁️  | `https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}`      | `@cf/openai/whisper-large-v3-turbo` | Global edge, free tier (10k neurons/day) |
 
-#### Configuration Examples
+#### Quick Setup
 
-##### OpenAI
-
-**Transcription:**
-
-- Base URL: `https://api.openai.com/v1`
-- Model: `whisper-1`
-
-**Correction:**
-
-- Base URL: `https://api.openai.com/v1`
-- Model: `gpt-4o-mini`, `gpt-4o`, `o1-mini`, etc.
-
-##### DeepInfra ⚡ (Recommended)
-
-**Why DeepInfra?**
-
-- ⚡ **2-5x faster** transcription and correction
-- 💰 **50-70% cheaper** than OpenAI
-- 🔄 **Drop-in compatible** - same API format
-- ✅ **Excellent quality** - same Whisper models
-
-**Transcription:**
-
-- Base URL: `https://api.deepinfra.com/v1/openai`
-- Model: `openai/whisper-large-v3-turbo` ✨ **(recommended - fastest!)**
-- Alternative: `openai/whisper-large-v3` (even more accurate)
-- API Key: Get from [DeepInfra Console](https://deepinfra.com/)
-
-**Correction:**
-
-- Base URL: `https://api.deepinfra.com/v1/openai`
-- Model: Choose from [DeepInfra's LLM catalog](https://deepinfra.com/models/text-generation)
-  - Fast & Good: `Qwen/Qwen2.5-7B-Instruct`, `meta-llama/Llama-3.3-70B-Instruct`
-  - Premium: `Qwen/QwQ-32B-Preview`, `deepseek-ai/DeepSeek-V3`
-
-##### Groq 🚀 (Fastest)
-
-**Why Groq?**
-
-- 🚀 **Extremely fast** - 200+ tokens/second (some models 300+ tokens/s)
-- 💰 **Free tier** - Perfect for trying out
-- ⚡ **Ultra-fast Whisper** - Fastest transcription available
-- 🔄 **OpenAI-compatible** - Drop-in replacement
-- 🎯 **Low latency** - Real-time performance
-
-**Transcription:**
-
-- Base URL: `https://api.groq.com/openai/v1`
-- Model: `whisper-large-v3-turbo` ✨ **(fastest Whisper available!)**
-- Alternative: `whisper-large-v3`
-- API Key: Get from [Groq Console](https://console.groq.com/)
-- Free Tier: Generous limits for testing
-
-**Correction:**
-
-- Base URL: `https://api.groq.com/openai/v1`
-- Models: `llama-3.3-70b-versatile`, `llama-3.1-70b-versatile`, `mixtral-8x7b-32768`
-- Speed: 200-300+ tokens/second depending on model
-
-#### How to Switch Providers
-
-**Quick Start with Groq (Fastest):**
-
-1. Get API key from [Groq Console](https://console.groq.com/) (free tier available!)
-2. In Dictator menubar → **Settings** → **API Key**: Enter your Groq API key
-3. **Transcription API Settings** → **Set API Base URL**: `https://api.groq.com/openai/v1`
-4. **Transcription API Settings** → **Set Model**: `whisper-large-v3-turbo`
-5. (Optional) **Enable AI Correction** and configure:
-   - **Correction Settings** → **Set API Base URL**: `https://api.groq.com/openai/v1`
-   - **Correction Settings** → **Set Model**: `llama-3.3-70b-versatile`
-6. Test with a recording - experience blazing speed! 🚀
-
-**Quick Start with DeepInfra (Cost-Effective):**
-
-1. Get API key from [DeepInfra Console](https://deepinfra.com/) (free credits available!)
-2. In Dictator menubar → **Settings** → **API Key**: Enter your DeepInfra API key
-3. **Transcription API Settings** → **Set API Base URL**: `https://api.deepinfra.com/v1/openai`
-4. **Transcription API Settings** → **Set Model**: `openai/whisper-large-v3-turbo`
-5. (Optional) **Enable AI Correction** and configure:
-   - **Correction Settings** → **Set API Base URL**: `https://api.deepinfra.com/v1/openai`
-   - **Correction Settings** → **Set Model**: `Qwen/Qwen2.5-7B-Instruct` or similar
-6. Test with a short recording - enjoy the speed! ⚡
-
-**Switching back to OpenAI:**
-
-1. Get API key from your chosen provider
-2. In Dictator menubar → **Settings** → **API Key**: Enter the new API key
-3. **Transcription API Settings** → **Set API Base URL**: Enter provider's base URL
-4. **Transcription API Settings** → **Set Model**: Enter model name
-5. (Optional) **Enable AI Correction** if desired
-6. (Optional) **Correction Settings** → **Set API Base URL**: Configure correction provider
-7. (Optional) **Correction Settings** → **Set Model**: Select correction model
-8. Test with a short recording to verify configuration
+1. **Get API Key**: Sign up at your chosen provider ([Groq](https://console.groq.com/) • [DeepInfra](https://deepinfra.com/) • [OpenAI](https://platform.openai.com/) • [Cloudflare](https://dash.cloudflare.com/))
+2. **Configure Dictator**:
+   - Settings → **API Key**: Paste your API key
+   - Settings → **Transcription API Settings** → **Set API Base URL**: Enter base URL from table
+   - Settings → **Transcription API Settings** → **Set Model**: Enter model from table
+3. **Test**: Record a short audio to verify
 
 **Important Notes:**
+- 💡 **Groq**: Fastest option with generous free tier - perfect for testing
+- 💰 **DeepInfra**: Best price/performance ratio - recommended for production
+- 🌐 **Cloudflare**: Requires Account ID in URL (get from dashboard)
+- ⚠️ Base URLs should **NOT** include `/audio/transcriptions` - it's added automatically
 
-- Each provider requires its own API key format
-- URLs should NOT include the endpoint path (e.g., `/audio/transcriptions`)
-- Model names must match the provider's format exactly (e.g., `openai/whisper-large-v3-turbo` for DeepInfra)
-- DeepInfra requires the full model path including namespace (e.g., `openai/...`, `Qwen/...`)
-- Test with a short recording to verify configuration
+#### Provider-Specific Setup
+
+**Cloudflare Workers AI** requires additional configuration:
+- Get your Account ID from [Cloudflare Dashboard](https://dash.cloudflare.com/)
+- Create API Token: AI → Workers AI → Use REST API → Create API Token
+- Use format: `https://api.cloudflare.com/client/v4/accounts/{YOUR_ACCOUNT_ID}`
+- Models use `@cf/` prefix (e.g., `@cf/openai/whisper-large-v3-turbo`)
 
 ---
-
-### 🌥️ Cloudflare Workers AI Configuration
-
-Cloudflare Workers AI provides global edge deployment for AI models with competitive pricing and low latency.
-
-#### Prerequisites
-
-1. Cloudflare account: [dash.cloudflare.com](https://dash.cloudflare.com/)
-2. Get your **Account ID** from dashboard (visible in URL or dashboard overview)
-3. Create API Token:
-   - Navigate: **AI** → **Workers AI** → **Use REST API** → **Create API Token**
-   - Required permission: "Workers AI Read"
-   - Copy the generated token
-
-#### Configuration Steps
-
-**For Transcription (Whisper):**
-
-1. **Settings** → **Transcription Settings** → **Set API Base URL**
-
-   ```
-   https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}
-   ```
-
-   Replace `{ACCOUNT_ID}` with your actual Cloudflare Account ID
-
-2. **Settings** → **Transcription Settings** → **Set Model**
-
-   - Recommended: `@cf/openai/whisper-large-v3-turbo` (fastest)
-   - Alternative: `@cf/openai/whisper` (standard)
-
-3. **Settings** → **Set API Key**
-   - Paste your Cloudflare API Token
-
-**For AI Correction (Optional):**
-
-1. **Settings** → **Correction Settings** → **Enable AI Correction** ✓
-
-2. **Settings** → **Correction Settings** → **Set API Base URL**
-
-   ```
-   https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}
-   ```
-
-   (Same as transcription URL)
-
-3. **Settings** → **Correction Settings** → **Set Model**
-   - Recommended: `@cf/meta/llama-3.1-8b-instruct` (fast, good quality)
-   - Alternative: `@cf/qwen/qwen2.5-7b-instruct`
-
-#### Cloudflare-Specific Notes
-
-- **API Format**: Cloudflare uses base64-encoded audio instead of multipart/form-data
-- **Automatic Detection**: Dictator automatically detects Cloudflare URLs and adapts the request format
-- **Model Naming**: Must use Cloudflare's format with `@cf/` prefix
-- **Timeout**: Cloudflare requests may take slightly longer (up to 90s timeout)
-- **Pricing**: Competitive with free tier included (10,000 neurons/day)
 - **Performance**: Global edge deployment provides low latency worldwide
 
 #### Available Models
@@ -639,81 +500,6 @@ The **Edit Glossary...** feature allows you to provide context words to the Whis
 
 The glossary does **not** add content to your transcription - it only guides Whisper to recognize and spell words correctly that are actually spoken.
 
-#### Verifying your System Prompt is actually used
-
-If you suspect that changing the **Correction System Prompt** in the menubar settings has no effect, you can verify it via the Hammerspoon Console logs.
-
-1. Enable **Enable AI Correction** in the Dictator menubar.
-2. Set **Correction Settings → Set System Prompt...** to your desired prompt.
-3. Trigger a transcription (record > release).
-4. Open **Hammerspoon → Console** and look for the correction request logs:
-
-- `Executing correction request...`
-- `System prompt: <N> chars`
-- `System prompt preview: ...`
-- `Correction response received (http=<status>) in <seconds>s`
-
-If you see these lines, the system prompt is being loaded from `hs.settings` and sent as a `role="system"` message to the Chat Completions endpoint.
-
-**Important:** Because Dictator is fail-open, a fast correction failure (e.g. invalid model, quota, auth issues) will fall back to the raw Whisper transcript, which can look like “correction didn’t run”. In that case, you’ll also see a log line like:
-
-- `Correction API error (http=<status>) ...`
-
-Some models reject non-default sampling parameters (e.g. `temperature`). If that happens, Dictator automatically retries the correction once without `temperature` before falling back.
-
-Fix the underlying API/model issue, then retry.
-
-### Performance Benefits (Provider Comparison)
-
-#### Groq 🚀 (Fastest)
-
-When using Groq:
-
-- 🚀 **Speed**: Blazing fast - 200-300+ tokens/second
-- ⚡ **Whisper**: Fastest Whisper implementation available
-- 💰 **Free Tier**: Generous limits for testing and personal use
-- 🎯 **Low Latency**: Near real-time transcription
-- 🔄 **Compatibility**: 100% OpenAI-compatible API
-
-Example performance:
-
-- Typical LLM response: 200-300+ tokens/second
-- Whisper transcription: Ultra-fast processing
-- Great for real-time use cases
-
-#### DeepInfra ⚡ (Cost-Effective)
-
-When using DeepInfra instead of OpenAI:
-
-- ⚡ **Speed**: 2-5x faster transcription and correction
-- 💰 **Cost**: 50-70% cheaper
-- 🎯 **Quality**: Same Whisper models, identical accuracy
-- 🔄 **Compatibility**: 100% OpenAI-compatible API - just change URL and model name!
-
-Example savings:
-
-- OpenAI Whisper: ~$0.006/minute
-- DeepInfra Whisper: ~$0.0013-$0.0029/minute
-- **1 hour of transcription**: OpenAI $0.36 vs DeepInfra $0.08-$0.17
-
-#### Cloudflare Workers AI
-
-When using Cloudflare Workers AI:
-
-- 🌍 **Global Edge**: Low latency worldwide via edge deployment
-- 💰 **Free Tier**: 10,000 neurons/day included
-- 🚀 **Performance**: Competitive speed with global CDN
-- 🔒 **Privacy**: Data processed on Cloudflare's network
-- 🔄 **Compatibility**: Automatic detection and format adaptation
-
-Example benefits:
-
-- Free tier suitable for personal use
-- Enterprise-grade infrastructure
-- No cold starts (always ready)
-- Integrated with Cloudflare ecosystem
-
-### Hotkey Options
 
 #### Option 1: Fn Key (Default)
 
