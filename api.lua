@@ -408,6 +408,8 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
     
     local url, args, jsonBody
     
+    local tempFile = nil  -- Track temp file for cleanup
+    
     if isCloudflare then
         -- Cloudflare Workers AI uses REST API with base64-encoded audio
         url = baseUrl:gsub("/v1/openai$", "") .. "/ai/run/" .. model
@@ -436,7 +438,18 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         
         jsonBody = hs.json.encode(payload)
         
-        -- Build curl arguments for JSON request
+        -- Write JSON to temp file to avoid command-line length limits (large base64 strings)
+        tempFile = os.tmpname()
+        local file = io.open(tempFile, "w")
+        if not file then
+            print("ERROR: Cannot create temporary file for request")
+            if callback then callback(nil, "Cannot create temporary file") end
+            return
+        end
+        file:write(jsonBody)
+        file:close()
+        
+        -- Build curl arguments for JSON request (use @file to avoid arg length limits)
         args = {
             "-s",
             "-w", "\nHTTP_STATUS:%{http_code}",
@@ -446,7 +459,7 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
             url,
             "-H", "Authorization: Bearer " .. apiKey,
             "-H", "Content-Type: application/json",
-            "-d", jsonBody
+            "-d", "@" .. tempFile
         }
     else
         -- OpenAI/compatible providers use multipart form-data
@@ -502,6 +515,11 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
     local task = hs.task.new("/usr/bin/curl", function(exitCode, stdOut, stdErr)
         -- Wrap entire callback in pcall to prevent errors from hanging the app
         local success, callbackError = pcall(function()
+            -- Clean up temp file immediately
+            if tempFile then
+                os.remove(tempFile)
+            end
+            
             -- Remove task from active tasks to allow cleanup
             for i, t in ipairs(M.activeTasks) do
                 if t == task then
@@ -651,6 +669,10 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         
         -- Handle pcall errors
         if not success then
+            -- Clean up temp file on error
+            if tempFile then
+                os.remove(tempFile)
+            end
             print("ERROR: Critical error in API callback: " .. tostring(callbackError))
             -- Ensure callback is called with error to prevent app from hanging
             if callback then 
