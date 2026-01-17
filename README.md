@@ -397,65 +397,22 @@ Dictator supports **multiple AI providers** via OpenAI-compatible APIs. All prov
 **Important Notes:**
 - 💡 **Groq**: Fastest option with generous free tier - perfect for testing
 - 💰 **DeepInfra**: Best price/performance ratio - recommended for production
-- 🌐 **Cloudflare**: Requires Account ID in URL (get from dashboard)
+- 🌐 **Cloudflare**: Requires Account ID in URL and API Token (get from [dashboard](https://dash.cloudflare.com/))
 - ⚠️ Base URLs should **NOT** include `/audio/transcriptions` - it's added automatically
 
-#### Provider-Specific Setup
-
-**Cloudflare Workers AI** requires additional configuration:
-- Get your Account ID from [Cloudflare Dashboard](https://dash.cloudflare.com/)
-- Create API Token: AI → Workers AI → Use REST API → Create API Token
-- Use format: `https://api.cloudflare.com/client/v4/accounts/{YOUR_ACCOUNT_ID}`
-- Models use `@cf/` prefix (e.g., `@cf/openai/whisper-large-v3-turbo`)
-
----
-- **Performance**: Global edge deployment provides low latency worldwide
-
-#### Available Models
+#### Model Selection
 
 **Transcription Models:**
-
-- `@cf/openai/whisper-large-v3-turbo` - Fastest, recommended
-- `@cf/openai/whisper` - Standard quality
+- **Whisper-large-v3-turbo**: Best choice for speed and quality (available on all providers)
+- **Whisper-large-v3**: Alternative for higher accuracy
+- Format depends on provider: `whisper-large-v3-turbo` (Groq/OpenAI), `openai/whisper-large-v3-turbo` (DeepInfra), `@cf/openai/whisper-large-v3-turbo` (Cloudflare)
 
 **Correction Models:**
-
-- `@cf/meta/llama-3.1-8b-instruct` - Fast general-purpose
-- `@cf/qwen/qwen2.5-7b-instruct` - Alternative option
-- `@cf/deepseek-ai/deepseek-math-7b-instruct` - Math/technical focus
-- `@cf/meta/llama-2-7b-chat-fp16` - Legacy option
-
-See full model list: [developers.cloudflare.com/workers-ai/models](https://developers.cloudflare.com/workers-ai/models/)
-
-#### Troubleshooting Cloudflare
-
-1. **401 Unauthorized**: Check API token has "Workers AI Read" permission
-2. **Account ID**: Verify correct Account ID in URL (visible in Cloudflare dashboard)
-3. **Model not found**: Ensure model name uses `@cf/` prefix
-4. **Timeout**: Cloudflare may take longer than other providers, this is normal
-5. **Console logs**: Check Hammerspoon Console for "Provider: Cloudflare Workers AI"
-
-#### Example Configuration
-
-```lua
--- Transcription
-Transcription API URL: https://api.cloudflare.com/client/v4/accounts/abc123def456
-Transcription Model: @cf/openai/whisper-large-v3-turbo
-
--- Correction (optional)
-Correction API URL: https://api.cloudflare.com/client/v4/accounts/abc123def456
-Correction Model: @cf/meta/llama-3.1-8b-instruct
-```
+- Choose models with **similar performance to GPT-4o-mini**
+- Examples: `llama-3.3-70b-versatile` (Groq), `Qwen/Qwen2.5-7B-Instruct` (DeepInfra), `@cf/meta/llama-3.1-8b-instruct` (Cloudflare)
+- Faster models = faster correction, but ensure quality is sufficient for your use case
 
 ---
-
-**Important Notes:**
-
-- Each provider requires its own API key format
-- URLs should NOT include the endpoint path (e.g., `/audio/transcriptions`)
-- Model names must match the provider's format exactly (e.g., `openai/whisper-large-v3-turbo` for DeepInfra)
-- DeepInfra requires the full model path including namespace (e.g., `openai/...`, `Qwen/...`)
-- Test with a short recording to verify configuration
 
 ### AI Correction (Optional)
 
