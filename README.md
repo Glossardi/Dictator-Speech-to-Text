@@ -72,7 +72,8 @@ cd ~/Documents/Dictator
 
 - **🎙️ Hold-to-Record**: Press and hold `Fn` key (or custom hotkey) to record audio
 - **🤖 OpenAI Whisper**: Accurate transcription via OpenAI's Whisper API
-- **🔌 Multi-Provider Support**: Switch between OpenAI, DeepInfra, Cloudflare Workers AI, or any OpenAI-compatible API
+- **🔌 Multi-Provider Support**: Switch between OpenAI, DeepInfra, Groq, Cloudflare Workers AI, or any OpenAI-compatible API
+- **🚀 Groq Integration**: Blazing fast transcription - 200-300+ tokens/second with free tier!
 - **⚡ DeepInfra Integration**: 2-5x faster and 50-70% cheaper than OpenAI!
 - **☁️ Cloudflare Workers AI**: Global edge deployment with low latency and competitive pricing
 - **📝 Manual Glossary**: Provide context words (technical terms, names) to improve transcription accuracy
@@ -108,8 +109,37 @@ cd ~/Documents/Dictator
 
 ### API Key
 
-- **OpenAI API Key** with Whisper API access
-  - Get one at [OpenAI Platform](https://platform.openai.com/api-keys)
+You need an API key from one of these providers:
+
+#### Option 1: OpenAI (Official)
+- Create account: [platform.openai.com](https://platform.openai.com/)
+- Get API key: [API Keys page](https://platform.openai.com/api-keys)
+- Pricing: ~$0.006/minute (Whisper)
+
+#### Option 2: Groq 🚀 (Fastest)
+- Create account: [console.groq.com](https://console.groq.com/)
+- Get API key from console
+- **Blazing fast** - 200-300+ tokens/second
+- **Free tier** - Perfect for testing
+- Pricing: Competitive, free tier available
+- Fastest Whisper implementation available
+
+#### Option 3: DeepInfra ⚡ (Cost-Effective)
+- Create account: [deepinfra.com](https://deepinfra.com/)
+- Get API key from dashboard
+- 2-5x faster, 50-70% cheaper than OpenAI
+- Same Whisper models, 100% compatible
+- Pricing: ~$0.0013-$0.0029/minute
+
+#### Option 4: Cloudflare Workers AI
+- Create account: [dash.cloudflare.com](https://dash.cloudflare.com/)
+- Navigate to: **AI** → **Workers AI** → **Use REST API**
+- Create API Token with "Workers AI Read" permissions
+- Get your Account ID from dashboard
+- Models: `@cf/openai/whisper-large-v3-turbo`, `@cf/openai/whisper`
+- Correction models: `@cf/meta/llama-3.1-8b-instruct`, `@cf/qwen/qwen2.5-7b-instruct`
+- Pricing: Competitive, includes free tier (10,000 neurons/day)
+- Global edge deployment for low latency
 
 ### System Permissions
 
@@ -354,6 +384,7 @@ Dictator supports **OpenAI-compatible APIs**, allowing you to choose your prefer
 | ---------------- | ------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------ |
 | **OpenAI**       | `https://api.openai.com/v1`           | `whisper-1`                                                     | Standard, reliable                                                 |
 | **DeepInfra** ⚡ | `https://api.deepinfra.com/v1/openai` | `openai/whisper-large-v3-turbo` ✨<br>`openai/whisper-large-v3` | **50-70% cheaper, 2-5x faster**<br>OpenAI-compatible, recommended! |
+| **Groq** 🚀      | `https://api.groq.com/openai/v1`      | `whisper-large-v3-turbo`<br>`whisper-large-v3`                  | **Extremely fast (200+ tokens/s)**<br>Free tier available!         |
 
 #### Configuration Examples
 
@@ -392,9 +423,44 @@ Dictator supports **OpenAI-compatible APIs**, allowing you to choose your prefer
   - Fast & Good: `Qwen/Qwen2.5-7B-Instruct`, `meta-llama/Llama-3.3-70B-Instruct`
   - Premium: `Qwen/QwQ-32B-Preview`, `deepseek-ai/DeepSeek-V3`
 
+##### Groq 🚀 (Fastest)
+
+**Why Groq?**
+
+- 🚀 **Extremely fast** - 200+ tokens/second (some models 300+ tokens/s)
+- 💰 **Free tier** - Perfect for trying out
+- ⚡ **Ultra-fast Whisper** - Fastest transcription available
+- 🔄 **OpenAI-compatible** - Drop-in replacement
+- 🎯 **Low latency** - Real-time performance
+
+**Transcription:**
+
+- Base URL: `https://api.groq.com/openai/v1`
+- Model: `whisper-large-v3-turbo` ✨ **(fastest Whisper available!)**
+- Alternative: `whisper-large-v3`
+- API Key: Get from [Groq Console](https://console.groq.com/)
+- Free Tier: Generous limits for testing
+
+**Correction:**
+
+- Base URL: `https://api.groq.com/openai/v1`
+- Models: `llama-3.3-70b-versatile`, `llama-3.1-70b-versatile`, `mixtral-8x7b-32768`
+- Speed: 200-300+ tokens/second depending on model
+
 #### How to Switch Providers
 
-**Quick Start with DeepInfra (Recommended):**
+**Quick Start with Groq (Fastest):**
+
+1. Get API key from [Groq Console](https://console.groq.com/) (free tier available!)
+2. In Dictator menubar → **Settings** → **API Key**: Enter your Groq API key
+3. **Transcription API Settings** → **Set API Base URL**: `https://api.groq.com/openai/v1`
+4. **Transcription API Settings** → **Set Model**: `whisper-large-v3-turbo`
+5. (Optional) **Enable AI Correction** and configure:
+   - **Correction Settings** → **Set API Base URL**: `https://api.groq.com/openai/v1`
+   - **Correction Settings** → **Set Model**: `llama-3.3-70b-versatile`
+6. Test with a recording - experience blazing speed! 🚀
+
+**Quick Start with DeepInfra (Cost-Effective):**
 
 1. Get API key from [DeepInfra Console](https://deepinfra.com/) (free credits available!)
 2. In Dictator menubar → **Settings** → **API Key**: Enter your DeepInfra API key
@@ -599,7 +665,23 @@ Fix the underlying API/model issue, then retry.
 
 ### Performance Benefits (Provider Comparison)
 
-#### DeepInfra vs OpenAI
+#### Groq 🚀 (Fastest)
+
+When using Groq:
+
+- 🚀 **Speed**: Blazing fast - 200-300+ tokens/second
+- ⚡ **Whisper**: Fastest Whisper implementation available
+- 💰 **Free Tier**: Generous limits for testing and personal use
+- 🎯 **Low Latency**: Near real-time transcription
+- 🔄 **Compatibility**: 100% OpenAI-compatible API
+
+Example performance:
+
+- Typical LLM response: 200-300+ tokens/second
+- Whisper transcription: Ultra-fast processing
+- Great for real-time use cases
+
+#### DeepInfra ⚡ (Cost-Effective)
 
 When using DeepInfra instead of OpenAI:
 
