@@ -374,38 +374,48 @@ Access all settings via the menubar icon:
 
 ### API Provider Configuration
 
-Dictator supports **multiple AI providers** via OpenAI-compatible APIs. All providers work the same way - just change the API key, base URL, and model name.
+Dictator uses **OpenAI's Whisper API** by default. You can optionally switch to alternative providers that offer OpenAI-compatible APIs.
 
-#### Supported Providers
+#### Default Provider
 
-| Provider            | Base URL                                                          | Models                             | Best For                             |
-| ------------------- | ----------------------------------------------------------------- | ---------------------------------- | ------------------------------------ |
-| **Groq** 🚀         | `https://api.groq.com/openai/v1`                                  | `whisper-large-v3-turbo`           | **Fastest** (200-300+ tokens/s), Free tier |
-| **DeepInfra** ⚡    | `https://api.deepinfra.com/v1/openai`                             | `openai/whisper-large-v3-turbo`    | **Cost-effective** (50-70% cheaper) |
-| **OpenAI**          | `https://api.openai.com/v1`                                       | `whisper-1`                        | Standard, reliable                   |
-| **Cloudflare** ☁️  | `https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}`      | `@cf/openai/whisper-large-v3-turbo` | Global edge, free tier (10k neurons/day) |
+| Provider   | Base URL                        | Models      | Notes                                       |
+| ---------- | ------------------------------- | ----------- | ------------------------------------------- |
+| **OpenAI** | `https://api.openai.com/v1`     | `whisper-1` | Default configuration, standard and reliable |
+
+Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+
+#### Alternative Providers
+
+| Provider       | Base URL                                                     | Example Models                      | Notes                                        |
+| -------------- | ------------------------------------------------------------ | ----------------------------------- | -------------------------------------------- |
+| **Groq**       | `https://api.groq.com/openai/v1`                             | `whisper-large-v3-turbo`            | High speed (200-300+ tokens/s), free tier    |
+| **DeepInfra**  | `https://api.deepinfra.com/v1/openai`                        | `openai/whisper-large-v3-turbo`     | Lower cost (50-70% vs OpenAI)                |
+| **Cloudflare** | `https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}` | `@cf/openai/whisper-large-v3-turbo` | Global edge network, free tier (10k neurons/day) |
 
 #### Quick Setup
 
-1. **Get API Key**: Sign up at your chosen provider ([Groq](https://console.groq.com/) • [DeepInfra](https://deepinfra.com/) • [OpenAI](https://platform.openai.com/) • [Cloudflare](https://dash.cloudflare.com/))
-2. **Configure Dictator**:
-   - Settings → **API Key**: Paste your API key
-   - Settings → **Transcription API Settings** → **Set API Base URL**: Enter base URL from table
-   - Settings → **Transcription API Settings** → **Set Model**: Enter model from table
-3. **Test**: Record a short audio to verify
+**Using OpenAI (Default):**
+- Settings → **API Key**: Enter your OpenAI API key
+- No further configuration needed
+
+**Switching to Alternative Provider:**
+1. Get API key from provider ([Groq](https://console.groq.com/) • [DeepInfra](https://deepinfra.com/) • [Cloudflare](https://dash.cloudflare.com/))
+2. Settings → **API Key**: Paste the API key
+3. Settings → **Transcription API Settings** → **Set API Base URL**: Enter base URL from table
+4. Settings → **Transcription API Settings** → **Set Model**: Enter model name from table
+5. Test with a recording
 
 **Important Notes:**
-- 💡 **Groq**: Fastest option with generous free tier - perfect for testing
-- 💰 **DeepInfra**: Best price/performance ratio - recommended for production
-- 🌐 **Cloudflare**: Requires Account ID in URL and API Token (get from [dashboard](https://dash.cloudflare.com/))
-- ⚠️ Base URLs should **NOT** include `/audio/transcriptions` - it's added automatically
+- Base URLs should **NOT** include `/audio/transcriptions` - it's added automatically
+- Cloudflare requires Account ID in URL (get from dashboard)
+- Model format varies by provider (see table above)
 
 #### Model Selection
 
 **Transcription Models:**
-- **Whisper-large-v3-turbo**: Best choice for speed and quality (available on all providers)
-- **Whisper-large-v3**: Alternative for higher accuracy
-- Format depends on provider: `whisper-large-v3-turbo` (Groq/OpenAI), `openai/whisper-large-v3-turbo` (DeepInfra), `@cf/openai/whisper-large-v3-turbo` (Cloudflare)
+- **whisper-1** (OpenAI): Standard model
+- **whisper-large-v3-turbo**: Available on Groq, DeepInfra, Cloudflare
+- Format depends on provider: `whisper-1` (OpenAI), `whisper-large-v3-turbo` (Groq), `openai/whisper-large-v3-turbo` (DeepInfra), `@cf/openai/whisper-large-v3-turbo` (Cloudflare)
 
 **Correction Models:**
 - Choose models with **similar performance to GPT-4o-mini**
