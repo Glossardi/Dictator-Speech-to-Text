@@ -38,6 +38,11 @@ M.defaultTranscriptionApiBaseUrl = "https://api.openai.com/v1"  -- OpenAI API ba
 M.defaultTranscriptionModel = "whisper-1"  -- Standard OpenAI Whisper model
 M.defaultCorrectionApiBaseUrl = "https://api.openai.com/v1"  -- OpenAI API base URL for corrections
 
+-- Cloudflare Workers AI defaults (alternative provider)
+-- To use Cloudflare: Set transcription/correction API base URL to: https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}
+-- Recommended Cloudflare transcription model: @cf/openai/whisper-large-v3-turbo or @cf/openai/whisper
+-- Recommended Cloudflare correction model: @cf/meta/llama-3.1-8b-instruct or @cf/qwen/qwen2.5-7b-instruct
+
 local function trim(str)
     return (str:gsub("^%s+", ""):gsub("%s+$", ""))
 end

@@ -1,5 +1,58 @@
 # Changelog
 
+## Version 1.3.0 - Cloudflare Workers AI Integration (January 2026)
+
+### 🎯 Summary
+Added full support for Cloudflare Workers AI, enabling users to leverage Cloudflare's global edge network for both transcription and AI correction with automatic provider detection and format adaptation.
+
+### ✨ New Features
+
+#### Cloudflare Workers AI Support
+- **Automatic Provider Detection**: Detects Cloudflare URLs (`cloudflare.com`) and automatically adapts request format
+- **Base64 Audio Encoding**: Implements Cloudflare's required base64 audio format (instead of multipart/form-data)
+- **Transcription Models**: Support for `@cf/openai/whisper-large-v3-turbo` and `@cf/openai/whisper`
+- **Correction Models**: Support for `@cf/meta/llama-3.1-8b-instruct`, `@cf/qwen/qwen2.5-7b-instruct`, and other Cloudflare LLMs
+- **REST API Integration**: Full implementation of Cloudflare's `/ai/run/{model}` endpoint
+- **Chat Completions**: Support for Cloudflare's `/v1/chat/completions` endpoint for AI correction
+
+#### Technical Implementation
+- **Provider-Agnostic Architecture**: Seamlessly switches between OpenAI, DeepInfra, and Cloudflare based on base URL
+- **Base64 Encoding**: New `audioFileToBase64()` function using OpenSSL for reliable encoding
+- **Extended Timeouts**: Increased timeout to 90s for Cloudflare requests
+- **Enhanced Logging**: Provider type now displayed in console logs for debugging
+
+#### Configuration
+- **API Base URL Format**: `https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}`
+- **Model Format**: Cloudflare models use `@cf/` prefix (e.g., `@cf/openai/whisper-large-v3-turbo`)
+- **Authentication**: Standard Bearer token authentication with Cloudflare API tokens
+- **Permissions Required**: "Workers AI Read" permission for API token
+
+### 📚 Documentation Updates
+- **Comprehensive Cloudflare Guide**: New section in README with setup instructions
+- **Model List**: Complete list of available Cloudflare transcription and correction models
+- **Troubleshooting**: Cloudflare-specific troubleshooting guide
+- **Configuration Examples**: Step-by-step configuration with actual URLs and model names
+- **Provider Comparison**: Updated performance comparison including Cloudflare metrics
+
+### 🔧 Configuration Files
+- **config.lua**: Added Cloudflare Workers AI default configuration comments
+- **api.lua**: New provider detection and base64 encoding functions
+- **README.md**: New Cloudflare Workers AI configuration section with prerequisites and examples
+
+### 🎯 Benefits
+- **Global Edge Deployment**: Low latency worldwide via Cloudflare's edge network
+- **Free Tier**: 10,000 neurons/day included for personal use
+- **Enterprise Infrastructure**: Reliable, scalable, and privacy-focused
+- **No Cold Starts**: Always-ready AI models on edge network
+- **Cost-Effective**: Competitive pricing with generous free tier
+
+### 🔄 Compatibility
+- **Backward Compatible**: All existing OpenAI and DeepInfra configurations continue to work
+- **Automatic Detection**: No configuration changes needed for existing setups
+- **Multi-Provider**: Can mix providers (e.g., Cloudflare transcription + OpenAI correction)
+
+---
+
 ## Version 1.2.1 - Critical Bug Fixes & Stability Improvements (January 2026)
 
 ### 🐛 Critical Fixes

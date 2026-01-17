@@ -48,12 +48,20 @@ cd ~/Documents/Dictator
 # 4. Get API key from DeepInfra (recommended) or OpenAI
 #    - DeepInfra: https://deepinfra.com/ (faster & cheaper!)
 #    - OpenAI: https://platform.openai.com/api-keys
+#    - Cloudflare Workers AI: https://dash.cloudflare.com/ (AI → Workers AI)
 
 # 5. Configure Dictator (menubar icon → Settings)
 #    For DeepInfra (recommended):
 #    - API Key: Your DeepInfra key
 #    - Transcription API URL: https://api.deepinfra.com/v1/openai
 #    - Transcription Model: openai/whisper-large-v3-turbo
+#    
+#    For Cloudflare Workers AI:
+#    - API Key: Your Cloudflare API Token
+#    - Transcription API URL: https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}
+#    - Transcription Model: @cf/openai/whisper-large-v3-turbo
+#    - (Optional) Correction API URL: https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}
+#    - (Optional) Correction Model: @cf/meta/llama-3.1-8b-instruct
 
 # 6. Start dictating! Hold Fn key, speak, release ⚡
 ```
@@ -64,8 +72,9 @@ cd ~/Documents/Dictator
 
 - **🎙️ Hold-to-Record**: Press and hold `Fn` key (or custom hotkey) to record audio
 - **🤖 OpenAI Whisper**: Accurate transcription via OpenAI's Whisper API
-- **🔌 Multi-Provider Support**: Switch between OpenAI, DeepInfra, or any OpenAI-compatible API
+- **🔌 Multi-Provider Support**: Switch between OpenAI, DeepInfra, Cloudflare Workers AI, or any OpenAI-compatible API
 - **⚡ DeepInfra Integration**: 2-5x faster and 50-70% cheaper than OpenAI!
+- **☁️ Cloudflare Workers AI**: Global edge deployment with low latency and competitive pricing
 - **📝 Manual Glossary**: Provide context words (technical terms, names) to improve transcription accuracy
 - **✨ AI Correction (Optional)**: Post-process transcription with a fast LLM (default: `gpt-4o-mini`) for punctuation/grammar/paragraphs
 - **📋 Auto-Paste**: Automatically paste transcribed text (toggle on/off)
@@ -409,6 +418,101 @@ Dictator supports **OpenAI-compatible APIs**, allowing you to choose your prefer
 - DeepInfra requires the full model path including namespace (e.g., `openai/...`, `Qwen/...`)
 - Test with a short recording to verify configuration
 
+---
+
+### 🌥️ Cloudflare Workers AI Configuration
+
+Cloudflare Workers AI provides global edge deployment for AI models with competitive pricing and low latency.
+
+#### Prerequisites
+1. Cloudflare account: [dash.cloudflare.com](https://dash.cloudflare.com/)
+2. Get your **Account ID** from dashboard (visible in URL or dashboard overview)
+3. Create API Token:
+   - Navigate: **AI** → **Workers AI** → **Use REST API** → **Create API Token**
+   - Required permission: "Workers AI Read"
+   - Copy the generated token
+
+#### Configuration Steps
+
+**For Transcription (Whisper):**
+1. **Settings** → **Transcription Settings** → **Set API Base URL**
+   ```
+   https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}
+   ```
+   Replace `{ACCOUNT_ID}` with your actual Cloudflare Account ID
+
+2. **Settings** → **Transcription Settings** → **Set Model**
+   - Recommended: `@cf/openai/whisper-large-v3-turbo` (fastest)
+   - Alternative: `@cf/openai/whisper` (standard)
+
+3. **Settings** → **Set API Key**
+   - Paste your Cloudflare API Token
+
+**For AI Correction (Optional):**
+1. **Settings** → **Correction Settings** → **Enable AI Correction** ✓
+
+2. **Settings** → **Correction Settings** → **Set API Base URL**
+   ```
+   https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}
+   ```
+   (Same as transcription URL)
+
+3. **Settings** → **Correction Settings** → **Set Model**
+   - Recommended: `@cf/meta/llama-3.1-8b-instruct` (fast, good quality)
+   - Alternative: `@cf/qwen/qwen2.5-7b-instruct`
+
+#### Cloudflare-Specific Notes
+
+- **API Format**: Cloudflare uses base64-encoded audio instead of multipart/form-data
+- **Automatic Detection**: Dictator automatically detects Cloudflare URLs and adapts the request format
+- **Model Naming**: Must use Cloudflare's format with `@cf/` prefix
+- **Timeout**: Cloudflare requests may take slightly longer (up to 90s timeout)
+- **Pricing**: Competitive with free tier included (10,000 neurons/day)
+- **Performance**: Global edge deployment provides low latency worldwide
+
+#### Available Models
+
+**Transcription Models:**
+- `@cf/openai/whisper-large-v3-turbo` - Fastest, recommended
+- `@cf/openai/whisper` - Standard quality
+
+**Correction Models:**
+- `@cf/meta/llama-3.1-8b-instruct` - Fast general-purpose
+- `@cf/qwen/qwen2.5-7b-instruct` - Alternative option
+- `@cf/deepseek-ai/deepseek-math-7b-instruct` - Math/technical focus
+- `@cf/meta/llama-2-7b-chat-fp16` - Legacy option
+
+See full model list: [developers.cloudflare.com/workers-ai/models](https://developers.cloudflare.com/workers-ai/models/)
+
+#### Troubleshooting Cloudflare
+
+1. **401 Unauthorized**: Check API token has "Workers AI Read" permission
+2. **Account ID**: Verify correct Account ID in URL (visible in Cloudflare dashboard)
+3. **Model not found**: Ensure model name uses `@cf/` prefix
+4. **Timeout**: Cloudflare may take longer than other providers, this is normal
+5. **Console logs**: Check Hammerspoon Console for "Provider: Cloudflare Workers AI"
+
+#### Example Configuration
+
+```lua
+-- Transcription
+Transcription API URL: https://api.cloudflare.com/client/v4/accounts/abc123def456
+Transcription Model: @cf/openai/whisper-large-v3-turbo
+
+-- Correction (optional)
+Correction API URL: https://api.cloudflare.com/client/v4/accounts/abc123def456
+Correction Model: @cf/meta/llama-3.1-8b-instruct
+```
+
+---
+
+**Important Notes:**
+- Each provider requires its own API key format
+- URLs should NOT include the endpoint path (e.g., `/audio/transcriptions`)
+- Model names must match the provider's format exactly (e.g., `openai/whisper-large-v3-turbo` for DeepInfra)
+- DeepInfra requires the full model path including namespace (e.g., `openai/...`, `Qwen/...`)
+- Test with a short recording to verify configuration
+
 ### AI Correction (Optional)
 
 When enabled, Dictator will run an extra step after Whisper:
@@ -476,8 +580,9 @@ Some models reject non-default sampling parameters (e.g. `temperature`). If that
 
 Fix the underlying API/model issue, then retry.
 
-### Performance Benefits (DeepInfra vs OpenAI)
+### Performance Benefits (Provider Comparison)
 
+#### DeepInfra vs OpenAI
 When using DeepInfra instead of OpenAI:
 - ⚡ **Speed**: 2-5x faster transcription and correction
 - 💰 **Cost**: 50-70% cheaper
@@ -488,6 +593,20 @@ Example savings:
 - OpenAI Whisper: ~$0.006/minute
 - DeepInfra Whisper: ~$0.0013-$0.0029/minute
 - **1 hour of transcription**: OpenAI $0.36 vs DeepInfra $0.08-$0.17
+
+#### Cloudflare Workers AI
+When using Cloudflare Workers AI:
+- 🌍 **Global Edge**: Low latency worldwide via edge deployment
+- 💰 **Free Tier**: 10,000 neurons/day included
+- 🚀 **Performance**: Competitive speed with global CDN
+- 🔒 **Privacy**: Data processed on Cloudflare's network
+- 🔄 **Compatibility**: Automatic detection and format adaptation
+
+Example benefits:
+- Free tier suitable for personal use
+- Enterprise-grade infrastructure
+- No cold starts (always ready)
+- Integrated with Cloudflare ecosystem
 
 ### Hotkey Options
 

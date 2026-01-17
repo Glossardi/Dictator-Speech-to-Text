@@ -15,6 +15,54 @@ M.MAX_RETRY_DELAY = 60  -- seconds
 -- which can cause blocking issues in Hammerspoon
 M.activeTasks = {}
 
+-- Provider detection helpers
+function M.isCloudflareProvider(baseUrl)
+    if not baseUrl then return false end
+    return baseUrl:lower():find("cloudflare.com", 1, true) ~= nil
+ end
+
+-- Convert audio file to base64 for Cloudflare Workers AI
+function M.audioFileToBase64(filePath)
+    local file = io.open(filePath, "rb")
+    if not file then
+        return nil, "Cannot open audio file"
+    end
+    
+    local content = file:read("*all")
+    file:close()
+    
+    if not content or #content == 0 then
+        return nil, "Empty audio file"
+    end
+    
+    -- Use openssl base64 encoding via command line for reliability
+    local encodedFile = os.tmpname() .. ".b64"
+    local cmd = string.format("/usr/bin/openssl base64 -in %s -out %s", 
+        hs.execute("printf %q " .. filePath), 
+        hs.execute("printf %q " .. encodedFile))
+    
+    local exitCode = os.execute(cmd)
+    if exitCode ~= 0 and exitCode ~= true then
+        os.remove(encodedFile)
+        return nil, "Failed to encode audio to base64"
+    end
+    
+    local encodedFileHandle = io.open(encodedFile, "r")
+    if not encodedFileHandle then
+        os.remove(encodedFile)
+        return nil, "Cannot read encoded file"
+    end
+    
+    local base64Content = encodedFileHandle:read("*all")
+    encodedFileHandle:close()
+    os.remove(encodedFile)
+    
+    -- Remove newlines from base64 encoding
+    base64Content = base64Content:gsub("[\n\r]", "")
+    
+    return base64Content, nil
+ end
+
 -- Validate API key format (basic check)
 -- Supports multiple providers: OpenAI (sk-...), DeepInfra, and others
 function M.validateApiKey(apiKey)
@@ -147,9 +195,18 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
     if includeTemperature == nil then includeTemperature = true end
 
     local baseUrl = config.getCorrectionApiBaseUrl()
-    local url = baseUrl .. "/chat/completions"
     local model = config.getCorrectionModel()
     local systemPrompt = config.getCorrectionSystemPrompt()
+    local isCloudflare = M.isCloudflareProvider(baseUrl)
+    
+    -- Build URL based on provider
+    local url
+    if isCloudflare then
+        -- Cloudflare Workers AI: use /v1/chat/completions endpoint
+        url = baseUrl:gsub("/v1/openai$", "") .. "/v1/chat/completions"
+    else
+        url = baseUrl .. "/chat/completions"
+    end
 
     -- Debug visibility: confirm which prompt is actually used at runtime.
     -- (Avoid logging user text; only log prompt metadata + a short preview.)
@@ -188,7 +245,9 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
     }
 
     local attemptLog = attemptNumber > 0 and string.format(" (attempt %d/%d)", attemptNumber + 1, M.MAX_RETRIES) or ""
+    local provider = isCloudflare and "Cloudflare Workers AI" or "OpenAI-compatible"
     print("Executing correction request" .. attemptLog .. "...")
+    print("Provider: " .. provider)
     print("Model: " .. tostring(model))
     print(string.format("System prompt: %d chars", promptLen))
     if promptPreview ~= "" then
@@ -322,36 +381,84 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
     end
     
     local baseUrl = config.getTranscriptionApiBaseUrl()
-    local url = baseUrl .. "/audio/transcriptions"
     local model = config.getTranscriptionModel()
     local language = config.getLanguage()
     local glossary = config.getGlossary()
-
-    -- Build curl arguments array (no shell wrapping to avoid forking issues)
-    local args = {
-        "-s",
-        "-w", "\nHTTP_STATUS:%{http_code}",
-        "--compressed",
-        "--connect-timeout", "10",
-        "--max-time", "60",
-        url,
-        "-H", "Authorization: Bearer " .. apiKey,
-        "-F", "file=@" .. audioFilePath,
-        "-F", "model=" .. model
-    }
+    local isCloudflare = M.isCloudflareProvider(baseUrl)
     
-    if language and language ~= "auto" then
-        table.insert(args, "-F")
-        table.insert(args, "language=" .. language)
-    end
+    local url, args, jsonBody
     
-    if glossary and glossary ~= "" then
-        table.insert(args, "-F")
-        table.insert(args, "prompt=" .. glossary)
+    if isCloudflare then
+        -- Cloudflare Workers AI uses REST API with base64-encoded audio
+        url = baseUrl:gsub("/v1/openai$", "") .. "/ai/run/" .. model
+        
+        -- Convert audio to base64
+        local base64Audio, err = M.audioFileToBase64(audioFilePath)
+        if not base64Audio then
+            print("ERROR: " .. (err or "Failed to encode audio"))
+            if callback then callback(nil, err or "Failed to encode audio") end
+            return
+        end
+        
+        -- Build JSON payload for Cloudflare
+        local payload = {
+            audio = base64Audio
+        }
+        
+        -- Add optional parameters
+        if language and language ~= "auto" then
+            payload.language = language
+        end
+        
+        if glossary and glossary ~= "" then
+            payload.initial_prompt = glossary
+        end
+        
+        jsonBody = hs.json.encode(payload)
+        
+        -- Build curl arguments for JSON request
+        args = {
+            "-s",
+            "-w", "\nHTTP_STATUS:%{http_code}",
+            "--compressed",
+            "--connect-timeout", "10",
+            "--max-time", "90",  -- Cloudflare may take longer
+            url,
+            "-H", "Authorization: Bearer " .. apiKey,
+            "-H", "Content-Type: application/json",
+            "-d", jsonBody
+        }
+    else
+        -- OpenAI/compatible providers use multipart form-data
+        url = baseUrl .. "/audio/transcriptions"
+        
+        args = {
+            "-s",
+            "-w", "\nHTTP_STATUS:%{http_code}",
+            "--compressed",
+            "--connect-timeout", "10",
+            "--max-time", "60",
+            url,
+            "-H", "Authorization: Bearer " .. apiKey,
+            "-F", "file=@" .. audioFilePath,
+            "-F", "model=" .. model
+        }
+        
+        if language and language ~= "auto" then
+            table.insert(args, "-F")
+            table.insert(args, "language=" .. language)
+        end
+        
+        if glossary and glossary ~= "" then
+            table.insert(args, "-F")
+            table.insert(args, "prompt=" .. glossary)
+        end
     end
 
     local attemptLog = attemptNumber > 0 and string.format(" (attempt %d/%d)", attemptNumber + 1, M.MAX_RETRIES) or ""
+    local provider = isCloudflare and "Cloudflare Workers AI" or "OpenAI-compatible"
     print("Executing API request" .. attemptLog .. "...")
+    print("Provider: " .. provider)
     print("API Base URL: " .. baseUrl)
     print("Model: " .. model)
     print("Audio file: " .. audioFilePath)
@@ -363,8 +470,13 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         end
         print("Glossary: " .. glossaryPreview .. " (" .. #glossary .. " chars)")
     end
-    -- Store command for error logging
-    local commandForLog = "/usr/bin/curl -s -w \\nHTTP_STATUS:%{http_code} --compressed --connect-timeout 10 --max-time 60 " .. url .. " -H 'Authorization: Bearer <redacted>' -F 'file=@" .. audioFilePath .. "' -F model=" .. model .. " " .. (language and language ~= "auto" and (" -F language=" .. language) or "") .. (glossary and glossary ~= "" and (" -F prompt='" .. glossary:sub(1, 32) .. "'") or "")
+    -- Store command for error logging (simplified for Cloudflare JSON requests)
+    local commandForLog
+    if isCloudflare then
+        commandForLog = "/usr/bin/curl -s -w \\nHTTP_STATUS:%{http_code} --compressed " .. url .. " -H 'Authorization: Bearer <redacted>' -H 'Content-Type: application/json' -d '{...}'"
+    else
+        commandForLog = "/usr/bin/curl -s -w \\nHTTP_STATUS:%{http_code} --compressed --connect-timeout 10 --max-time 60 " .. url .. " -H 'Authorization: Bearer <redacted>' -F 'file=@" .. audioFilePath .. "' -F model=" .. model .. " " .. (language and language ~= "auto" and (" -F language=" .. language) or "") .. (glossary and glossary ~= "" and (" -F prompt='" .. glossary:sub(1, 32) .. "'") or "")
+    end
     print("Command: " .. commandForLog)
     
     local task = hs.task.new("/usr/bin/curl", function(exitCode, stdOut, stdErr)
