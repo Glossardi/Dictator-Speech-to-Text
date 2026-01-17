@@ -52,8 +52,8 @@ local function sanitizeModel(model)
     model = trim(model)
     if model == "" then return nil end
     if #model > 128 then return nil end
-    -- Allow common model id characters including slashes for namespaced models (e.g., openai/whisper-large-v3-turbo)
-    if not model:match("^[%w%._:%-/]+$") then return nil end
+    -- Allow common model id characters including @ for Cloudflare models (@cf/...), slashes for namespaced models (e.g., openai/whisper-large-v3-turbo)
+    if not model:match("^[%w%._:%-/@]+$") then return nil end
     return model
 end
 
