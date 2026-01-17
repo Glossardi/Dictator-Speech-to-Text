@@ -307,6 +307,7 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
             end
 
             if response and response.error then
+                -- OpenAI/DeepInfra error format
                 local errorMsg = response.error.message or "Unknown API error"
                 print(string.format("Correction API error (http=%s) after %.2fs: %s", tostring(statusCode), elapsed, tostring(errorMsg)))
 
@@ -322,6 +323,17 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
                 end
 
                 if callback then callback(nil, "API Error: " .. errorMsg) end
+                return
+            elseif response and response.success == false and response.errors then
+                -- Cloudflare error format
+                local errorMsg = "Unknown Cloudflare error"
+                if response.errors[1] and response.errors[1].message then
+                    errorMsg = response.errors[1].message
+                    local errorCode = response.errors[1].code or "unknown"
+                    print(string.format("Correction Cloudflare API error (http=%s) after %.2fs [%s]: %s", tostring(statusCode), elapsed, tostring(errorCode), errorMsg))
+                end
+
+                if callback then callback(nil, "Cloudflare API Error: " .. errorMsg) end
                 return
             end
 
@@ -551,6 +563,7 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
                 print("Transcription successful. Text length: " .. #response.text)
                 if callback then callback(response.text, nil) end
             elseif response and response.error then
+                -- OpenAI/DeepInfra error format
                 local errorMsg = response.error.message or "Unknown API error"
                 local errorType = response.error.type or "unknown"
                 print(string.format("ERROR: API returned error [%s]: %s", errorType, errorMsg))
@@ -567,6 +580,16 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
                 end
                 
                 if callback then callback(nil, "API Error: " .. errorMsg) end
+            elseif response and response.success == false and response.errors then
+                -- Cloudflare error format
+                local errorMsg = "Unknown Cloudflare error"
+                if response.errors[1] and response.errors[1].message then
+                    errorMsg = response.errors[1].message
+                    local errorCode = response.errors[1].code or "unknown"
+                    print(string.format("ERROR: Cloudflare API error [%s]: %s", tostring(errorCode), errorMsg))
+                end
+                
+                if callback then callback(nil, "Cloudflare API Error: " .. errorMsg) end
             else
                 print("ERROR: Unknown response format")
                 print("Response: " .. hs.inspect(response))
