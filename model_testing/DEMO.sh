@@ -45,7 +45,7 @@ Qwen3 32B                     662 TPS   $0.000350   🌍 Multilingual
 cd model_testing
 pip3 install -r requirements.txt
 
-# 2. Set API Key (CROC oder OpenAI-kompatible API)
+# 2. Set API Key (Groq oder OpenAI-kompatible API)
 export LLM_API_KEY="your-api-key-here"
 
 # 3a. Alle Modelle testen (~20 Min, ~$0.02)
@@ -92,7 +92,7 @@ Results saved to: test_results.json
 
 models_config.json       → Modelle, Preise, Provider konfigurieren
 test_cases.json          → Test-Szenarien anpassen/erweitern
-models_config.croc_example.json → CROC API Template
+models_config.groq_example.json → Groq API Template
 
 Provider wechseln? Einfach in models_config.json:
 {
@@ -110,7 +110,7 @@ Provider wechseln? Einfach in models_config.json:
 
 README.md     → Vollständige Dokumentation
 EXAMPLES.md   → 11 praktische Beispiele
-models_config.croc_example.json → CROC API Setup
+models_config.groq_example.json → Groq API Setup
 
 💡 NÜTZLICHE BEFEHLE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

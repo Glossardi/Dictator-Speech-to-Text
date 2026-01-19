@@ -22,9 +22,9 @@
 
     ┌─────────────────────────────────────────────────────────────┐
     │ # API Configuration                                         │
-    │ LLM_API_KEY=sk-your-croc-api-key-here                      │
-    │ LLM_API_BASE_URL=https://api.croc.com/v1                   │
-    │ LLM_PROVIDER_NAME=CROC                                      │
+    │ LLM_API_KEY=sk-your-groq-api-key-here                      │
+    │ LLM_API_BASE_URL=https://api.groq.com/v1                   │
+    │ LLM_PROVIDER_NAME=Groq                                      │
     │                                                             │
     │ # Optional: Specific models (comma-separated)              │
     │ # Leave empty for auto-discovery                           │
@@ -45,7 +45,7 @@
 
     $ ./run_model_tests.sh --list
 
-    🔍 Discovering models from https://api.croc.com/v1/models
+    🔍 Discovering models from https://api.groq.com/v1/models
     ✓ Found 10 models
 
     Available Models:
@@ -73,7 +73,7 @@
         $ ./run_model_tests.sh --auto-discover
 
         🚀 Starting tests...
-        🔍 Discovering models from https://api.croc.com/v1/models
+        🔍 Discovering models from https://api.groq.com/v1/models
         ✓ Found 10 models
 
         Testing: Llama 3.1 8B Instant 128k

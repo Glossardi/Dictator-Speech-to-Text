@@ -1,19 +1,19 @@
 {
-  "_comment": "Example configuration for testing CROC API models",
+  "_comment": "Example configuration for testing Groq API models",
   "_instructions": [
-    "1. Copy this file: cp models_config.croc_example.json models_config.json",
-    "2. Get your CROC API key from your provider",
-    "3. Run: export LLM_API_KEY='your-croc-api-key'",
+    "1. Copy this file: cp models_config.groq_example.json models_config.json",
+    "2. Get your Groq API key from your provider",
+    "3. Run: export LLM_API_KEY='your-groq-api-key'",
     "4. Execute: python3 model_test.py"
   ],
   
   "providers": {
-    "croc": {
-      "name": "CROC",
-      "base_url": "https://api.croc.com/v1",
+    "groq": {
+      "name": "Groq",
+      "base_url": "https://api.groq.com/v1",
       "auth_header": "Authorization",
       "auth_prefix": "Bearer",
-      "_notes": "Replace with actual CROC API endpoint URL"
+      "_notes": "Replace with actual Groq API endpoint URL"
     }
   },
   
@@ -21,7 +21,7 @@
     {
       "id": "gpt-4o-mini-2024-07-18",
       "name": "GPT OSS 20B 128k",
-      "provider": "croc",
+      "provider": "groq",
       "speed_tps": 1000,
       "input_price_per_1m": 0.075,
       "output_price_per_1m": 0.30,
@@ -32,7 +32,7 @@
     {
       "id": "gpt-4o-mini-2024-07-18",
       "name": "GPT OSS Safeguard 20B",
-      "provider": "croc",
+      "provider": "groq",
       "speed_tps": 1000,
       "input_price_per_1m": 0.075,
       "output_price_per_1m": 0.30,
@@ -42,7 +42,7 @@
     {
       "id": "gpt-4o-2024-08-06",
       "name": "GPT OSS 120B 128k",
-      "provider": "croc",
+      "provider": "groq",
       "speed_tps": 500,
       "input_price_per_1m": 0.15,
       "output_price_per_1m": 0.60,
@@ -53,7 +53,7 @@
     {
       "id": "k2-0905-1t-256k",
       "name": "Kimi K2-0905 1T 256k",
-      "provider": "croc",
+      "provider": "groq",
       "speed_tps": 200,
       "input_price_per_1m": 1.00,
       "output_price_per_1m": 3.00,
@@ -64,7 +64,7 @@
     {
       "id": "llama-4-scout-17bx16e-128k",
       "name": "Llama 4 Scout (17Bx16E) 128k",
-      "provider": "croc",
+      "provider": "groq",
       "speed_tps": 594,
       "input_price_per_1m": 0.11,
       "output_price_per_1m": 0.34,
@@ -74,7 +74,7 @@
     {
       "id": "llama-4-maverick-17bx128e-128k",
       "name": "Llama 4 Maverick (17Bx128E) 128k",
-      "provider": "croc",
+      "provider": "groq",
       "speed_tps": 562,
       "input_price_per_1m": 0.20,
       "output_price_per_1m": 0.60,
@@ -84,7 +84,7 @@
     {
       "id": "llama-guard-4-128-128k",
       "name": "Llama Guard 4 128 128k",
-      "provider": "croc",
+      "provider": "groq",
       "speed_tps": 325,
       "input_price_per_1m": 0.20,
       "output_price_per_1m": 0.20,
@@ -94,7 +94,7 @@
     {
       "id": "qwen3-32b-131k",
       "name": "Qwen3 32B 131k",
-      "provider": "croc",
+      "provider": "groq",
       "speed_tps": 662,
       "input_price_per_1m": 0.29,
       "output_price_per_1m": 0.59,
@@ -105,7 +105,7 @@
     {
       "id": "llama-3.3-70b-versatile-128k",
       "name": "Llama 3.3 70B Versatile 128k",
-      "provider": "croc",
+      "provider": "groq",
       "speed_tps": 394,
       "input_price_per_1m": 0.59,
       "output_price_per_1m": 0.79,
@@ -115,7 +115,7 @@
     {
       "id": "llama-3.1-8b-instant-128k",
       "name": "Llama 3.1 8B Instant 128k",
-      "provider": "croc",
+      "provider": "groq",
       "speed_tps": 840,
       "input_price_per_1m": 0.05,
       "output_price_per_1m": 0.08,

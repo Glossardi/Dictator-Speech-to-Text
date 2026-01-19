@@ -80,9 +80,9 @@ python3 model_test.py --model-names "llama" "gpt-4o" "qwen"
 
 # 2. .env konfigurieren
 cat > .env << EOF
-LLM_API_KEY=sk-your-croc-key-here
-LLM_API_BASE_URL=https://api.croc.com/v1
-LLM_PROVIDER_NAME=CROC
+LLM_API_KEY=sk-your-groq-key-here
+LLM_API_BASE_URL=https://api.groq.com/v1
+LLM_PROVIDER_NAME=Groq
 TEST_RUNS_PER_CASE=3
 EOF
 
@@ -110,11 +110,11 @@ cp .env.example .env
 ## 7. Verschiedene Provider testen
 
 ```bash
-# CROC API
+# Groq API
 cat > .env << EOF
-LLM_API_KEY=your-croc-key
-LLM_API_BASE_URL=https://api.croc.com/v1
-LLM_PROVIDER_NAME=CROC
+LLM_API_KEY=your-groq-key
+LLM_API_BASE_URL=https://api.groq.com/v1
+LLM_PROVIDER_NAME=Groq
 EOF
 python3 model_test.py --auto-discover
 
@@ -178,7 +178,7 @@ python3 model_test.py --model-names "gpt-oss-120b" "qwen3-32b"
 #!/bin/bash
 
 PROVIDERS=(
-  "CROC:https://api.croc.com/v1:croc-key"
+  "Groq:https://api.groq.com/v1:groq-key"
   "OpenAI:https://api.openai.com/v1:openai-key"
   "DeepInfra:https://api.deepinfra.com/v1/openai:deepinfra-key"
 )
@@ -243,7 +243,7 @@ python3 model_test.py --model-names "top-model-1" "top-model-2" "top-model-3"
 
 ```bash
 # test_providers.sh
-for provider in "CROC" "OpenAI" "DeepInfra"; do
+for provider in "Groq" "OpenAI" "DeepInfra"; do
   # .env für jeden Provider anpassen
   python3 model_test.py --auto-discover --output "results_${provider}.json"
 done
@@ -287,11 +287,11 @@ export $(cat .env | xargs)
 ```bash
 # Manuell /models endpoint testen
 curl -H "Authorization: Bearer $LLM_API_KEY" \
-  https://api.croc.com/v1/models
+  https://api.groq.com/v1/models
 
 # Falls API nicht OpenAI-kompatibel:
 # → Nutze models_config.json statt Auto-Discovery
-cp models_config.croc_example.json models_config.json
+cp models_config.groq_example.json models_config.json
 ```
 
 ### API Key committed

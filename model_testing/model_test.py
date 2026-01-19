@@ -323,7 +323,21 @@ class ModelTester:
     
     def run_single_test(self, model: Dict, test_case: Dict, run_number: int) -> TestResult:
         """Execute a single test run"""
-        provider_config = self.config["providers"][model["provider"]]
+        # Get provider config - use model's provider or 'default'
+        provider_key = model.get("provider", "default")
+        if provider_key not in self.config.get("providers", {}):
+            provider_key = "default"
+        
+        if provider_key == "default" and "default" not in self.config.get("providers", {}):
+            # Create default provider config on the fly
+            provider_config = {
+                "name": self.provider_name,
+                "base_url": self.api_base_url,
+                "auth_header": "Authorization",
+                "auth_prefix": "Bearer"
+            }
+        else:
+            provider_config = self.config["providers"][provider_key]
         
         print(f"  Run {run_number}/3: {test_case['name']}...", end=" ", flush=True)
         

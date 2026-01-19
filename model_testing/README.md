@@ -32,13 +32,13 @@ Editiere `.env` Datei:
 
 ```bash
 # Dein API Key
-LLM_API_KEY=sk-your-croc-api-key-here
+LLM_API_KEY=sk-your-groq-api-key-here
 
 # Provider Base URL
-LLM_API_BASE_URL=https://api.croc.com/v1
+LLM_API_BASE_URL=https://api.groq.com/v1
 
 # Provider Name (für Anzeige)
-LLM_PROVIDER_NAME=CROC
+LLM_PROVIDER_NAME=Groq
 
 # Optional: Spezifische Modelle (komma-separiert)
 # Leer lassen für Auto-Discovery
@@ -157,7 +157,7 @@ Enthält alle zu testenden Modelle mit:
 {
   "id": "model-identifier",
   "name": "Display Name",
-  "provider": "croc",
+  "provider": "groq",
   "speed_tps": 1000,
   "input_price_per_1m": 0.075,
   "output_price_per_1m": 0.30,
