@@ -12,28 +12,112 @@ Dieses Framework testet verschiedene Large Language Models hinsichtlich:
 
 ## 🚀 Quick Start
 
-### Installation
+### 1. Setup (einmalig)
 
 ```bash
 cd model_testing
+
+# Automatisches Setup
+./setup.sh
+
+# Oder manuell:
 pip install -r requirements.txt
+cp .env.example .env
+# Editiere .env mit deinem API Key
 ```
+
+### 2. Konfiguration
+
+Editiere `.env` Datei:
+
+```bash
+# Dein API Key
+LLM_API_KEY=sk-your-croc-api-key-here
+
+# Provider Base URL
+LLM_API_BASE_URL=https://api.croc.com/v1
+
+# Provider Name (für Anzeige)
+LLM_PROVIDER_NAME=CROC
+
+# Optional: Spezifische Modelle (komma-separiert)
+# Leer lassen für Auto-Discovery
+LLM_MODELS=llama-3.1-8b-instant-128k,gpt-4o-mini-2024-07-18
+```
+
+### 3. Testen
+
+```bash
+# Auto-discover und teste alle verfügbaren Modelle
+./run_model_tests.sh --auto-discover
+
+# Oder nutze .env Konfiguration
+./run_model_tests.sh
+
+# Liste verfügbare Modelle
+./run_model_tests.sh --list
+
+# Teste spezifische Modelle
+python3 model_test.py --model-names "llama" "gpt-4o"
+```
+
+## 🎯 Features
+
+### ✨ Neu in Version 2.0
+
+- **🔐 .env Configuration**: API Keys sicher in .env Datei (nicht committed)
+- **🔍 Auto-Discovery**: Automatisches Abrufen verfügbarer Modelle über `/models` Endpoint
+- **🎯 Flexible Modell-Auswahl**: Nach ID oder Name (partial match)
+- **⚙️ Konfigurierbar**: Alle Settings über .env oder Command-line
+- **📝 Kein JSON nötig**: Funktioniert komplett über .env ohne models_config.json
+
+### Core Features
+
+✅ Realistische Whisper-Outputs simulieren typische Transkriptionsfehler
+✅ Automatische Qualitätsbewertung basierend auf System-Prompt
+✅ Farbiger Terminal-Output mit Echtzeit-Ergebnissen
+✅ JSON Export für detaillierte Analyse
+✅ Empfehlungen: Best Overall, Fastest, Cheapest, Best Quality
+✅ Genaues Kostentracking ($0.00001 Precision)
+✅ Rate Limiting mit automatischem Delay
+
+## 📖 Verwendung
 
 ### Basis-Verwendung
 
 ```bash
-# Alle Modelle testen (benötigt API Key)
-export LLM_API_KEY="your-api-key-here"
-python model_test.py
+# Setup
+./setup.sh
 
-# Oder API Key direkt übergeben
-python model_test.py --api-key "your-api-key-here"
+# .env editieren
+nano .env
 
-# Nur bestimmte Modelle testen
-python model_test.py --models "llama-3.1-8b-instant-128k" "gpt-4o-mini-2024-07-18"
+# Tests starten
+./run_model_tests.sh
+```
 
-# Eigene Config-Dateien verwenden
-python model_test.py --config my_models.json --test-cases my_tests.json --output my_results.json
+### Auto-Discovery
+
+```bash
+# Alle Modelle automatisch vom Provider abrufen
+./run_model_tests.sh --auto-discover
+
+# Liste verfügbare Modelle
+python3 model_test.py --list-models
+```
+
+### Spezifische Modelle testen
+
+```bash
+# Nach Namen (partial match)
+python3 model_test.py --model-names "llama" "gpt-4o"
+
+# Nach IDs
+python3 model_test.py --model-ids "llama-3.1-8b-instant-128k"
+
+# Aus .env LLM_MODELS
+# LLM_MODELS=llama-3.1-8b-instant-128k,gpt-4o-mini-2024-07-18
+./run_model_tests.sh
 ```
 
 ## 📁 Datei-Struktur

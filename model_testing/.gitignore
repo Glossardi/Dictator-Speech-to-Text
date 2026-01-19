@@ -20,8 +20,10 @@ test_results_*.json
 
 # API keys (security)
 .env
+.env.local
 *.key
 api_keys.txt
+config.ini
 
 # IDE
 .vscode/
