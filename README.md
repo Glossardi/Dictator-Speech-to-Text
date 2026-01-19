@@ -516,86 +516,34 @@ The glossary does **not** add content to your transcription - it only guides Whi
 
 ## 🧪 Model Testing
 
-Want to find the **best LLM model** for text correction? The included model testing framework helps you evaluate different models based on:
+Want to find the **best LLM model** for text correction? The included minimal testing tool evaluates models with realistic Whisper Turbo v3 outputs.
 
-- **Quality**: How well are filler words removed, punctuation corrected, and formatting recognized?
-- **Speed**: Actual tokens per second (TPS) and latency
-- **Cost**: Real-world pricing per correction
-- **Consistency**: How stable are results across multiple runs?
-
-### ✨ NEW in v2.0: .env Configuration & Auto-Discovery
+### ⚡ Ultra-Simple Testing
 
 ```bash
 cd model_testing
 
-# 1. One-time setup
-./setup.sh
+# 1. Edit config with your API key
+nano test_config.json
 
-# 2. Configure .env with your API key
-nano .env
-# LLM_API_KEY=your-croc-api-key
-# LLM_API_BASE_URL=https://api.croc.com/v1
+# 2. Run test
+python3 simple_test.py
 
-# 3. Auto-discover and test all models
-./run_model_tests.sh --auto-discover
+# Done! Results in ~1 minute
 ```
 
-**New Features:**
-- 🔐 **Secure .env configuration** - API keys never committed
-- 🔍 **Auto-discover models** - Automatically fetch available models from `/models` endpoint
-- 🎯 **Flexible selection** - Test by name, ID, or configure in .env
-- ⚙️ **No JSON needed** - Works without models_config.json
+### 🏆 Groq Recommended Models (Tested Jan 2026)
 
-### What Gets Tested
+All top models achieved **100/100 quality** with realistic Whisper outputs:
 
-The framework includes **5 realistic test scenarios**:
-1. **Normal Dictation** - Typical speech with filler words (äh, ähm)
-2. **Email** - Email formatting with proper structure recognition
-3. **Technical Prompt** - Instructions with code/technical terms
-4. **List/Notes** - Shopping lists, bullet points
-5. **Mixed Language** - German-English tech context
+| Model | Speed | Cost | Use Case |
+|-------|-------|------|----------|
+| **openai/gpt-oss-20b** | 399 TPS | $0.000163 | ⚡ **Production** (fastest) |
+| **llama-3.1-8b-instant** | 174 TPS | $0.000047 | 💰 **Budget** (2.4x cheaper) |
 
-Each test case simulates realistic Whisper transcription output with typical errors, then measures how well each model corrects them.
+**Recommendation:** Use `openai/gpt-oss-20b` for best user experience (sub-second corrections). Switch to `llama-3.1-8b-instant` if cost is priority.
 
-### Quick Examples
-
-```bash
-# List available models from your provider
-./run_model_tests.sh --list
-
-# Test specific models by name (partial match)
-python3 model_test.py --model-names "llama" "gpt-4o"
-
-# Test all models
-./run_model_tests.sh --auto-discover
-
-# Fast test (1 run per case)
-echo "TEST_RUNS_PER_CASE=1" >> .env
-./run_model_tests.sh
-```
-
-### Results
-
-After running, you'll get:
-- **Terminal Summary** with color-coded rankings
-- **Recommendations**: Best overall, fastest, cheapest, highest quality
-- **JSON Export** (`test_results.json`) with detailed metrics
-
-Example output:
-```
-RECOMMENDATIONS:
-🏆 Best Overall: Llama 3.1 8B Instant 128k (Score: 0.87)
-   Quality: 85.3/100 | Speed: 840 TPS | Cost: $0.000045
-
-✨ Best Quality: GPT OSS 20B 128k (92.1/100)
-⚡ Fastest: GPT OSS 20B 128k (1000 TPS)
-💰 Cheapest: Llama 3.1 8B Instant 128k ($0.000045 per test)
-```
-
-**Full documentation**:
-- [model_testing/README.md](model_testing/README.md) - Complete documentation
-- [model_testing/QUICKSTART.txt](model_testing/QUICKSTART.txt) - Visual quick start guide
-- [model_testing/EXAMPLES_v2.md](model_testing/EXAMPLES_v2.md) - 11 practical examples
+**Full documentation**: [model_testing/README.md](model_testing/README.md)
 
 ---
 
