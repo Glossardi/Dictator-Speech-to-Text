@@ -1,6 +1,67 @@
-# Model Testing Framework
+# Simple LLM Model Tester
 
-Ein umfassendes Test-Framework zur Evaluation verschiedener LLM-Modelle für die Text-Korrektur in Dictator.
+Minimal tool to find the best LLM model for text correction with Groq.
+
+## Quick Start
+
+1. **Setup**
+```bash
+pip install requests
+export LLM_API_KEY="your-groq-api-key"
+```
+
+2. **Configure** (`test_config.json`)
+```json
+{
+  "api_key": "gsk_...",
+  "api_base_url": "https://api.groq.com/openai/v1",
+  "models_to_test": [
+    "openai/gpt-oss-20b",
+    "llama-3.1-8b-instant"
+  ]
+}
+```
+
+3. **Run**
+```bash
+python3 simple_test.py
+```
+
+## Files
+
+- `simple_test.py` - Test runner (150 lines)
+- `test_config.json` - Your API key and models to test
+- `test_cases_realistic.json` - Realistic Whisper Turbo v3 outputs
+- `test_results_simple.json` - Results (auto-generated)
+
+## Test Results for Groq (Jan 2026)
+
+All 4 tested models achieved **100/100 quality** with realistic Whisper outputs:
+
+| Model | Quality | Speed | Cost | Recommendation |
+|-------|---------|-------|------|----------------|
+| **openai/gpt-oss-20b** | 100/100 | 399 TPS | $0.000163 | ⚡ **Fastest** |
+| openai/gpt-oss-120b | 100/100 | 285 TPS | $0.000112 | ✨ Balanced |
+| llama-3.1-8b-instant | 100/100 | 174 TPS | $0.000047 | 💰 **Cheapest** |
+| llama-4-scout | 100/100 | 145 TPS | $0.000040 | 💎 Best value |
+
+### 🏆 Recommended for Production
+
+**Primary: `openai/gpt-oss-20b`**
+- Perfect quality (100/100)
+- Fastest speed (399 TPS)
+- Good availability
+- Cost: $0.000163 per correction (~$0.16 per 1000 corrections)
+
+**Backup: `llama-3.1-8b-instant`**
+- Perfect quality (100/100)
+- 2.4x cheaper than gpt-oss-20b
+- Still fast (174 TPS)
+- Cost: $0.000047 per correction (~$0.05 per 1000 corrections)
+
+## License
+
+MIT
 
 ## 📋 Übersicht
 

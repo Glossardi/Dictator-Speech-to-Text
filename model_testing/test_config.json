@@ -1,0 +1,11 @@
+{
+  "_comment": "Simple configuration for LLM model testing",
+  
+  "api_key": "YOUR_API_KEY_HERE",
+  "api_base_url": "https://api.groq.com/openai/v1",
+  
+  "models_to_test": [
+    "openai/gpt-oss-20b",
+    "llama-3.1-8b-instant"
+  ]
+}
