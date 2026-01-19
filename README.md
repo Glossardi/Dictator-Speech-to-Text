@@ -46,16 +46,16 @@ cd ~/Documents/Dictator
 #    - Accessibility → Enable Hammerspoon
 #    - Microphone → Enable Hammerspoon
 
-# 4. Get API key from DeepInfra (recommended) or OpenAI
-#    - DeepInfra: https://deepinfra.com/ (faster & cheaper!)
+# 4. Get API key from OpenAI (Default) or Groq (Recommended alternative)
 #    - OpenAI: https://platform.openai.com/api-keys
-#    - Cloudflare Workers AI: https://dash.cloudflare.com/ (AI → Workers AI)
+#    - Groq: https://console.groq.com/ (fastest!)
+#    - DeepInfra: https://deepinfra.com/ (fast & cheap)
 
 # 5. Configure Dictator (menubar icon → Settings)
-#    For DeepInfra (recommended):
-#    - API Key: Your DeepInfra key
-#    - Transcription API URL: https://api.deepinfra.com/v1/openai
-#    - Transcription Model: openai/whisper-large-v3-turbo
+#    For Groq (Recommended):
+#    - API Key: Your Groq key
+#    - Transcription API URL: https://api.groq.com/openai/v1
+#    - Transcription Model: whisper-large-v3-turbo
 #
 #    For Cloudflare Workers AI:
 #    - API Key: Your Cloudflare API Token
@@ -73,8 +73,8 @@ cd ~/Documents/Dictator
 
 - **🎙️ Hold-to-Record**: Press and hold `Fn` key (or custom hotkey) to record audio
 - **🤖 OpenAI Whisper**: Accurate transcription via OpenAI's Whisper API
-- **🔌 Multi-Provider Support**: Switch between OpenAI, DeepInfra, Groq, Cloudflare Workers AI, or any OpenAI-compatible API
-- **🚀 Groq Integration**: Blazing fast transcription - 200-300+ tokens/second with free tier!
+- **🔌 Multi-Provider Support**: Switch between OpenAI, Groq, DeepInfra, Cloudflare Workers AI, or any OpenAI-compatible API
+- **🚀 Groq Integration**: **(Recommended)** Blazing fast transcription - 200-300+ tokens/second with free tier!
 - **⚡ DeepInfra Integration**: 2-5x faster and 50-70% cheaper than OpenAI!
 - **☁️ Cloudflare Workers AI**: Global edge deployment with low latency and competitive pricing
 - **📝 Manual Glossary**: Provide context words (technical terms, names) to improve transcription accuracy
@@ -118,7 +118,7 @@ You need an API key from one of these providers:
 - Get API key: [API Keys page](https://platform.openai.com/api-keys)
 - Pricing: ~$0.006/minute (Whisper)
 
-#### Option 2: Groq 🚀 (Fastest)
+#### Option 2: Groq 🚀 (Recommended / Fastest)
 
 - Create account: [console.groq.com](https://console.groq.com/)
 - Get API key from console
@@ -391,11 +391,11 @@ Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 
 #### Alternative Providers
 
-| Provider       | Base URL                                                     | Example Models                      | Notes                                            |
-| -------------- | ------------------------------------------------------------ | ----------------------------------- | ------------------------------------------------ |
-| **Groq**       | `https://api.groq.com/openai/v1`                             | `whisper-large-v3-turbo`            | High speed (200-300+ tokens/s), free tier        |
-| **DeepInfra**  | `https://api.deepinfra.com/v1/openai`                        | `openai/whisper-large-v3-turbo`     | Lower cost (50-70% vs OpenAI)                    |
-| **Cloudflare** | `https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}` | `@cf/openai/whisper-large-v3-turbo` | Global edge network, free tier (10k neurons/day) |
+| Provider       | Base URL                                                     | Example Models                      | Notes                                                    |
+| -------------- | ------------------------------------------------------------ | ----------------------------------- | -------------------------------------------------------- |
+| **Groq**       | `https://api.groq.com/openai/v1`                             | `whisper-large-v3-turbo`            | **Recommended** - Blazing fast (200-300+ t/s), free tier |
+| **DeepInfra**  | `https://api.deepinfra.com/v1/openai`                        | `openai/whisper-large-v3-turbo`     | Lower cost (50-70% vs OpenAI)                            |
+| **Cloudflare** | `https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}` | `@cf/openai/whisper-large-v3-turbo` | Global edge network, free tier (10k neurons/day)         |
 
 #### Quick Setup
 

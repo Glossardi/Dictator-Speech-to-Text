@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 1.3.1 - Provider Prioritization & Maintenance (January 2026)
+
+### 🎯 Summary
+
+Updated documentation to prioritize Groq as the recommended alternative to OpenAI due to its superior speed and performance. Fixed unit tests for flexible API key validation.
+
+### 📚 Documentation Updates
+
+- **Groq Prioritization**: Updated README to highlight Groq as the primary recommended alternative after OpenAI.
+- **Improved Quick Start**: Optimized setup guide for Groq users.
+
+### 🔧 Bug Fixes
+
+- **Unit Tests**: Fixed `api_spec.lua` to match updated flexible API key validation logic.
+
 ## Version 1.3.0 - Cloudflare Workers AI Integration (January 2026)
 
 ### 🎯 Summary
