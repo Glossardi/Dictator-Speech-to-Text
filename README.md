@@ -523,21 +523,28 @@ Want to find the **best LLM model** for text correction? The included model test
 - **Cost**: Real-world pricing per correction
 - **Consistency**: How stable are results across multiple runs?
 
-### Quick Start
+### ✨ NEW in v2.0: .env Configuration & Auto-Discovery
 
 ```bash
 cd model_testing
 
-# Install dependencies
-pip3 install -r requirements.txt
+# 1. One-time setup
+./setup.sh
 
-# Run tests (requires API key)
-export LLM_API_KEY="your-api-key"
-./run_model_tests.sh
+# 2. Configure .env with your API key
+nano .env
+# LLM_API_KEY=your-croc-api-key
+# LLM_API_BASE_URL=https://api.croc.com/v1
 
-# Or test specific models only
-./run_model_tests.sh your-api-key "llama-3.1-8b-instant-128k" "gpt-4o-mini-2024-07-18"
+# 3. Auto-discover and test all models
+./run_model_tests.sh --auto-discover
 ```
+
+**New Features:**
+- 🔐 **Secure .env configuration** - API keys never committed
+- 🔍 **Auto-discover models** - Automatically fetch available models from `/models` endpoint
+- 🎯 **Flexible selection** - Test by name, ID, or configure in .env
+- ⚙️ **No JSON needed** - Works without models_config.json
 
 ### What Gets Tested
 
@@ -549,6 +556,23 @@ The framework includes **5 realistic test scenarios**:
 5. **Mixed Language** - German-English tech context
 
 Each test case simulates realistic Whisper transcription output with typical errors, then measures how well each model corrects them.
+
+### Quick Examples
+
+```bash
+# List available models from your provider
+./run_model_tests.sh --list
+
+# Test specific models by name (partial match)
+python3 model_test.py --model-names "llama" "gpt-4o"
+
+# Test all models
+./run_model_tests.sh --auto-discover
+
+# Fast test (1 run per case)
+echo "TEST_RUNS_PER_CASE=1" >> .env
+./run_model_tests.sh
+```
 
 ### Results
 
@@ -568,7 +592,10 @@ RECOMMENDATIONS:
 💰 Cheapest: Llama 3.1 8B Instant 128k ($0.000045 per test)
 ```
 
-**Full documentation**: See [model_testing/README.md](model_testing/README.md)
+**Full documentation**:
+- [model_testing/README.md](model_testing/README.md) - Complete documentation
+- [model_testing/QUICKSTART.txt](model_testing/QUICKSTART.txt) - Visual quick start guide
+- [model_testing/EXAMPLES_v2.md](model_testing/EXAMPLES_v2.md) - 11 practical examples
 
 ---
 
