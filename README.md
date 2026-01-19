@@ -21,6 +21,7 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 - [Quick Start](#-quick-start)
 - [Configuration](#️-configuration)
 - [Usage](#-usage)
+- **[Model Testing](#-model-testing)** 🧪
 - [Project Structure](#️-project-structure)
 - [Troubleshooting](#-troubleshooting)
 - [Development](#️-development)
@@ -112,11 +113,13 @@ cd ~/Documents/Dictator
 You need an API key from one of these providers:
 
 #### Option 1: OpenAI (Official)
+
 - Create account: [platform.openai.com](https://platform.openai.com/)
 - Get API key: [API Keys page](https://platform.openai.com/api-keys)
 - Pricing: ~$0.006/minute (Whisper)
 
 #### Option 2: Groq 🚀 (Fastest)
+
 - Create account: [console.groq.com](https://console.groq.com/)
 - Get API key from console
 - **Blazing fast** - 200-300+ tokens/second
@@ -125,6 +128,7 @@ You need an API key from one of these providers:
 - Fastest Whisper implementation available
 
 #### Option 3: DeepInfra ⚡ (Cost-Effective)
+
 - Create account: [deepinfra.com](https://deepinfra.com/)
 - Get API key from dashboard
 - 2-5x faster, 50-70% cheaper than OpenAI
@@ -132,6 +136,7 @@ You need an API key from one of these providers:
 - Pricing: ~$0.0013-$0.0029/minute
 
 #### Option 4: Cloudflare Workers AI
+
 - Create account: [dash.cloudflare.com](https://dash.cloudflare.com/)
 - Navigate to: **AI** → **Workers AI** → **Use REST API**
 - Create API Token with "Workers AI Read" permissions
@@ -378,27 +383,29 @@ Dictator uses **OpenAI's Whisper API** by default. You can optionally switch to 
 
 #### Default Provider
 
-| Provider   | Base URL                        | Models      | Notes                                       |
-| ---------- | ------------------------------- | ----------- | ------------------------------------------- |
-| **OpenAI** | `https://api.openai.com/v1`     | `whisper-1` | Default configuration, standard and reliable |
+| Provider   | Base URL                    | Models      | Notes                                        |
+| ---------- | --------------------------- | ----------- | -------------------------------------------- |
+| **OpenAI** | `https://api.openai.com/v1` | `whisper-1` | Default configuration, standard and reliable |
 
 Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 
 #### Alternative Providers
 
-| Provider       | Base URL                                                     | Example Models                      | Notes                                        |
-| -------------- | ------------------------------------------------------------ | ----------------------------------- | -------------------------------------------- |
-| **Groq**       | `https://api.groq.com/openai/v1`                             | `whisper-large-v3-turbo`            | High speed (200-300+ tokens/s), free tier    |
-| **DeepInfra**  | `https://api.deepinfra.com/v1/openai`                        | `openai/whisper-large-v3-turbo`     | Lower cost (50-70% vs OpenAI)                |
+| Provider       | Base URL                                                     | Example Models                      | Notes                                            |
+| -------------- | ------------------------------------------------------------ | ----------------------------------- | ------------------------------------------------ |
+| **Groq**       | `https://api.groq.com/openai/v1`                             | `whisper-large-v3-turbo`            | High speed (200-300+ tokens/s), free tier        |
+| **DeepInfra**  | `https://api.deepinfra.com/v1/openai`                        | `openai/whisper-large-v3-turbo`     | Lower cost (50-70% vs OpenAI)                    |
 | **Cloudflare** | `https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}` | `@cf/openai/whisper-large-v3-turbo` | Global edge network, free tier (10k neurons/day) |
 
 #### Quick Setup
 
 **Using OpenAI (Default):**
+
 - Settings → **API Key**: Enter your OpenAI API key
 - No further configuration needed
 
 **Switching to Alternative Provider:**
+
 1. Get API key from provider ([Groq](https://console.groq.com/) • [DeepInfra](https://deepinfra.com/) • [Cloudflare](https://dash.cloudflare.com/))
 2. Settings → **API Key**: Paste the API key
 3. Settings → **Transcription API Settings** → **Set API Base URL**: Enter base URL from table
@@ -406,6 +413,7 @@ Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 5. Test with a recording
 
 **Important Notes:**
+
 - Base URLs should **NOT** include `/audio/transcriptions` - it's added automatically
 - Cloudflare requires Account ID in URL (get from dashboard)
 - Model format varies by provider (see table above)
@@ -413,11 +421,13 @@ Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 #### Model Selection
 
 **Transcription Models:**
+
 - **whisper-1** (OpenAI): Standard model
 - **whisper-large-v3-turbo**: Available on Groq, DeepInfra, Cloudflare
 - Format depends on provider: `whisper-1` (OpenAI), `whisper-large-v3-turbo` (Groq), `openai/whisper-large-v3-turbo` (DeepInfra), `@cf/openai/whisper-large-v3-turbo` (Cloudflare)
 
 **Correction Models:**
+
 - Choose models with **similar performance to GPT-4o-mini**
 - Examples: `llama-3.3-70b-versatile` (Groq), `Qwen/Qwen2.5-7B-Instruct` (DeepInfra), `@cf/meta/llama-3.1-8b-instruct` (Cloudflare)
 - Faster models = faster correction, but ensure quality is sufficient for your use case
@@ -467,7 +477,6 @@ The **Edit Glossary...** feature allows you to provide context words to the Whis
 
 The glossary does **not** add content to your transcription - it only guides Whisper to recognize and spell words correctly that are actually spoken.
 
-
 #### Option 1: Fn Key (Default)
 
 - **Enable**: Check **Use Fn Key (Hold)** in settings
@@ -505,18 +514,82 @@ The glossary does **not** add content to your transcription - it only guides Whi
 
 ---
 
+## 🧪 Model Testing
+
+Want to find the **best LLM model** for text correction? The included model testing framework helps you evaluate different models based on:
+
+- **Quality**: How well are filler words removed, punctuation corrected, and formatting recognized?
+- **Speed**: Actual tokens per second (TPS) and latency
+- **Cost**: Real-world pricing per correction
+- **Consistency**: How stable are results across multiple runs?
+
+### Quick Start
+
+```bash
+cd model_testing
+
+# Install dependencies
+pip3 install -r requirements.txt
+
+# Run tests (requires API key)
+export LLM_API_KEY="your-api-key"
+./run_model_tests.sh
+
+# Or test specific models only
+./run_model_tests.sh your-api-key "llama-3.1-8b-instant-128k" "gpt-4o-mini-2024-07-18"
+```
+
+### What Gets Tested
+
+The framework includes **5 realistic test scenarios**:
+1. **Normal Dictation** - Typical speech with filler words (äh, ähm)
+2. **Email** - Email formatting with proper structure recognition
+3. **Technical Prompt** - Instructions with code/technical terms
+4. **List/Notes** - Shopping lists, bullet points
+5. **Mixed Language** - German-English tech context
+
+Each test case simulates realistic Whisper transcription output with typical errors, then measures how well each model corrects them.
+
+### Results
+
+After running, you'll get:
+- **Terminal Summary** with color-coded rankings
+- **Recommendations**: Best overall, fastest, cheapest, highest quality
+- **JSON Export** (`test_results.json`) with detailed metrics
+
+Example output:
+```
+RECOMMENDATIONS:
+🏆 Best Overall: Llama 3.1 8B Instant 128k (Score: 0.87)
+   Quality: 85.3/100 | Speed: 840 TPS | Cost: $0.000045
+
+✨ Best Quality: GPT OSS 20B 128k (92.1/100)
+⚡ Fastest: GPT OSS 20B 128k (1000 TPS)
+💰 Cheapest: Llama 3.1 8B Instant 128k ($0.000045 per test)
+```
+
+**Full documentation**: See [model_testing/README.md](model_testing/README.md)
+
+---
+
 ## 🏗️ Project Structure
 
 ```
 Dictator/
-├── init.lua           # Main entry point, menu logic, hotkey binding
-├── config.lua         # Configuration management (settings persistence)
-├── audio.lua          # Audio recording via SoX
-├── api.lua            # OpenAI API integration (Whisper transcription with retry logic)
-├── ui.lua             # Menubar UI and status updates
-├── utils.lua          # Utility functions (temp file handling, file validation)
-├── rate_limiter.lua   # Token bucket rate limiter (prevents API abuse)
-└── README.md          # This file
+├── init.lua              # Main entry point, menu logic, hotkey binding
+├── config.lua            # Configuration management (settings persistence)
+├── audio.lua             # Audio recording via SoX
+├── api.lua               # OpenAI API integration (Whisper transcription with retry logic)
+├── ui.lua                # Menubar UI and status updates
+├── utils.lua             # Utility functions (temp file handling, file validation)
+├── rate_limiter.lua      # Token bucket rate limiter (prevents API abuse)
+├── model_testing/        # LLM model evaluation framework 🆕
+│   ├── model_test.py     # Test runner for model evaluation
+│   ├── models_config.json # Model configurations (prices, providers)
+│   ├── test_cases.json   # Realistic test scenarios
+│   ├── run_model_tests.sh # Quick-start script
+│   └── README.md         # Testing framework documentation
+└── README.md             # This file
 ```
 
 ---
