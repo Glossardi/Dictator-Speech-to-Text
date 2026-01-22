@@ -25,3 +25,6 @@ tmp-npm-cache/
 # Temporary files
 /tmp/
 *.wav
+
+#Privat
+.github
