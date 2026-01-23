@@ -587,11 +587,14 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
             
             -- Check for successful transcription (OpenAI format)
             if response and response.text then
-                print("Transcription successful. Text length: " .. #response.text)
-                if callback then callback(response.text, nil) end
+                -- Trim leading/trailing whitespace from transcription
+                local text = response.text:gsub("^%s+", ""):gsub("%s+$", "")
+                print("Transcription successful. Text length: " .. #text)
+                if callback then callback(text, nil) end
             -- Check for successful transcription (Cloudflare format)
             elseif response and response.success == true and response.result and response.result.text then
-                local text = response.result.text
+                -- Trim leading/trailing whitespace from transcription
+                local text = response.result.text:gsub("^%s+", ""):gsub("%s+$", "")
                 print("Transcription successful (Cloudflare). Text length: " .. #text)
                 if callback then callback(text, nil) end
             elseif response and response.error then
