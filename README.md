@@ -446,11 +446,13 @@ When enabled, Dictator will run an extra step after Whisper:
 
 #### Correction Model Parameters
 
-Dictator uses carefully tuned parameters for optimal correction accuracy:
+Dictator uses carefully tuned parameters optimized for deterministic text cleaning tasks:
 
-- **Temperature: 0.2** – Low temperature balances precision with creativity, helping with unclear speech or run-together words while avoiding hallucinations
-- **Top_P: 0.9** – Limits the model to the top 90% most likely tokens, keeping creative interpretations grounded and preventing wildly incorrect guesses
-- **Frequency Penalty: 0.0** – No penalty for word repetition, preserving intentional repetitions (e.g., "step by step", "very, very important")
+- **Temperature: 0.2** – Optimal for code/technical tasks (research-backed range: 0.1-0.3)
+- **Top_P: 0.95** – Default for deterministic tasks; experts recommend adjusting only ONE parameter (temperature OR top_p)
+- **Frequency Penalty: 0.4** – Prevents unwanted word repetitions like filler words ("um um um", "uh uh")
+- **Presence Penalty: 0.0** – Only useful for new topic generation; counterproductive for text cleaning
+- **Max Tokens: 2048** – Standard limit for longer dictation inputs
 
 These parameters are automatically applied when the model supports them. If a model rejects these parameters, Dictator automatically retries without them to ensure robust operation across different providers.
 

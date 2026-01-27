@@ -227,9 +227,11 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
     -- Preferred parameters for correction when supported by the model.
     -- Some models only support default parameters; in that case we omit them.
     if includeTemperature then
-        payload.temperature = 0.2  -- Balanced precision with creativity for unclear speech
-        payload.top_p = 0.9        -- Cut off unlikely tokens to keep creativity grounded
-        payload.frequency_penalty = 0.0  -- Don't suppress words if they're needed (e.g. repetitions)
+        payload.temperature = 0.2           -- Optimal for code/technical tasks (0.1-0.3 range)
+        payload.top_p = 0.95                 -- Default for deterministic tasks
+        payload.frequency_penalty = 0.4      -- Prevents word repetition (e.g. "um um um")
+        payload.presence_penalty = 0.0       -- Not needed for text cleaning
+        payload.max_tokens = 2048            -- Standard for longer inputs
     end
 
     local jsonBody = hs.json.encode(payload)
