@@ -3,6 +3,9 @@
 -- Handles recording lifecycle, menubar UI, hotkey bindings, and orchestrates
 -- the transcription + correction pipeline with fail-open behavior
 
+-- Load IPC module for command line interface support
+require("hs.ipc")
+
 local M = {}
 local config = require("config")
 local audio = require("audio")
@@ -402,6 +405,15 @@ function M.stopAndTranscribe()
                 return
             end
 
+            -- Validate transcription output to prevent garbage responses
+            local isValid, validationError = utils.validateTranscriptionOutput(text)
+            if not isValid then
+                M.isProcessing = false
+                log.e("Invalid transcription output: " .. (validationError or "unknown"))
+                ui.showError("⚠️ " .. (validationError or "Ungültige Antwort") .. "\n\nBitte starte die Aufnahme erneut oder starte die App neu, falls das Problem weiterhin besteht.")
+                return
+            end
+
             -- Store original transcription immediately after Whisper API
             M.lastOriginalTranscription = text
 
@@ -439,7 +451,14 @@ function M.stopAndTranscribe()
                         log.w("AI correction failed, falling back to raw transcription: " .. tostring(correctionErr))
                         finalize(text)
                     else
-                        finalize(correctedText)
+                        -- Validate AI-corrected output as well
+                        local isValidCorrected, validationErrorCorrected = utils.validateTranscriptionOutput(correctedText)
+                        if not isValidCorrected then
+                            log.w("AI correction produced invalid output, falling back to raw transcription: " .. (validationErrorCorrected or "unknown"))
+                            finalize(text)
+                        else
+                            finalize(correctedText)
+                        end
                     end
                 end)
             else

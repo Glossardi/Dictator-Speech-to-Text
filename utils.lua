@@ -23,4 +23,62 @@ function M.get_temp_file_path(extension)
     return os.tmpname() .. "_" .. uuid .. "." .. (extension or "flac")
 end
 
+-- Validate transcription output to prevent garbage/malicious content
+-- Returns: isValid (boolean), errorMessage (string or nil)
+function M.validateTranscriptionOutput(text)
+    if not text or type(text) ~= "string" then
+        return false, "Ungültige Antwort vom Server"
+    end
+    
+    -- Check for empty or whitespace-only text
+    local trimmed = text:match("^%s*(.-)%s*$")
+    if not trimmed or trimmed == "" then
+        return false, "Leere Antwort vom Server"
+    end
+    
+    -- Block if the ENTIRE response is just a problematic domain (case-insensitive)
+    -- This allows domains within normal text, but blocks pure domain outputs
+    local lowerText = trimmed:lower()
+    local blockedDomains = {
+        "www.feyyaz.tv",
+        "feyyaz.tv",
+    }
+    
+    for _, domain in ipairs(blockedDomains) do
+        if lowerText == domain then
+            return false, "Ungültige Antwort erkannt"
+        end
+    end
+    
+    -- Block if response is ONLY a URL with nothing else (suspiciously short)
+    if trimmed:match("^https?://[%w%.%-]+/?$") and #trimmed < 50 then
+        return false, "Ungültige Antwort erkannt"
+    end
+    
+    -- Check if text is suspiciously short for transcription (less than 2 characters)
+    if #trimmed < 2 then
+        return false, "Antwort zu kurz"
+    end
+    
+    -- Check for suspicious patterns that indicate API errors or garbage
+    local errorPatterns = {
+        "^error$",
+        "^exception$",
+        "^failed$",
+        "^unauthorized$",
+        "^forbidden$",
+        "^rate limit$",
+        "^quota exceeded$"
+    }
+    
+    -- Only flag as error if the ENTIRE response matches an error pattern (case-insensitive)
+    for _, errorPattern in ipairs(errorPatterns) do
+        if lowerText:match(errorPattern) then
+            return false, "API meldet einen Fehler"
+        end
+    end
+    
+    return true, nil
+end
+
 return M
