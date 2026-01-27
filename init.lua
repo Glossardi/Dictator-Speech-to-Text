@@ -22,6 +22,7 @@ M.DEBOUNCE_DELAY = 0.5  -- Minimum 500ms between actions
 M.MIN_RECORDING_DURATION = 0.4  -- Minimum duration in seconds to trigger transcription
 M.recordingStartTime = nil
 M.lastTranscription = nil  -- Store last successful transcription text
+M.lastOriginalTranscription = nil  -- Store original transcription (before correction)
 M.processingStartTime = nil  -- Track when processing started
 M.MAX_PROCESSING_TIME = 90  -- Maximum allowed processing time in seconds
 
@@ -68,10 +69,10 @@ local function buildMenu()
         { title = "Status: " .. ui.currentStatus:upper(), disabled = true },
         { title = "-" },
         { title = "Start/Stop Recording", fn = function() M.toggleRecording() end },
-        { title = "Copy Last Transcription", disabled = (M.lastTranscription == nil), fn = function()
-            if M.lastTranscription then
-                hs.pasteboard.setContents(M.lastTranscription)
-                hs.alert.show("Last transcription copied to clipboard")
+        { title = "Copy Last Transcription", disabled = (M.lastOriginalTranscription == nil), fn = function()
+            if M.lastOriginalTranscription then
+                hs.pasteboard.setContents(M.lastOriginalTranscription)
+                hs.alert.show("Original transcription copied to clipboard")
             else
                 hs.alert.show("No transcription available yet")
             end
@@ -400,6 +401,9 @@ function M.stopAndTranscribe()
                 ui.showError("No text returned")
                 return
             end
+
+            -- Store original transcription immediately after Whisper API
+            M.lastOriginalTranscription = text
 
             local function finalize(finalText)
                 M.isProcessing = false
