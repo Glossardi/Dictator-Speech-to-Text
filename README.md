@@ -444,6 +444,16 @@ When enabled, Dictator will run an extra step after Whisper:
 
 **Fail-open behavior:** If the correction call fails (network, API error, rate limit), Dictator will still paste/copy the original Whisper text so you never lose data.
 
+#### Correction Model Parameters
+
+Dictator uses carefully tuned parameters for optimal correction accuracy:
+
+- **Temperature: 0.2** – Low temperature balances precision with creativity, helping with unclear speech or run-together words while avoiding hallucinations
+- **Top_P: 0.9** – Limits the model to the top 90% most likely tokens, keeping creative interpretations grounded and preventing wildly incorrect guesses
+- **Frequency Penalty: 0.0** – No penalty for word repetition, preserving intentional repetitions (e.g., "step by step", "very, very important")
+
+These parameters are automatically applied when the model supports them. If a model rejects these parameters, Dictator automatically retries without them to ensure robust operation across different providers.
+
 ### Manual Glossary (Whisper Prompt Parameter)
 
 The **Edit Glossary...** feature allows you to provide context words to the Whisper API, improving recognition of technical terms, product names, acronyms, and other uncommon words.

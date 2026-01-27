@@ -224,10 +224,12 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
         }
     }
 
-    -- Preferred temperature for correction when supported by the model.
-    -- Some models only support the default temperature; in that case we omit it.
+    -- Preferred parameters for correction when supported by the model.
+    -- Some models only support default parameters; in that case we omit them.
     if includeTemperature then
-        payload.temperature = 0.5
+        payload.temperature = 0.2  -- Balanced precision with creativity for unclear speech
+        payload.top_p = 0.9        -- Cut off unlikely tokens to keep creativity grounded
+        payload.frequency_penalty = 0.0  -- Don't suppress words if they're needed (e.g. repetitions)
     end
 
     local jsonBody = hs.json.encode(payload)
