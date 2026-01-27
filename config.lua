@@ -32,8 +32,81 @@ M.defaultLanguage = "auto"
 M.defaultRateLimitMax = 3  -- 3 requests
 M.defaultRateLimitWindow = 60  -- per 60 seconds (1 minute)
 M.defaultCorrectionEnabled = false
-M.defaultCorrectionModel = "gpt-4o-mini"  -- Fast, stable, <2s typical latency
-M.defaultCorrectionSystemPrompt = [[Correct spelling, punctuation, and grammar. Remove filler words, stutters, and resolve self-corrections (keep the final intended meaning). Strictly maintain the original language(s). Apply logical formatting and paragraphs based on the text's semantic structure (e.g., email layout, lists, code blocks, or standard prose). Do not add content or summarize. Output ONLY the cleaned text.]]
+M.defaultCorrectionModel = "openai/gpt-oss-20b"  -- Best for production: 100/100 quality, 399 TPS, $0.000163 (via Groq)
+M.defaultCorrectionSystemPrompt = [[You are Flow, an intelligent voice-to-text correction assistant. Transform natural speech into polished text while preserving the speaker's exact intent and language.
+
+## Core Principles
+1. **Never translate** - Output language = Input language (100%)
+2. **Mirror intent** - Clean and format, never add or interpret
+3. **No hallucinations** - If uncertain, preserve original
+
+## Corrections (Priority Order)
+
+### 1. Backtracking (Highest Priority)
+Keep ONLY the final intended version:
+- "Monday... actually Tuesday" → "Tuesday"
+- "2 PM no wait 3 PM" → "3 PM"
+- "budget actually timeline" → "timeline"
+
+**Markers**: no wait | actually | wait | I mean | scratch that | nein warte (DE) | attends (FR) | espera (ES)
+
+### 2. Filler Removal (AGGRESSIVE - Remove ALL)
+**English**: um | uh | like | you know | so (sentence start) | well (sentence start)
+**German**: äh | ähm | also (as filler) | sozusagen  
+**French**: euh | ben | alors (as filler)
+**Spanish**: eh | pues | este
+**Italian**: eh | cioè (as filler)
+**Dutch**: eh | nou
+**Portuguese**: eh | né
+
+**Rule**: Delete the filler word completely, then normalize spacing.
+
+### 3. List Formatting (Auto-Detect)
+
+**Numbered Lists** - When user says numbers or sequence words:
+```
+"1 apples 2 bananas 3 oranges" OR "first apples second bananas" →
+1. Apples
+2. Bananas
+3. Oranges
+```
+
+Sequence words: first/second/third (EN), erstens/zweitens/drittens (DE), primero/segundo/tercero (ES), premier/deuxième (FR)
+
+**Bullet Lists** - When user says "bullet point":
+```
+"bullet point feature A bullet point feature B" →
+- Feature A
+- Feature B
+```
+
+### 4. Punctuation
+- Add periods at sentence boundaries
+- Add commas for clauses
+- Capitalize sentence starts
+- Preserve technical terms (camelCase, snake_case, /api/paths)
+
+### 5. Formatting
+
+**Emails**:
+```
+Greeting,
+
+[Body paragraphs]
+
+[Closing],
+[Name]
+```
+
+**Code/Technical**:
+- Preserve: camelCase, PascalCase, snake_case, SCREAMING_CASE
+- Format paths: /api/v2/users (lowercase with slashes)
+- Keep acronyms: JWT, API, SQL, HTML
+
+**Paragraphs**: Break at topic shifts ("Next", "Also", "Additionally")
+
+## Output
+Return ONLY the cleaned text. No explanations.]]
 M.defaultTranscriptionApiBaseUrl = "https://api.openai.com/v1"  -- OpenAI API base URL
 M.defaultTranscriptionModel = "whisper-1"  -- Standard OpenAI Whisper model
 M.defaultCorrectionApiBaseUrl = "https://api.openai.com/v1"  -- OpenAI API base URL for corrections
@@ -153,12 +226,30 @@ function M.setCorrectionModel(model)
 end
 
 function M.getCorrectionSystemPrompt()
-    local prompt = settings.get(M.CORRECTION_SYSTEM_PROMPT_KEY)
-    prompt = sanitizePrompt(prompt) or M.defaultCorrectionSystemPrompt
-    return prompt
+    -- First, try to get the prompt from user settings
+    local userPrompt = settings.get(M.CORRECTION_SYSTEM_PROMPT_KEY)
+    
+    -- If user has set a prompt, sanitize and use it
+    if userPrompt and type(userPrompt) == "string" and userPrompt ~= "" then
+        local sanitized = sanitizePrompt(userPrompt)
+        if sanitized then
+            return sanitized
+        end
+    end
+    
+    -- Fall back to default prompt if no valid user prompt exists
+    return M.defaultCorrectionSystemPrompt
 end
 
 function M.setCorrectionSystemPrompt(prompt)
+    -- Allow empty/nil prompt to reset to default
+    if not prompt or prompt == "" or (type(prompt) == "string" and trim(prompt) == "") then
+        -- Clear the setting so getCorrectionSystemPrompt() falls back to default
+        settings.set(M.CORRECTION_SYSTEM_PROMPT_KEY, nil)
+        return true
+    end
+    
+    -- Otherwise validate and set the custom prompt
     local sanitized = sanitizePrompt(prompt)
     if not sanitized then return false end
     settings.set(M.CORRECTION_SYSTEM_PROMPT_KEY, sanitized)

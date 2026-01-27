@@ -1,0 +1,278 @@
+{
+  "version": "2.0-production",
+  "description": "Production-ready test cases for Whisper V3 Large Turbo → GPT-OSS 20B correction pipeline. Covers backtracking, spoken punctuation, smart formatting, filler removal across realistic use cases.",
+  "test_cases": [
+    {
+      "id": "test_001_email_backtrack",
+      "input": "Hi Sarah comma regarding the Q1 numbers no wait Q2 numbers I wanted to share the latest update period we saw a 15 percent increase um compared to last quarter period could we schedule a call for Monday no actually Tuesday would be better question mark thanks comma John",
+      "expected_output": "Hi Sarah,\n\nRegarding the Q2 numbers, I wanted to share the latest update. We saw a 15% increase compared to last quarter.\n\nCould we schedule a call for Tuesday?\n\nThanks,\nJohn",
+      "language": "en",
+      "category": "email",
+      "features_tested": ["backtracking", "spoken_punctuation", "email_structure", "filler_removal", "self_correction"]
+    },
+    {
+      "id": "test_002_email_casual_backtrack",
+      "input": "hey tom just wanted to check in about the project we discussed last week um I think we can start next Monday no wait I mean next Wednesday since I have meetings on Monday anyway let me know if that works for you",
+      "expected_output": "Hey Tom,\n\nJust wanted to check in about the project we discussed last week. I think we can start next Wednesday since I have meetings on Monday.\n\nLet me know if that works for you.",
+      "language": "en",
+      "category": "email",
+      "features_tested": ["backtracking", "casual_tone", "paragraph_structure", "filler_removal"]
+    },
+    {
+      "id": "test_003_llm_prompt_list",
+      "input": "Create a Python script that does the following colon first comma read a CSV file second comma process the data and calculate statistics third comma um export the results to JSON and fourth comma generate a summary report also make sure to handle errors properly",
+      "expected_output": "Create a Python script that does the following:\n\n1. Read a CSV file\n2. Process the data and calculate statistics\n3. Export the results to JSON\n4. Generate a summary report\n\nAlso make sure to handle errors properly.",
+      "language": "en",
+      "category": "ai_prompt",
+      "features_tested": ["spoken_punctuation", "list_formatting", "filler_removal", "structure"]
+    },
+    {
+      "id": "test_004_llm_prompt_complex",
+      "input": "I need you to analyze the following code and tell me um first what it does second what potential bugs might exist and third how to optimize it also I mean specifically focus on the database queries and um the error handling make sure to provide code examples",
+      "expected_output": "I need you to analyze the following code and tell me:\n\n1. What it does\n2. What potential bugs might exist\n3. How to optimize it\n\nSpecifically focus on the database queries and the error handling. Make sure to provide code examples.",
+      "language": "en",
+      "category": "ai_prompt",
+      "features_tested": ["filler_removal", "list_formatting", "structure", "self_correction"]
+    },
+    {
+      "id": "test_005_slack_short",
+      "input": "hey can someone help me with the deployment um the prod environment is throwing a 500 error",
+      "expected_output": "Hey, can someone help me with the deployment? The prod environment is throwing a 500 error.",
+      "language": "en",
+      "category": "chat",
+      "features_tested": ["casual_tone", "filler_removal", "minimal_formatting"]
+    },
+    {
+      "id": "test_006_slack_status",
+      "input": "quick update on the migration colon we finished the database backup we started the migration process and um we're now monitoring for errors should be done in about 30 minutes",
+      "expected_output": "Quick update on the migration:\n\nWe finished the database backup, we started the migration process, and we're now monitoring for errors. Should be done in about 30 minutes.",
+      "language": "en",
+      "category": "chat",
+      "features_tested": ["spoken_punctuation", "filler_removal", "status_update"]
+    },
+    {
+      "id": "test_007_search_query",
+      "input": "python how to um parse JSON file and extract specific fields scratch that I mean how to parse large JSON files efficiently in Python",
+      "expected_output": "how to parse large JSON files efficiently in Python",
+      "language": "en",
+      "category": "search",
+      "features_tested": ["backtracking", "filler_removal", "search_format", "self_correction"]
+    },
+    {
+      "id": "test_008_search_technical",
+      "input": "react hooks useEffect cleanup function no wait useEffect dependency array best practices",
+      "expected_output": "react hooks useEffect dependency array best practices",
+      "language": "en",
+      "category": "search",
+      "features_tested": ["backtracking", "search_format"]
+    },
+    {
+      "id": "test_009_meeting_notes",
+      "input": "Meeting notes from January 27 2026 period attendees colon Sarah comma Michael comma and myself period agenda colon first we discussed Q1 budget um which needs to be increased by 20 percent second we reviewed the hiring plan three new engineers two in backend one in frontend and third we set the next meeting for February 5th actually scratch that February 3rd at 2 PM",
+      "expected_output": "Meeting notes from January 27, 2026\n\nAttendees: Sarah, Michael, and myself\n\nAgenda:\n\n1. We discussed Q1 budget, which needs to be increased by 20%\n2. We reviewed the hiring plan: three new engineers, two in backend, one in frontend\n3. We set the next meeting for February 3rd at 2 PM",
+      "language": "en",
+      "category": "meeting",
+      "features_tested": ["spoken_punctuation", "list_formatting", "backtracking", "filler_removal", "structure"]
+    },
+    {
+      "id": "test_010_meeting_action_items",
+      "input": "action items from today's standup colon John will fix the authentication bug by EOD um Sarah will review the PR and Michael needs to update the documentation also we need to schedule a follow-up for next week",
+      "expected_output": "Action items from today's standup:\n\n- John will fix the authentication bug by EOD\n- Sarah will review the PR\n- Michael needs to update the documentation\n\nAlso, we need to schedule a follow-up for next week.",
+      "language": "en",
+      "category": "meeting",
+      "features_tested": ["list_formatting", "filler_removal", "action_items"]
+    },
+    {
+      "id": "test_011_task_list_personal",
+      "input": "Things to do today colon first buy groceries milk comma bread comma eggs second finish the monthly report third call mom at 5 PM no wait 6 PM and fourth um don't forget gym session at 7",
+      "expected_output": "Things to do today:\n\n1. Buy groceries: milk, bread, eggs\n2. Finish the monthly report\n3. Call mom at 6 PM\n4. Don't forget gym session at 7",
+      "language": "en",
+      "category": "task_list",
+      "features_tested": ["list_formatting", "spoken_punctuation", "backtracking", "filler_removal"]
+    },
+    {
+      "id": "test_012_task_list_work",
+      "input": "sprint tasks colon implement user authentication add email verification um fix the password reset bug write unit tests and update API documentation",
+      "expected_output": "Sprint tasks:\n\n- Implement user authentication\n- Add email verification\n- Fix the password reset bug\n- Write unit tests\n- Update API documentation",
+      "language": "en",
+      "category": "task_list",
+      "features_tested": ["list_formatting", "filler_removal"]
+    },
+    {
+      "id": "test_013_general_text_correction",
+      "input": "The quick brown fox jumps over the um lazy dog period this is a test sentence with some uh filler words and um corrections I mean this demonstrates the basic cleaning functionality",
+      "expected_output": "The quick brown fox jumps over the lazy dog. This is a test sentence with some filler words and corrections. This demonstrates the basic cleaning functionality.",
+      "language": "en",
+      "category": "general",
+      "features_tested": ["filler_removal", "spoken_punctuation", "self_correction"]
+    },
+    {
+      "id": "test_014_code_comment",
+      "input": "slash slash this function calculates the total price um including tax and shipping costs it takes three parameters colon price comma tax rate comma and shipping fee and returns the final amount",
+      "expected_output": "// This function calculates the total price including tax and shipping costs. It takes three parameters: price, tax rate, and shipping fee, and returns the final amount.",
+      "language": "en",
+      "category": "code",
+      "features_tested": ["spoken_punctuation", "filler_removal", "code_structure"]
+    },
+    {
+      "id": "test_015_mixed_backtrack",
+      "input": "I think we should meet on Monday no Tuesday at 3 PM wait actually 4 PM would be better um to discuss the budget no I mean the timeline for the project",
+      "expected_output": "I think we should meet on Tuesday at 4 PM to discuss the timeline for the project.",
+      "language": "en",
+      "category": "general",
+      "features_tested": ["multiple_backtracking", "filler_removal", "self_correction"]
+    },
+    {
+      "id": "test_016_email_german",
+      "input": "Hallo Markus comma ich wollte dir kurz Bescheid geben äh wegen dem Projekt das wir letzte Woche besprochen haben period ich denke wir können nächste Woche damit anfangen aber ich bräuchte noch die Daten von dir die du mir versprochen hast period könntest du mir die bis Freitag schicken question mark dann können wir direkt loslegen period viele Grüße comma Anna",
+      "expected_output": "Hallo Markus,\n\nich wollte dir kurz Bescheid geben wegen dem Projekt, das wir letzte Woche besprochen haben. Ich denke wir können nächste Woche damit anfangen, aber ich bräuchte noch die Daten von dir, die du mir versprochen hast. Könntest du mir die bis Freitag schicken? Dann können wir direkt loslegen.\n\nViele Grüße,\nAnna",
+      "language": "de",
+      "category": "email",
+      "features_tested": ["spoken_punctuation", "email_structure", "filler_removal", "german"]
+    },
+    {
+      "id": "test_017_meeting_german",
+      "input": "also das Problem ist äh wenn wir das Deployment machen müssen wir darauf achten dass die Environment Variables richtig gesetzt sind und auch die Database Connection muss stimmen period ich würde vorschlagen wir machen das in folgenden Schritten colon erstens Backup zweitens Migration drittens dann das Deployment und zum Schluss testen ob alles funktioniert",
+      "expected_output": "Das Problem ist: wenn wir das Deployment machen, müssen wir darauf achten, dass die Environment Variables richtig gesetzt sind und auch die Database Connection muss stimmen.\n\nIch würde vorschlagen, wir machen das in folgenden Schritten:\n\n1. Backup\n2. Migration\n3. Deployment\n4. Testen ob alles funktioniert",
+      "language": "de",
+      "category": "meeting",
+      "features_tested": ["filler_removal", "spoken_punctuation", "list_formatting", "german", "structure"]
+    },
+    {
+      "id": "test_018_task_list_german",
+      "input": "Was muss ich heute noch erledigen colon erstens Einkaufen gehen Milch Brot Käse äh und Tomaten zweitens den Bericht fertig schreiben der ist fast fertig nur noch die Zusammenfassung drittens Anna zurückrufen wegen dem Projekt",
+      "expected_output": "Was muss ich heute noch erledigen:\n\n1. Einkaufen gehen: Milch, Brot, Käse und Tomaten\n2. Den Bericht fertig schreiben (der ist fast fertig, nur noch die Zusammenfassung)\n3. Anna zurückrufen wegen dem Projekt",
+      "language": "de",
+      "category": "task_list",
+      "features_tested": ["list_formatting", "filler_removal", "german", "spoken_punctuation"]
+    },
+    {
+      "id": "test_019_chat_german",
+      "input": "hey sorry dass ich so spät antworte war den ganzen Tag unterwegs äh zu deiner Frage ja ich kann morgen um 14 Uhr aber nicht länger als eine Stunde weil ich danach noch einen anderen Termin habe",
+      "expected_output": "Hey, sorry dass ich so spät antworte, war den ganzen Tag unterwegs. Zu deiner Frage: ja, ich kann morgen um 14 Uhr, aber nicht länger als eine Stunde, weil ich danach noch einen anderen Termin habe.",
+      "language": "de",
+      "category": "chat",
+      "features_tested": ["casual_tone", "filler_removal", "german"]
+    },
+    {
+      "id": "test_020_email_french",
+      "input": "Bonjour Marie comma j'espère que tu vas bien period je voulais te demander euh si tu pouvais m'envoyer les documents pour la réunion de demain period nous devons discuter du budget non attends du planning pour le projet period merci d'avance comma cordialement comma Pierre",
+      "expected_output": "Bonjour Marie,\n\nJ'espère que tu vas bien. Je voulais te demander si tu pouvais m'envoyer les documents pour la réunion de demain. Nous devons discuter du planning pour le projet.\n\nMerci d'avance,\nCordialement,\nPierre",
+      "language": "fr",
+      "category": "email",
+      "features_tested": ["spoken_punctuation", "email_structure", "filler_removal", "backtracking", "french"]
+    },
+    {
+      "id": "test_021_task_french",
+      "input": "Liste des tâches colon premièrement réviser le code deuxièmement euh tester l'application troisièmement corriger les bugs et quatrièmement déployer en production",
+      "expected_output": "Liste des tâches:\n\n1. Réviser le code\n2. Tester l'application\n3. Corriger les bugs\n4. Déployer en production",
+      "language": "fr",
+      "category": "task_list",
+      "features_tested": ["list_formatting", "filler_removal", "french", "spoken_punctuation"]
+    },
+    {
+      "id": "test_022_email_spanish",
+      "input": "Hola Carlos comma espero que estés bien period quería preguntarte eh si puedes enviarme el informe para la reunión del lunes no espera del martes period necesitamos revisar los resultados del primer trimestre period gracias comma saludos comma Ana",
+      "expected_output": "Hola Carlos,\n\nEspero que estés bien. Quería preguntarte si puedes enviarme el informe para la reunión del martes. Necesitamos revisar los resultados del primer trimestre.\n\nGracias,\nSaludos,\nAna",
+      "language": "es",
+      "category": "email",
+      "features_tested": ["spoken_punctuation", "email_structure", "backtracking", "filler_removal", "spanish"]
+    },
+    {
+      "id": "test_023_meeting_spanish",
+      "input": "Puntos de la reunión colon primero discutimos el presupuesto que necesita aumentar un 15 por ciento segundo eh revisamos el plan de contratación tres personas nuevas y tercero establecimos la próxima reunión para el 5 de febrero",
+      "expected_output": "Puntos de la reunión:\n\n1. Discutimos el presupuesto, que necesita aumentar un 15%\n2. Revisamos el plan de contratación: tres personas nuevas\n3. Establecimos la próxima reunión para el 5 de febrero",
+      "language": "es",
+      "category": "meeting",
+      "features_tested": ["list_formatting", "filler_removal", "spanish", "spoken_punctuation"]
+    },
+    {
+      "id": "test_024_email_arabic",
+      "input": "مرحبا أحمد comma أتمنى أن تكون بخير period أردت أن أسألك عن المشروع الذي ناقشناه الأسبوع الماضي period هل يمكنك إرسال المستندات قبل يوم الجمعة question mark شكرا comma مع تحياتي",
+      "expected_output": "مرحبا أحمد،\n\nأتمنى أن تكون بخير. أردت أن أسألك عن المشروع الذي ناقشناه الأسبوع الماضي. هل يمكنك إرسال المستندات قبل يوم الجمعة؟\n\nشكرا،\nمع تحياتي",
+      "language": "ar",
+      "category": "email",
+      "features_tested": ["spoken_punctuation", "email_structure", "arabic", "rtl_text"]
+    },
+    {
+      "id": "test_025_list_arabic",
+      "input": "المهام اليوم colon أولا مراجعة الكود ثانيا اختبار التطبيق ثالثا إصلاح الأخطاء",
+      "expected_output": "المهام اليوم:\n\n1. مراجعة الكود\n2. اختبار التطبيق\n3. إصلاح الأخطاء",
+      "language": "ar",
+      "category": "task_list",
+      "features_tested": ["list_formatting", "arabic", "spoken_punctuation"]
+    },
+    {
+      "id": "test_026_email_italian",
+      "input": "Ciao Marco comma spero che tu stia bene period volevo chiederti eh se puoi inviarmi i documenti per la riunione di lunedì no aspetta di martedì period dobbiamo discutere del budget period grazie comma saluti comma Laura",
+      "expected_output": "Ciao Marco,\n\nSpero che tu stia bene. Volevo chiederti se puoi inviarmi i documenti per la riunione di martedì. Dobbiamo discutere del budget.\n\nGrazie,\nSaluti,\nLaura",
+      "language": "it",
+      "category": "email",
+      "features_tested": ["spoken_punctuation", "email_structure", "backtracking", "filler_removal", "italian"]
+    },
+    {
+      "id": "test_027_complex_backtrack_english",
+      "input": "So we need to um schedule the deployment for next Friday no wait Thursday at 3 PM scratch that I mean 4 PM because the team has a meeting at 3 also we need to notify the stakeholders no actually just the project manager",
+      "expected_output": "We need to schedule the deployment for Thursday at 4 PM because the team has a meeting at 3. Also, we need to notify just the project manager.",
+      "language": "en",
+      "category": "general",
+      "features_tested": ["complex_backtracking", "filler_removal", "multiple_corrections"]
+    },
+    {
+      "id": "test_028_code_dictation",
+      "input": "function calculateTotal open parenthesis price comma taxRate close parenthesis open curly brace const tax equals price times taxRate semicolon const total equals price plus tax semicolon return total semicolon close curly brace",
+      "expected_output": "function calculateTotal(price, taxRate) {\n  const tax = price * taxRate;\n  const total = price + tax;\n  return total;\n}",
+      "language": "en",
+      "category": "code",
+      "features_tested": ["spoken_code", "code_structure", "spoken_punctuation"]
+    },
+    {
+      "id": "test_029_email_dutch",
+      "input": "Hallo Jan comma ik hoop dat het goed met je gaat period ik wilde je vragen eh of je de documenten kunt sturen voor de vergadering van maandag nee wacht dinsdag period we moeten het budget bespreken period bedankt comma groeten comma Sophie",
+      "expected_output": "Hallo Jan,\n\nIk hoop dat het goed met je gaat. Ik wilde je vragen of je de documenten kunt sturen voor de vergadering van dinsdag. We moeten het budget bespreken.\n\nBedankt,\nGroeten,\nSophie",
+      "language": "nl",
+      "category": "email",
+      "features_tested": ["spoken_punctuation", "email_structure", "backtracking", "filler_removal", "dutch"]
+    },
+    {
+      "id": "test_030_filler_heavy_english",
+      "input": "So um like I was thinking you know that we could like maybe um schedule a meeting for next week you know to discuss the um the project timeline and also like we need to um finalize the budget so yeah that would be great",
+      "expected_output": "I was thinking that we could schedule a meeting for next week to discuss the project timeline. Also, we need to finalize the budget.",
+      "language": "en",
+      "category": "chat",
+      "features_tested": ["heavy_filler_removal", "casual_tone", "structure_improvement"]
+    },
+    {
+      "id": "test_031_technical_german_backtrack",
+      "input": "Der API Endpoint ist unter slash api slash users nein warte slash api slash v2 slash users verfügbar und gibt ein JSON Object mit User Daten zurück period die Response enthält Name E-Mail und äh Registration Date",
+      "expected_output": "Der API Endpoint ist unter /api/v2/users verfügbar und gibt ein JSON Object mit User Daten zurück. Die Response enthält Name, E-Mail und Registration Date.",
+      "language": "de",
+      "category": "technical",
+      "features_tested": ["backtracking", "technical_content", "filler_removal", "german"]
+    },
+    {
+      "id": "test_032_email_portuguese",
+      "input": "Olá Pedro comma espero que você esteja bem period queria perguntar eh se você pode enviar os documentos para a reunião de segunda não espera terça period precisamos revisar o orçamento period obrigado comma abraços comma Maria",
+      "expected_output": "Olá Pedro,\n\nEspero que você esteja bem. Queria perguntar se você pode enviar os documentos para a reunião de terça. Precisamos revisar o orçamento.\n\nObrigado,\nAbraços,\nMaria",
+      "language": "pt",
+      "category": "email",
+      "features_tested": ["spoken_punctuation", "email_structure", "backtracking", "filler_removal", "portuguese"]
+    }
+  ],
+  "optimized_system_prompt": "You are a text correction assistant. Clean transcribed speech while preserving exact intent and language.\n\n## Core Rules\n1. **Never translate** - Output language MUST match input language\n2. **Never add content** - Only clean and format existing text\n3. **Never hallucinate** - If uncertain, preserve original\n\n## Corrections\n\n### 1. Filler Removal (AGGRESSIVE - remove ALL instances)\n**English**: um, uh, like, you know, so (at start), well (at start)\n**German**: äh, ähm, also (filler), sozusagen  \n**French**: euh, ben, alors (filler)\n**Spanish**: eh, pues, este\n**Italian**: eh, cioè (filler)\n**Dutch**: eh, nou\n**Portuguese**: eh, né\n\n### 2. Backtracking (keep ONLY final version)\n- \"Monday no wait Tuesday\" → \"Tuesday\"\n- \"5 I mean 10\" → \"10\"  \n- \"budget no actually timeline\" → \"timeline\"\n\nMarkers: no wait | I mean | scratch that | actually | attends (FR) | aspetta (IT) | warte (DE) | espera (ES/PT)\n\n### 3. Spoken Punctuation (convert + delete word)\n- \"comma\"/\"Komma\"/\"virgule\"/\"coma\" → ,\n- \"period\"/\"Punkt\"/\"point\"/\"punto\" → .\n- \"question mark\"/\"Fragezeichen\" → ?\n- \"colon\"/\"Doppelpunkt\" → :\n- Code: \"open parenthesis\" → ( | \"close parenthesis\" → ) | \"slash\" → / | \"semicolon\" → ;\n\n### 4. Formatting\n**Emails**: Paragraph break after greeting and before closing\n**Lists**: Use 1. 2. 3. or - bullets for \"first\"/\"second\" or \"erstens\"/\"zweitens\"  \n**Paragraphs**: Break at \"Next\"/\"Also\"/\"Meanwhile\"/\"Additionally\"\n**Capitalization**: Fix sentence starts\n\nOutput ONLY cleaned text.",
+  "model_parameters": {
+    "model": "openai/gpt-oss-20b",
+    "temperature": 0.2,
+    "top_p": 0.95,
+    "frequency_penalty": 0.4,
+    "presence_penalty": 0.0,
+    "max_tokens": 2048
+  },
+  "model_parameter_rationale": {
+    "temperature": "0.2 is optimal for deterministic correction tasks. Low enough to avoid hallucinations, high enough to handle creative formatting decisions (WisprFlow uses <200ms LLM inference with similar deterministic approach).",
+    "top_p": "0.95 is standard for nucleus sampling. Balances determinism with flexibility for language-specific corrections.",
+    "frequency_penalty": "0.4 prevents word repetition (e.g., 'um um um'). Critical for filler removal without being too aggressive on legitimate repeated words.",
+    "presence_penalty": "0.0 because we don't need to encourage topic diversity. Text correction should mirror input content exactly.",
+    "max_tokens": "2048 covers 99% of realistic dictation lengths. Whisper V3 Large Turbo processes max 6min audio (~900-1200 words), leaving headroom for formatting expansion."
+  }
+}

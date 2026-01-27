@@ -1,0 +1,135 @@
+{
+  "version": "4.0-whisper-v3-realworld",
+  "description": "Real Whisper V3 transcription problems with iterative prompt refinement",
+  "test_cases": [
+    {
+      "id": "whisper_001_list_spoken",
+      "input": "Einkaufsliste erste Punkt Milch zweite Punkt Brot dritte Punkt Käse",
+      "expected_output": "Einkaufsliste:\n\n1. Milch\n2. Brot\n3. Käse",
+      "language": "de",
+      "category": "list",
+      "whisper_problem": "no_list_formatting"
+    },
+    {
+      "id": "whisper_002_units_ohm",
+      "input": "Der Widerstand beträgt 5 Ohm und die Spannung ist 12 Volt",
+      "expected_output": "Der Widerstand beträgt 5 Ohm und die Spannung ist 12 Volt.",
+      "language": "de",
+      "category": "technical",
+      "whisper_problem": "units_preserved"
+    },
+    {
+      "id": "whisper_003_time_am",
+      "input": "Let's meet at 10 AM tomorrow morning at the office",
+      "expected_output": "Let's meet at 10 AM tomorrow morning at the office.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "time_units_preserved"
+    },
+    {
+      "id": "whisper_004_domain_dot",
+      "input": "Visit our website at example dot com for more information",
+      "expected_output": "Visit our website at example.com for more information.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "domain_spoken"
+    },
+    {
+      "id": "whisper_005_mixed_units",
+      "input": "The resistor is 3 Oos I mean 3 Ohms and costs 5 dollars",
+      "expected_output": "The resistor is 3 Ohms and costs 5 dollars.",
+      "language": "en",
+      "category": "technical",
+      "whisper_problem": "units_with_correction"
+    },
+    {
+      "id": "whisper_006_fillers_de",
+      "input": "Also äh ich denke wir sollten äh das Meeting verschieben",
+      "expected_output": "Ich denke wir sollten das Meeting verschieben.",
+      "language": "de",
+      "category": "general",
+      "whisper_problem": "german_fillers"
+    },
+    {
+      "id": "whisper_007_list_first_second",
+      "input": "Action items first reply to emails second finish the report third call the client",
+      "expected_output": "Action items:\n\n1. Reply to emails\n2. Finish the report\n3. Call the client",
+      "language": "en",
+      "category": "list",
+      "whisper_problem": "sequence_words_list"
+    },
+    {
+      "id": "whisper_008_backtrack_time",
+      "input": "We deploy on Monday no wait Tuesday at 3 PM actually 4 PM",
+      "expected_output": "We deploy on Tuesday at 4 PM.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "multiple_corrections"
+    },
+    {
+      "id": "whisper_009_email_no_structure",
+      "input": "Hi Sarah I wanted to follow up on the project we discussed last week let me know if you have questions thanks John",
+      "expected_output": "Hi Sarah,\n\nI wanted to follow up on the project we discussed last week. Let me know if you have questions.\n\nThanks,\nJohn",
+      "language": "en",
+      "category": "email",
+      "whisper_problem": "missing_email_structure"
+    },
+    {
+      "id": "whisper_010_url_spoken",
+      "input": "Check out the repo at github dot com slash user slash project",
+      "expected_output": "Check out the repo at github.com/user/project.",
+      "language": "en",
+      "category": "technical",
+      "whisper_problem": "url_with_spoken_punctuation"
+    },
+    {
+      "id": "whisper_011_no_punctuation",
+      "input": "The quick brown fox jumps over the lazy dog this is a test sentence",
+      "expected_output": "The quick brown fox jumps over the lazy dog. This is a test sentence.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "missing_periods"
+    },
+    {
+      "id": "whisper_012_list_numbers_no_format",
+      "input": "Priorities 1 fix the bug 2 write tests 3 deploy to prod",
+      "expected_output": "Priorities:\n\n1. Fix the bug\n2. Write tests\n3. Deploy to prod",
+      "language": "en",
+      "category": "list",
+      "whisper_problem": "numbers_without_list_format"
+    },
+    {
+      "id": "whisper_013_french_fillers",
+      "input": "Donc euh je pense que euh nous devrions euh commencer demain",
+      "expected_output": "Je pense que nous devrions commencer demain.",
+      "language": "fr",
+      "category": "general",
+      "whisper_problem": "french_fillers_donc_euh"
+    },
+    {
+      "id": "whisper_014_heavy_um",
+      "input": "So um like I was thinking um that we could um try the new approach um and see if it works",
+      "expected_output": "I was thinking that we could try the new approach and see if it works.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "excessive_fillers"
+    },
+    {
+      "id": "whisper_015_code_variable",
+      "input": "Create a variable called user auth token that stores the JWT string",
+      "expected_output": "Create a variable called userAuthToken that stores the JWT string.",
+      "language": "en",
+      "category": "code",
+      "whisper_problem": "camelCase_conversion"
+    }
+  ],
+  "system_prompt_v1": "Clean speech transcripts. Rules:\n\n1. Backtracking: Keep final version only (\"Monday no wait Tuesday\" → \"Tuesday\"). Markers: no wait, actually, I mean, scratch that, nein warte, attends, espera.\n\n2. Fillers: Remove ALL - um, uh, like, you know, so/well (start), äh, ähm, also (filler), euh, ben, alors, eh, pues, este.\n\n3. Lists: Auto-format when numbers (\"1 apples 2 bananas\") or sequence words (first/second, erstens/zweitens) → numbered list. \"bullet point\" → bullet list.\n\n4. Domains/URLs: \"dot\" → \".\" | \"slash\" → \"/\" (example dot com → example.com)\n\n5. Units: Preserve Ohm, Volt, AM/PM, kg, etc.\n\n6. Punctuation: Add periods, commas. Capitalize sentences.\n\n7. Emails: Add paragraph breaks after greeting, before closing.\n\n8. Code: Preserve camelCase, snake_case, /api/paths.\n\nNever translate. Output language = Input language. Return ONLY cleaned text.",
+  "model_parameters": {
+    "model": "openai/gpt-oss-20b",
+    "temperature": 0.2,
+    "top_p": 0.95,
+    "frequency_penalty": 0.4,
+    "presence_penalty": 0.0,
+    "max_tokens": 2048
+  }
+}
