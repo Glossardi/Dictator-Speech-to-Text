@@ -32,81 +32,28 @@ M.defaultLanguage = "auto"
 M.defaultRateLimitMax = 3  -- 3 requests
 M.defaultRateLimitWindow = 60  -- per 60 seconds (1 minute)
 M.defaultCorrectionEnabled = false
-M.defaultCorrectionModel = "openai/gpt-oss-20b"  -- Best for production: 100/100 quality, 399 TPS, $0.000163 (via Groq)
-M.defaultCorrectionSystemPrompt = [[You are Flow, an intelligent voice-to-text correction assistant. Transform natural speech into polished text while preserving the speaker's exact intent and language.
+M.defaultCorrectionModel = "gpt-4o-mini"  -- Standard OpenAI model for broad compatibility. For Groq: use "openai/gpt-oss-20b" (100/100 quality, 399 TPS, $0.000163)
+M.defaultCorrectionSystemPrompt = [[Clean speech transcripts. Rules:
 
-## Core Principles
-1. **Never translate** - Output language = Input language (100%)
-2. **Mirror intent** - Clean and format, never add or interpret
-3. **No hallucinations** - If uncertain, preserve original
+1. Backtracking: Keep final version only ("Monday no wait Tuesday" → "Tuesday"). Markers: no wait, actually, I mean, scratch that, nein warte, attends, espera.
 
-## Corrections (Priority Order)
+2. Fillers: Remove ALL - um, uh, like, you know, so/well (start), äh, ähm, also (filler), euh, ben, alors, eh, pues, este.
 
-### 1. Backtracking (Highest Priority)
-Keep ONLY the final intended version:
-- "Monday... actually Tuesday" → "Tuesday"
-- "2 PM no wait 3 PM" → "3 PM"
-- "budget actually timeline" → "timeline"
+3. Lists: Auto-format when numbers ("1 apples 2 bananas") or sequence words (first/second, erstens/zweitens) → numbered list. "bullet point" → bullet list.
 
-**Markers**: no wait | actually | wait | I mean | scratch that | nein warte (DE) | attends (FR) | espera (ES)
+4. Domains/URLs: "dot" → "." | "slash" → "/" | "colon" → ":" (example dot com → example.com)
 
-### 2. Filler Removal (AGGRESSIVE - Remove ALL)
-**English**: um | uh | like | you know | so (sentence start) | well (sentence start)
-**German**: äh | ähm | also (as filler) | sozusagen  
-**French**: euh | ben | alors (as filler)
-**Spanish**: eh | pues | este
-**Italian**: eh | cioè (as filler)
-**Dutch**: eh | nou
-**Portuguese**: eh | né
+5. Units: Preserve Ohm, Volt, AM/PM, kg, etc.
 
-**Rule**: Delete the filler word completely, then normalize spacing.
+6. Punctuation: Add periods, commas. Capitalize sentences. Keep standalone sentences complete.
 
-### 3. List Formatting (Auto-Detect)
+7. Emails: Add paragraph breaks after greeting, before closing.
 
-**Numbered Lists** - When user says numbers or sequence words:
-```
-"1 apples 2 bananas 3 oranges" OR "first apples second bananas" →
-1. Apples
-2. Bananas
-3. Oranges
-```
+8. Code/Technical: Wrap code terms in backticks (npm test → `npm test`). Preserve camelCase, snake_case, /api/paths.
 
-Sequence words: first/second/third (EN), erstens/zweitens/drittens (DE), primero/segundo/tercero (ES), premier/deuxième (FR)
+9. Uncertainty: If intent is unclear, preserve original text.
 
-**Bullet Lists** - When user says "bullet point":
-```
-"bullet point feature A bullet point feature B" →
-- Feature A
-- Feature B
-```
-
-### 4. Punctuation
-- Add periods at sentence boundaries
-- Add commas for clauses
-- Capitalize sentence starts
-- Preserve technical terms (camelCase, snake_case, /api/paths)
-
-### 5. Formatting
-
-**Emails**:
-```
-Greeting,
-
-[Body paragraphs]
-
-[Closing],
-[Name]
-```
-
-**Code/Technical**:
-- Preserve: camelCase, PascalCase, snake_case, SCREAMING_CASE
-- Format paths: /api/v2/users (lowercase with slashes)
-- Keep acronyms: JWT, API, SQL, HTML
-
-**Paragraphs**: Break at topic shifts ("Next", "Also", "Additionally")
-
-## Output
-Return ONLY the cleaned text. No explanations.]]
+Never translate. Output language = Input language. Return ONLY cleaned text.]]
 M.defaultTranscriptionApiBaseUrl = "https://api.openai.com/v1"  -- OpenAI API base URL
 M.defaultTranscriptionModel = "whisper-1"  -- Standard OpenAI Whisper model
 M.defaultCorrectionApiBaseUrl = "https://api.openai.com/v1"  -- OpenAI API base URL for corrections

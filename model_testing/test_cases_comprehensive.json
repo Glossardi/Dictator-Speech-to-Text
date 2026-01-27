@@ -1,0 +1,376 @@
+{
+  "version": "1.0-comprehensive-everyday-use",
+  "description": "Comprehensive test suite for everyday dictation scenarios - optimized for Whisper V3 Large Turbo outputs",
+  "test_cases": [
+    {
+      "id": "email_business_001",
+      "input": "Hi Michael um I wanted to follow up on the proposal we discussed last week uh let me know if you have any questions or need clarification on any points thanks Sarah",
+      "expected_output": "Hi Michael,\n\nI wanted to follow up on the proposal we discussed last week. Let me know if you have any questions or need clarification on any points.\n\nThanks,\nSarah",
+      "language": "en",
+      "category": "email",
+      "whisper_problem": "missing_email_structure_and_fillers",
+      "priority": "high"
+    },
+    {
+      "id": "email_business_002",
+      "input": "Dear team I hope this email finds you well I wanted to share the Q1 results with everyone first revenue is up 23% second customer retention improved to 94% third we launched 5 new features please review the attached deck and let me know your thoughts best regards Tom",
+      "expected_output": "Dear team,\n\nI hope this email finds you well. I wanted to share the Q1 results with everyone:\n\n1. Revenue is up 23%\n2. Customer retention improved to 94%\n3. We launched 5 new features\n\nPlease review the attached deck and let me know your thoughts.\n\nBest regards,\nTom",
+      "language": "en",
+      "category": "email",
+      "whisper_problem": "list_in_email_no_structure",
+      "priority": "high"
+    },
+    {
+      "id": "email_casual_001",
+      "input": "Hey Alex um are you free for coffee tomorrow around 10 AM let me know cheers",
+      "expected_output": "Hey Alex,\n\nAre you free for coffee tomorrow around 10 AM? Let me know.\n\nCheers",
+      "language": "en",
+      "category": "email",
+      "whisper_problem": "casual_email_fillers",
+      "priority": "high"
+    },
+    {
+      "id": "email_german_001",
+      "input": "Hallo Herr Müller äh ich wollte mich kurz bei Ihnen melden bezüglich des Projekts äh können wir einen Termin nächste Woche vereinbaren viele Grüße Anna Schmidt",
+      "expected_output": "Hallo Herr Müller,\n\nich wollte mich kurz bei Ihnen melden bezüglich des Projekts. Können wir einen Termin nächste Woche vereinbaren?\n\nViele Grüße,\nAnna Schmidt",
+      "language": "de",
+      "category": "email",
+      "whisper_problem": "german_formal_email_fillers",
+      "priority": "high"
+    },
+    {
+      "id": "meeting_notes_001",
+      "input": "Meeting with product team January 27th um key decisions first we will launch beta in March second pricing will be $49 per month third we need to hire 2 more engineers action items Sarah will draft the job posting Mike will update the roadmap follow up next Wednesday",
+      "expected_output": "Meeting with product team January 27th\n\nKey decisions:\n1. We will launch beta in March\n2. Pricing will be $49 per month\n3. We need to hire 2 more engineers\n\nAction items:\n- Sarah will draft the job posting\n- Mike will update the roadmap\n\nFollow up: next Wednesday",
+      "language": "en",
+      "category": "meeting_notes",
+      "whisper_problem": "complex_meeting_structure",
+      "priority": "high"
+    },
+    {
+      "id": "meeting_notes_002",
+      "input": "Standup notes um what I did yesterday finished the authentication module what I'm doing today working on the API integration blockers waiting for design mockups from Lisa",
+      "expected_output": "Standup notes:\n\nWhat I did yesterday:\n- Finished the authentication module\n\nWhat I'm doing today:\n- Working on the API integration\n\nBlockers:\n- Waiting for design mockups from Lisa",
+      "language": "en",
+      "category": "meeting_notes",
+      "whisper_problem": "standup_format",
+      "priority": "high"
+    },
+    {
+      "id": "list_shopping_001",
+      "input": "Einkaufsliste erste Milch zweite Brot dritte Butter vierte Käse fünfte Äpfel",
+      "expected_output": "Einkaufsliste:\n\n1. Milch\n2. Brot\n3. Butter\n4. Käse\n5. Äpfel",
+      "language": "de",
+      "category": "list",
+      "whisper_problem": "german_sequence_words",
+      "priority": "high"
+    },
+    {
+      "id": "list_tasks_001",
+      "input": "To-do for today 1 reply to all emails 2 finish the quarterly report 3 call the client about the contract 4 prepare slides for tomorrow's presentation",
+      "expected_output": "To-do for today:\n\n1. Reply to all emails\n2. Finish the quarterly report\n3. Call the client about the contract\n4. Prepare slides for tomorrow's presentation",
+      "language": "en",
+      "category": "list",
+      "whisper_problem": "numbered_list_colon",
+      "priority": "high"
+    },
+    {
+      "id": "list_bullet_001",
+      "input": "Key features bullet point real-time collaboration bullet point version control bullet point cloud sync bullet point mobile app support",
+      "expected_output": "Key features:\n\n• Real-time collaboration\n• Version control\n• Cloud sync\n• Mobile app support",
+      "language": "en",
+      "category": "list",
+      "whisper_problem": "bullet_points_spoken",
+      "priority": "high"
+    },
+    {
+      "id": "slack_casual_001",
+      "input": "Hey team um just pushed the fix to staging can someone test it before we deploy to prod thanks",
+      "expected_output": "Hey team, just pushed the fix to staging. Can someone test it before we deploy to prod? Thanks!",
+      "language": "en",
+      "category": "chat",
+      "whisper_problem": "slack_informal_fillers",
+      "priority": "medium"
+    },
+    {
+      "id": "slack_update_001",
+      "input": "Quick update the API migration is 80% complete ETA Friday morning will keep you posted",
+      "expected_output": "Quick update: the API migration is 80% complete. ETA Friday morning. Will keep you posted.",
+      "language": "en",
+      "category": "chat",
+      "whisper_problem": "missing_punctuation_short",
+      "priority": "medium"
+    },
+    {
+      "id": "domain_urls_001",
+      "input": "Check out our new website at example dot com slash products for more info also visit docs dot example dot com for the API reference",
+      "expected_output": "Check out our new website at example.com/products for more info. Also visit docs.example.com for the API reference.",
+      "language": "en",
+      "category": "technical",
+      "whisper_problem": "multiple_domains_spoken",
+      "priority": "high"
+    },
+    {
+      "id": "domain_urls_002",
+      "input": "The GitHub repo is at github dot com slash username slash project dash name you can also find issues at github dot com slash username slash project dash name slash issues",
+      "expected_output": "The GitHub repo is at github.com/username/project-name. You can also find issues at github.com/username/project-name/issues.",
+      "language": "en",
+      "category": "technical",
+      "whisper_problem": "github_url_with_dashes",
+      "priority": "medium"
+    },
+    {
+      "id": "technical_units_001",
+      "input": "The resistor is 5 Ohm the capacitor is 100 microfarad and the voltage is 12 Volt make sure to use 3.3 Volt logic levels",
+      "expected_output": "The resistor is 5 Ohm, the capacitor is 100 microfarad and the voltage is 12 Volt. Make sure to use 3.3 Volt logic levels.",
+      "language": "en",
+      "category": "technical",
+      "whisper_problem": "preserve_technical_units",
+      "priority": "medium"
+    },
+    {
+      "id": "technical_api_001",
+      "input": "To get user data send a GET request to slash API slash users slash user ID the response will include name email and created at timestamp",
+      "expected_output": "To get user data, send a GET request to /api/users/userId. The response will include name, email, and createdAt timestamp.",
+      "language": "en",
+      "category": "technical",
+      "whisper_problem": "api_path_and_camelcase",
+      "priority": "medium"
+    },
+    {
+      "id": "backtrack_001",
+      "input": "Let's meet on Monday no wait Tuesday actually Wednesday at 3 PM",
+      "expected_output": "Let's meet on Wednesday at 3 PM.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "multiple_corrections",
+      "priority": "high"
+    },
+    {
+      "id": "backtrack_002",
+      "input": "I need 5 no wait 7 actually make that 10 copies of the document",
+      "expected_output": "I need 10 copies of the document.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "multiple_number_corrections",
+      "priority": "high"
+    },
+    {
+      "id": "backtrack_003",
+      "input": "Send it to John I mean Sarah scratch that send it to Michael",
+      "expected_output": "Send it to Michael.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "scratch_that_correction",
+      "priority": "high"
+    },
+    {
+      "id": "fillers_heavy_001",
+      "input": "So um like I was thinking um that we could like try the new approach um and like see if it works you know",
+      "expected_output": "I was thinking that we could try the new approach and see if it works.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "excessive_fillers_casual",
+      "priority": "high"
+    },
+    {
+      "id": "fillers_german_001",
+      "input": "Also äh ich denke äh dass wir das äh anders machen sollten weißt du",
+      "expected_output": "Ich denke dass wir das anders machen sollten.",
+      "language": "de",
+      "category": "general",
+      "whisper_problem": "german_fillers_also_ah",
+      "priority": "high"
+    },
+    {
+      "id": "fillers_french_001",
+      "input": "Donc euh je pense que euh nous devrions euh commencer demain tu vois",
+      "expected_output": "Je pense que nous devrions commencer demain.",
+      "language": "fr",
+      "category": "general",
+      "whisper_problem": "french_fillers_donc_euh",
+      "priority": "medium"
+    },
+    {
+      "id": "prompt_llm_001",
+      "input": "Write a Python function called calculate total price that takes a list of items and returns the sum of their prices include error handling for invalid inputs",
+      "expected_output": "Write a Python function called `calculateTotalPrice` that takes a list of items and returns the sum of their prices. Include error handling for invalid inputs.",
+      "language": "en",
+      "category": "prompt",
+      "whisper_problem": "llm_prompt_code_naming",
+      "priority": "medium"
+    },
+    {
+      "id": "prompt_llm_002",
+      "input": "Create a marketing email template for our new product launch include sections for headline benefits call to action and unsubscribe link keep it under 200 words",
+      "expected_output": "Create a marketing email template for our new product launch. Include sections for headline, benefits, call-to-action, and unsubscribe link. Keep it under 200 words.",
+      "language": "en",
+      "category": "prompt",
+      "whisper_problem": "llm_prompt_structure",
+      "priority": "medium"
+    },
+    {
+      "id": "code_discussion_001",
+      "input": "In the user controller we need to add a new method called get user by email that queries the database and returns the user object or null if not found",
+      "expected_output": "In the userController, we need to add a new method called `getUserByEmail` that queries the database and returns the user object or null if not found.",
+      "language": "en",
+      "category": "code",
+      "whisper_problem": "code_structure_camelcase",
+      "priority": "low"
+    },
+    {
+      "id": "code_discussion_002",
+      "input": "The API endpoint slash API slash V1 slash users slash colon ID needs authentication middleware and rate limiting set to 100 requests per minute",
+      "expected_output": "The API endpoint `/api/v1/users/:id` needs authentication middleware and rate limiting set to 100 requests per minute.",
+      "language": "en",
+      "category": "code",
+      "whisper_problem": "api_path_spoken_colon",
+      "priority": "low"
+    },
+    {
+      "id": "general_long_001",
+      "input": "I've been thinking about this for a while now and um I really think we need to change our approach to customer onboarding the current process takes too long and customers are getting frustrated we should streamline it reduce the number of steps and maybe add some video tutorials what do you think",
+      "expected_output": "I've been thinking about this for a while now and I really think we need to change our approach to customer onboarding. The current process takes too long and customers are getting frustrated. We should streamline it, reduce the number of steps, and maybe add some video tutorials. What do you think?",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "long_text_punctuation",
+      "priority": "medium"
+    },
+    {
+      "id": "general_short_001",
+      "input": "Can you send me the report by end of day",
+      "expected_output": "Can you send me the report by end of day?",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "simple_sentence_punctuation",
+      "priority": "medium"
+    },
+    {
+      "id": "mixed_content_001",
+      "input": "For the deployment first check the staging environment at staging dot example dot com second run the tests using npm test third deploy to production at 6 PM fourth monitor logs for any errors",
+      "expected_output": "For the deployment:\n\n1. Check the staging environment at staging.example.com\n2. Run the tests using `npm test`\n3. Deploy to production at 6 PM\n4. Monitor logs for any errors",
+      "language": "en",
+      "category": "technical",
+      "whisper_problem": "mixed_list_domain_code",
+      "priority": "high"
+    },
+    {
+      "id": "multilingual_german_formal_001",
+      "input": "Sehr geehrte Damen und Herren äh ich möchte mich für die Verzögerung entschuldigen das Projekt wird äh voraussichtlich nächste Woche abgeschlossen mit freundlichen Grüßen",
+      "expected_output": "Sehr geehrte Damen und Herren,\n\nich möchte mich für die Verzögerung entschuldigen. Das Projekt wird voraussichtlich nächste Woche abgeschlossen.\n\nMit freundlichen Grüßen",
+      "language": "de",
+      "category": "email",
+      "whisper_problem": "german_formal_business",
+      "priority": "medium"
+    },
+    {
+      "id": "time_dates_001",
+      "input": "The meeting is scheduled for January 30th at 10 AM the deadline is February 15th and the launch date is March 1st at 9 AM EST",
+      "expected_output": "The meeting is scheduled for January 30th at 10 AM. The deadline is February 15th and the launch date is March 1st at 9 AM EST.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "dates_times_preservation",
+      "priority": "medium"
+    },
+    {
+      "id": "numbers_mixed_001",
+      "input": "The project costs $50,000 we need 25 people and it will take 3 months our ROI is expected to be 150%",
+      "expected_output": "The project costs $50,000. We need 25 people and it will take 3 months. Our ROI is expected to be 150%.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "mixed_numbers_currency",
+      "priority": "medium"
+    },
+    {
+      "id": "question_series_001",
+      "input": "What's the status of the project when will it be done who is responsible for testing how much will it cost",
+      "expected_output": "What's the status of the project? When will it be done? Who is responsible for testing? How much will it cost?",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "multiple_questions_no_punctuation",
+      "priority": "medium"
+    },
+    {
+      "id": "acronyms_001",
+      "input": "The API uses REST with JSON responses we support OAuth 2.0 for authentication and the SLA guarantees 99.9% uptime",
+      "expected_output": "The API uses REST with JSON responses. We support OAuth 2.0 for authentication and the SLA guarantees 99.9% uptime.",
+      "language": "en",
+      "category": "technical",
+      "whisper_problem": "preserve_acronyms",
+      "priority": "medium"
+    },
+    {
+      "id": "email_with_list_001",
+      "input": "Hi team um here's what we need to accomplish this week one complete the design mockups two implement the new feature three write unit tests four deploy to staging please let me know if you have any questions thanks Lisa",
+      "expected_output": "Hi team,\n\nHere's what we need to accomplish this week:\n\n1. Complete the design mockups\n2. Implement the new feature\n3. Write unit tests\n4. Deploy to staging\n\nPlease let me know if you have any questions.\n\nThanks,\nLisa",
+      "language": "en",
+      "category": "email",
+      "whisper_problem": "email_with_embedded_list",
+      "priority": "high"
+    },
+    {
+      "id": "spanish_001",
+      "input": "Hola María eh quería preguntarte sobre el proyecto eh podemos tener una reunión la próxima semana gracias",
+      "expected_output": "Hola María,\n\nQuería preguntarte sobre el proyecto. ¿Podemos tener una reunión la próxima semana?\n\nGracias",
+      "language": "es",
+      "category": "email",
+      "whisper_problem": "spanish_fillers_informal",
+      "priority": "low"
+    },
+    {
+      "id": "correction_units_ohm_001",
+      "input": "The resistor is 5 Oos I mean 5 Ohms and the LED needs 3.3 Volt no wait 3.3 Volts",
+      "expected_output": "The resistor is 5 Ohms and the LED needs 3.3 Volts.",
+      "language": "en",
+      "category": "technical",
+      "whisper_problem": "correction_with_units",
+      "priority": "medium"
+    },
+    {
+      "id": "ambiguous_preserve_001",
+      "input": "The thing is um we need to you know do the stuff with the system",
+      "expected_output": "The thing is we need to do the stuff with the system.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "vague_content_preserve",
+      "priority": "low"
+    },
+    {
+      "id": "professional_report_001",
+      "input": "Executive summary um our Q4 performance exceeded expectations revenue grew by 28% customer acquisition increased by 45% and churn decreased to 2.1% key drivers were product improvements marketing campaigns and strategic partnerships recommendations for Q1 continue investing in product development expand into new markets strengthen customer success team",
+      "expected_output": "Executive summary:\n\nOur Q4 performance exceeded expectations. Revenue grew by 28%, customer acquisition increased by 45%, and churn decreased to 2.1%.\n\nKey drivers were:\n- Product improvements\n- Marketing campaigns\n- Strategic partnerships\n\nRecommendations for Q1:\n- Continue investing in product development\n- Expand into new markets\n- Strengthen customer success team",
+      "language": "en",
+      "category": "meeting_notes",
+      "whisper_problem": "structured_report_format",
+      "priority": "high"
+    },
+    {
+      "id": "edge_case_empty_correction_001",
+      "input": "I wanted to say um actually never mind",
+      "expected_output": "I wanted to say actually never mind.",
+      "language": "en",
+      "category": "general",
+      "whisper_problem": "incomplete_backtrack",
+      "priority": "low"
+    },
+    {
+      "id": "mixed_language_tech_001",
+      "input": "Das Frontend nutzt React und TypeScript das Backend ist in Python mit FastAPI geschrieben die Datenbank ist PostgreSQL Version 15",
+      "expected_output": "Das Frontend nutzt React und TypeScript. Das Backend ist in Python mit FastAPI geschrieben. Die Datenbank ist PostgreSQL Version 15.",
+      "language": "de",
+      "category": "technical",
+      "whisper_problem": "german_tech_terminology",
+      "priority": "low"
+    }
+  ],
+  "system_prompt": "Clean speech transcripts. Rules:\n\n1. Backtracking: Keep final version only (\"Monday no wait Tuesday\" → \"Tuesday\"). Markers: no wait, actually, I mean, scratch that, nein warte, attends, espera.\n\n2. Fillers: Remove ALL - um, uh, like, you know, so/well (start), äh, ähm, also (filler), euh, ben, alors, eh, pues, este.\n\n3. Lists: Auto-format when numbers (\"1 apples 2 bananas\") or sequence words (first/second, erstens/zweitens) → numbered list. \"bullet point\" → bullet list.\n\n4. Domains/URLs: \"dot\" → \".\" | \"slash\" → \"/\" | \"colon\" → \":\" (example dot com → example.com)\n\n5. Units: Preserve Ohm, Volt, AM/PM, kg, etc.\n\n6. Punctuation: Add periods, commas. Capitalize sentences. Keep standalone sentences complete.\n\n7. Emails: Add paragraph breaks after greeting, before closing.\n\n8. Code/Technical: Wrap code terms in backticks (npm test → `npm test`). Preserve camelCase, snake_case, /api/paths.\n\n9. Uncertainty: If intent is unclear, preserve original text.\n\nNever translate. Output language = Input language. Return ONLY cleaned text.",
+  "model_parameters": {
+    "model": "openai/gpt-oss-20b",
+    "temperature": 0.2,
+    "top_p": 0.95,
+    "frequency_penalty": 0.4,
+    "presence_penalty": 0.0,
+    "max_tokens": 2048
+  },
+  "notes": "40 test cases covering everyday dictation scenarios. Priority: high=critical for quality, medium=important, low=nice-to-have"
+}

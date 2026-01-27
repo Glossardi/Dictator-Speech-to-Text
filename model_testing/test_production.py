@@ -12,14 +12,14 @@ import os
 from datetime import datetime
 from typing import Dict, List, Tuple
 
-def load_test_config(config_file: str = "test_cases_whisper_v3.json") -> dict:
+def load_test_config(config_file: str = "test_cases_final.json") -> dict:
     """Load test configuration from JSON file"""
     try:
         with open(config_file, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         # Try alternative configs
-        for fallback in ["test_cases_realworld.json", "test_cases_production.json"]:
+        for fallback in ["test_cases_comprehensive.json", "test_cases_whisper_v3.json", "test_cases_realworld.json", "test_cases_production.json"]:
             try:
                 print(f"⚠️  {config_file} not found, trying {fallback}")
                 with open(fallback, "r", encoding="utf-8") as f:
