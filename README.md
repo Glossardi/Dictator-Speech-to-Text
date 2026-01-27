@@ -512,6 +512,18 @@ The glossary does **not** add content to your transcription - it only guides Whi
 
 > **Note:** Text is always copied to clipboard. Very short taps (<0.4s) are ignored to prevent accidental triggers. Use **Copy Last Transcription** from the menubar to retrieve previous results.
 
+### Copy Last Transcription Feature
+
+The menubar provides a **Copy Last Transcription** button that always copies the **original Whisper transcription** to the clipboard, regardless of whether AI correction is enabled.
+
+**Behavior:**
+
+- **With AI Correction Disabled**: Copies the Whisper transcription (same as what was pasted)
+- **With AI Correction Enabled**: Copies the original Whisper transcription (not the corrected version)
+- **Use Case**: Access the original transcription if AI correction produces errors or unwanted changes
+
+This ensures you never lose access to what Whisper actually heard, even if the correction step modifies the text incorrectly.
+
 ---
 
 ## 🧪 Model Testing
