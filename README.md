@@ -41,29 +41,16 @@ git clone https://github.com/Glossardi/Dictator-Speech-to-Text.git ~/Documents/D
 cd ~/Documents/Dictator
 ./install.sh
 
-# 3. Grant permissions (System Settings → Privacy & Security)
+# 3. Follow the interactive setup
+#    - Select your API provider (Groq recommended!)
+#    - Paste your API key
+#    - The script will automatically configure Dictator for you!
+
+# 4. Grant permissions (System Settings → Privacy & Security)
 #    - Accessibility → Enable Hammerspoon
 #    - Microphone → Enable Hammerspoon
 
-# 4. Get API key from OpenAI (Default) or Groq (Recommended alternative)
-#    - OpenAI: https://platform.openai.com/api-keys
-#    - Groq: https://console.groq.com/ (fastest!)
-#    - DeepInfra: https://deepinfra.com/ (fast & cheap)
-
-# 5. Configure Dictator (menubar icon → Settings)
-#    For Groq (Recommended):
-#    - API Key: Your Groq key
-#    - Transcription API URL: https://api.groq.com/openai/v1
-#    - Transcription Model: whisper-large-v3-turbo
-#
-#    For Cloudflare Workers AI:
-#    - API Key: Your Cloudflare API Token
-#    - Transcription API URL: https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}
-#    - Transcription Model: @cf/openai/whisper-large-v3-turbo
-#    - (Optional) Correction API URL: https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}
-#    - (Optional) Correction Model: @cf/meta/llama-3.1-8b-instruct
-
-# 6. Start dictating! Hold Fn key, speak, release ⚡
+# 5. Start dictating! Hold Fn key, speak, release ⚡
 ```
 
 ---
@@ -175,6 +162,7 @@ cd ~/Documents/Dictator
 - ✅ Checks that Hammerspoon and SoX are installed
 - ✅ Creates automatic backup of any existing files
 - ✅ Installs all Dictator files to `~/.hammerspoon/`
+- ✅ **New: Interactive setup in terminal** (Provider selection, API Key, Model)
 - ✅ Reloads Hammerspoon configuration automatically
 - ✅ Shows clear instructions for required permissions
 

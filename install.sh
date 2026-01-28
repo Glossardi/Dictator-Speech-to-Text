@@ -145,6 +145,91 @@ check_permissions() {
     echo ""
 }
 
+# Interactive configuration
+configure_dictator() {
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  Interactive Setup"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    
+    # 1. Select Provider
+    echo "Select your API Provider:"
+    echo "  1) OpenAI (Default)"
+    echo "  2) Groq (Recommended - Fast & Free tier)"
+    echo "  3) DeepInfra (Cheap & Fast)"
+    echo "  4) Cloudflare Workers AI"
+    echo "  5) Custom / Other"
+    echo "  s) Skip setup (configure later via menubar)"
+    echo ""
+    read -p "Selection [1-5/s]: " provider_choice
+    
+    if [[ "${provider_choice}" == "s" ]] || [[ -z "${provider_choice}" ]]; then
+        log_info "Skipping interactive setup"
+        return
+    fi
+    
+    local api_key=""
+    local base_url=""
+    local model=""
+    
+    case ${provider_choice} in
+        1)
+            base_url="https://api.openai.com/v1"
+            model="whisper-1"
+            ;;
+        2)
+            base_url="https://api.groq.com/openai/v1"
+            model="whisper-large-v3-turbo"
+            ;;
+        3)
+            base_url="https://api.deepinfra.com/v1/openai"
+            model="openai/whisper-large-v3-turbo"
+            ;;
+        4)
+            read -p "Enter your Cloudflare Account ID: " cf_account_id
+            base_url="https://api.cloudflare.com/client/v4/accounts/${cf_account_id}"
+            model="@cf/openai/whisper-large-v3-turbo"
+            ;;
+        5)
+            read -p "Enter API Base URL: " base_url
+            read -p "Enter Model Name: " model
+            ;;
+        *)
+            log_warning "Invalid selection, skipping configuration"
+            return
+            ;;
+    esac
+    
+    echo ""
+    read -p "Enter your API Key: " api_key
+    
+    if [[ -z "${api_key}" ]]; then
+        log_warning "API Key is empty. You will need to set it later."
+    fi
+    
+    log_info "Applying settings..."
+    
+    # Use osascript to set settings in Hammerspoon
+    local lua_code=""
+    if [[ -n "${api_key}" ]]; then lua_code="${lua_code} hs.settings.set('com.simon.dictator.apiKey', '${api_key}');"; fi
+    if [[ -n "${base_url}" ]]; then lua_code="${lua_code} hs.settings.set('com.simon.dictator.transcriptionApiBaseUrl', '${base_url}');"; fi
+    if [[ -n "${model}" ]]; then lua_code="${lua_code} hs.settings.set('com.simon.dictator.transcriptionModel', '${model}');"; fi
+    
+    if [[ -n "${lua_code}" ]]; then
+        if pgrep -x "Hammerspoon" > /dev/null; then
+            osascript -e "tell application \"Hammerspoon\" to execute lua code \"${lua_code}\"" > /dev/null 2>&1 || {
+                log_warning "Could not auto-apply settings. Please configure manually via menubar."
+                return
+            }
+            log_success "Settings applied successfully!"
+        else
+            log_warning "Hammerspoon is not running, settings could not be applied automatically."
+            log_info "Settings will be applied once you start Hammerspoon and set them manually."
+        fi
+    fi
+}
+
 # Print next steps
 print_next_steps() {
     echo ""
@@ -177,6 +262,7 @@ main() {
     backup_existing_files
     install_files
     reload_hammerspoon
+    configure_dictator
     check_permissions
     print_next_steps
 }

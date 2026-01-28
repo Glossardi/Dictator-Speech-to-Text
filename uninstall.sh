@@ -101,14 +101,12 @@ clean_settings() {
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         log_info "Removing Dictator settings..."
         
-        # Remove settings using Hammerspoon CLI if available
+        # Remove settings using Hammerspoon CLI or osascript
         if command -v hs &> /dev/null; then
-            hs -c 'for k,v in pairs(hs.settings.getKeys()) do if k:match("^dictator_") then hs.settings.clear(k) end end'
-            log_success "Settings removed"
+            hs -c 'for _,k in ipairs(hs.settings.getKeys()) do if k:match("^com%.simon%.dictator") then hs.settings.clear(k) end end'
+            log_success "Settings removed via hs CLI"
         else
-            log_warning "Could not remove settings automatically"
-            echo "  Settings are stored in: ~/Library/Preferences/org.hammerspoon.Hammerspoon.plist"
-            echo "  You can remove them manually or they will be preserved for future installations"
+            osascript -e 'tell application "Hammerspoon" to execute lua code "for _,k in ipairs(hs.settings.getKeys()) do if k:match(\"^com%%.simon%%.dictator\") then hs.settings.clear(k) end end"' 2>/dev/null && log_success "Settings removed via osascript" || log_warning "Could not remove settings automatically. You can remove them manually in Hammerspoon Console: for _,k in ipairs(hs.settings.getKeys()) do if k:match(\"^com%%.simon%%.dictator\") then hs.settings.clear(k) end end"
         fi
     else
         log_info "Settings preserved (will be available if you reinstall)"
