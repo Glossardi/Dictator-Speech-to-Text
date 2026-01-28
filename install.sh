@@ -54,11 +54,35 @@ check_hammerspoon() {
 # Check if SoX is installed
 check_sox() {
     if ! command -v sox &> /dev/null; then
-        log_error "SoX is not installed"
-        echo ""
-        echo "Please install SoX:"
-        echo "  brew install sox"
-        exit 1
+        log_warning "SoX is not installed"
+        
+        if ! command -v brew &> /dev/null; then
+            log_warning "Homebrew is not installed."
+            echo "SoX is required for audio recording. We recommend installing it via Homebrew."
+            read -p "Would you like to install Homebrew now? (This will take a few minutes) [y/N]: " install_brew
+            if [[ "${install_brew}" =~ ^[Yy]$ ]]; then
+                log_info "Installing Homebrew..."
+                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                
+                # Add brew to path for the rest of the script (M1/M2/M3 Mac)
+                if [[ -f /opt/homebrew/bin/brew ]]; then
+                    eval "$(/opt/homebrew/bin/brew shellenv)"
+                fi
+                
+                if command -v brew &> /dev/null; then
+                    log_success "Homebrew installed successfully."
+                else
+                    log_error "Homebrew installation failed or not found in path."
+                    exit 1
+                fi
+            else
+                log_error "SoX is required. Please install it manually or via Homebrew."
+                exit 1
+            fi
+        fi
+        
+        log_info "Installing SoX via brew..."
+        brew install sox
     fi
     log_success "SoX is installed"
 }
@@ -139,9 +163,21 @@ check_permissions() {
     echo "  1. Accessibility (for Fn key detection)"
     echo "  2. Microphone (for audio recording)"
     echo ""
-    echo "To grant permissions:"
-    echo "  System Settings → Privacy & Security → Accessibility → Enable Hammerspoon"
-    echo "  System Settings → Privacy & Security → Microphone → Enable Hammerspoon"
+    echo "I will now open the Privacy & Security settings for you."
+    echo "Please ensure Hammerspoon is enabled in both sections."
+    echo ""
+    
+    # Open Accessibility settings
+    log_info "Opening Accessibility settings..."
+    open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+    sleep 2
+    
+    # Open Microphone settings
+    log_info "Opening Microphone settings..."
+    open "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"
+    echo ""
+    
+    read -n 1 -s -r -p "Press any key once you have granted the permissions to continue..."
     echo ""
 }
 
@@ -153,16 +189,18 @@ configure_dictator() {
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
     
-    # 1. Select Provider
-    echo "Select your API Provider:"
-    echo "  1) OpenAI (Default)"
-    echo "  2) Groq (Recommended - Fast & Free tier)"
-    echo "  3) DeepInfra (Cheap & Fast)"
-    echo "  4) Cloudflare Workers AI"
-    echo "  5) Custom / Other"
+    # Selection
+    echo "Select your AI Provider:"
+    echo "  1) OpenAI (Standard)"
+    echo "  2) Groq (Fastest - Recommended)"
+    echo "  3) DeepInfra (High quality & Fast)"
+    echo "  4) Together AI (Good alternative)"
+    echo "  5) Fireworks AI (Fast & reliable)"
+    echo "  6) Cloudflare Workers AI"
+    echo "  7) Custom / Other"
     echo "  s) Skip setup (configure later via menubar)"
     echo ""
-    read -p "Selection [1-5/s]: " provider_choice
+    read -p "Selection [1-7/s]: " provider_choice
     
     if [[ "${provider_choice}" == "s" ]] || [[ -z "${provider_choice}" ]]; then
         log_info "Skipping interactive setup"
@@ -187,11 +225,19 @@ configure_dictator() {
             model="openai/whisper-large-v3-turbo"
             ;;
         4)
+            base_url="https://api.together.xyz/v1"
+            model="whisper-large-v3"
+            ;;
+        5)
+            base_url="https://api.fireworks.ai/inference/v1"
+            model="whisper-v3"
+            ;;
+        6)
             read -p "Enter your Cloudflare Account ID: " cf_account_id
             base_url="https://api.cloudflare.com/client/v4/accounts/${cf_account_id}"
             model="@cf/openai/whisper-large-v3-turbo"
             ;;
-        5)
+        7)
             read -p "Enter API Base URL: " base_url
             read -p "Enter Model Name: " model
             ;;
@@ -211,10 +257,31 @@ configure_dictator() {
     log_info "Applying settings..."
     
     # Use osascript to set settings in Hammerspoon
+    # We set both transcription and correction settings for a better out-of-the-box experience
     local lua_code=""
-    if [[ -n "${api_key}" ]]; then lua_code="${lua_code} hs.settings.set('com.simon.dictator.apiKey', '${api_key}');"; fi
-    if [[ -n "${base_url}" ]]; then lua_code="${lua_code} hs.settings.set('com.simon.dictator.transcriptionApiBaseUrl', '${base_url}');"; fi
-    if [[ -n "${model}" ]]; then lua_code="${lua_code} hs.settings.set('com.simon.dictator.transcriptionModel', '${model}');"; fi
+    if [[ -n "${api_key}" ]]; then
+        lua_code="${lua_code} hs.settings.set('com.simon.dictator.apiKey', '${api_key}');"
+    fi
+    
+    if [[ -n "${base_url}" ]]; then
+        lua_code="${lua_code} hs.settings.set('com.simon.dictator.transcriptionApiBaseUrl', '${base_url}');"
+        # Most of these providers are also great for correction (except maybe specifically whisper-only ones)
+        # But for now we just set transcription.
+    fi
+    
+    if [[ -n "${model}" ]]; then
+        lua_code="${lua_code} hs.settings.set('com.simon.dictator.transcriptionModel', '${model}');"
+    fi
+    
+    # For Groq, it also works great for correction
+    if [[ "${provider_choice}" == "2" ]]; then
+        lua_code="${lua_code} hs.settings.set('com.simon.dictator.correctionApiBaseUrl', 'https://api.groq.com/openai/v1');"
+        lua_code="${lua_code} hs.settings.set('com.simon.dictator.correctionModel', 'llama-3.3-70b-versatile');"
+        log_info "Configured Groq Llama-3.3-70b for text correction as well."
+    elif [[ "${provider_choice}" == "1" ]]; then
+        lua_code="${lua_code} hs.settings.set('com.simon.dictator.correctionApiBaseUrl', 'https://api.openai.com/v1');"
+        lua_code="${lua_code} hs.settings.set('com.simon.dictator.correctionModel', 'gpt-4o-mini');"
+    fi
     
     if [[ -n "${lua_code}" ]]; then
         if pgrep -x "Hammerspoon" > /dev/null; then
