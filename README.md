@@ -231,7 +231,6 @@ cp -v *.lua ~/.hammerspoon/
 After installation, grant these permissions for Dictator to work:
 
 1. **Accessibility Permission** (for Fn key detection)
-
    - Go to: **System Settings** → **Privacy & Security** → **Accessibility**
    - Enable **Hammerspoon**
 
