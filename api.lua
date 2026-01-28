@@ -220,7 +220,7 @@ function M.correctTextWithRetry(text, apiKey, attemptNumber, callback, includeTe
         model = model,
         messages = {
             { role = "system", content = systemPrompt },
-            { role = "user", content = text }
+            { role = "user", content = "### TRANSCRIPT START ###\n" .. text .. "\n### TRANSCRIPT END ###" }
         }
     }
 
