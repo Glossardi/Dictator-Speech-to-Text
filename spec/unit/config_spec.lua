@@ -167,9 +167,9 @@ describe("config module", function()
             assert.are.equal(customPrompt, config.getCorrectionSystemPrompt())
         end)
         
-        it("should reject empty prompts", function()
+        it("should reset to default on empty prompt", function()
             local original = config.getCorrectionSystemPrompt()
-            assert.is_false(config.setCorrectionSystemPrompt(""))
+            assert.is_true(config.setCorrectionSystemPrompt(""))
             assert.are.equal(original, config.getCorrectionSystemPrompt())
         end)
         
