@@ -21,7 +21,6 @@ Built with [Hammerspoon](https://www.hammerspoon.org/) for maximum reliability a
 - [Quick Start](#-quick-start)
 - [Configuration](#️-configuration)
 - [Usage](#-usage)
-- **[Model Testing](#-model-testing)** 🧪
 - [Project Structure](#️-project-structure)
 - [Troubleshooting](#-troubleshooting)
 - [Development](#️-development)
@@ -538,37 +537,6 @@ This ensures you never lose access to what Whisper actually heard, even if the c
 
 ---
 
-## 🧪 Model Testing
-
-Want to find the **best LLM model** for text correction? The included minimal testing tool evaluates models with realistic Whisper Turbo v3 outputs.
-
-### ⚡ Ultra-Simple Testing
-
-```bash
-cd model_testing
-
-# 1. Edit config with your API key
-nano test_config.json
-
-# 2. Run test
-python3 simple_test.py
-
-# Done! Results in ~1 minute
-```
-
-### 🏆 Groq Recommended Models (Tested Jan 2026)
-
-All top models achieved **100/100 quality** with realistic Whisper outputs:
-
-| Model | Speed | Cost | Use Case |
-|-------|-------|------|----------|
-| **openai/gpt-oss-20b** | 399 TPS | $0.000163 | ⚡ **Production** (fastest) |
-| **llama-3.1-8b-instant** | 174 TPS | $0.000047 | 💰 **Budget** (2.4x cheaper) |
-
-**Recommendation:** Use `openai/gpt-oss-20b` for best user experience (sub-second corrections). Switch to `llama-3.1-8b-instant` if cost is priority.
-
-**Full documentation**: [model_testing/README.md](model_testing/README.md)
-
 ---
 
 ## 🏗️ Project Structure
@@ -582,12 +550,6 @@ Dictator/
 ├── ui.lua                # Menubar UI and status updates
 ├── utils.lua             # Utility functions (temp file handling, file validation)
 ├── rate_limiter.lua      # Token bucket rate limiter (prevents API abuse)
-├── model_testing/        # LLM model evaluation framework 🆕
-│   ├── model_test.py     # Test runner for model evaluation
-│   ├── models_config.json # Model configurations (prices, providers)
-│   ├── test_cases.json   # Realistic test scenarios
-│   ├── run_model_tests.sh # Quick-start script
-│   └── README.md         # Testing framework documentation
 └── README.md             # This file
 ```
 

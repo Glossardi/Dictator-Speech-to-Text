@@ -1,6 +1,6 @@
 #!/bin/bash
 # Deploy Production Correction System to Hammerspoon
-# Version 2.0 - WisprFlow-quality correction
+# Version 2.0 - High-quality correction
 
 set -e
 
@@ -49,16 +49,10 @@ echo "✅ DEPLOYMENT COMPLETE"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo
 echo "📝 Next steps:"
-echo "   1. Verify Correction is enabled in Hammerspoon Console"
-echo "   2. Check model is set to: openai/gpt-oss-20b"
+echo "   1. Verify AI Correction is enabled in menubar"
+echo "   2. Recommended model for Groq: openai/gpt-oss-20b"
 echo "   3. Test with a short dictation (Cmd+Alt+D)"
 echo "   4. Monitor Hammerspoon Console for errors"
 echo
-echo "🧪 To run production tests:"
-echo "   cd model_testing"
-echo "   export GROQ_API_KEY=\"your-api-key\""
-echo "   python3 test_production.py"
-echo
-echo "📚 Full documentation:"
-echo "   cat PRODUCTION_CORRECTION.md"
+echo "📚 Full documentation: README.md"
 echo
