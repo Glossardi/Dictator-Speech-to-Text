@@ -2,7 +2,7 @@
 Rate Limiter Module - Token Bucket Algorithm
 Prevents exceeding API rate limits by enforcing a maximum request rate.
 
-Default: 3 requests per minute (based on OpenAI Whisper API community reports)
+Default: 10 requests per minute (adjustable via settings)
 Configurable via settings for flexibility.
 --]]
 
@@ -20,7 +20,7 @@ M.refillRate = nil  -- Tokens added per second
 
 -- Initialize rate limiter with configuration
 function M.init()
-    M.maxTokens = config.getRateLimitMaxRequests() or 3  -- Default: 3 requests
+    M.maxTokens = config.getRateLimitMaxRequests() or 10  -- Default: 10 requests
     local window = config.getRateLimitWindow() or 60  -- Default: 60 seconds
     M.refillRate = M.maxTokens / window  -- Tokens per second
     M.tokens = M.maxTokens  -- Start with full bucket

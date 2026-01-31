@@ -69,7 +69,7 @@ cd ~/Documents/Dictator
 - **⚙️ Configurable**: Set API key, custom hotkeys, language, API providers, and models
 - **🎯 Minimal UI**: Clean menubar icon showing current status (🎙️ Idle, 🔴 Recording, ⏳ Processing, 🤖 AI)
 - **🌍 Multi-language**: Support for multiple languages via Whisper API
-- **🛡️ Rate Limiting**: Built-in rate limiter prevents exceeding API limits (3 requests/minute default)
+- **🛡️ Rate Limiting**: Built-in rate limiter prevents exceeding API limits (10 requests/minute default)
 - **🔄 Auto-Retry**: Exponential backoff with automatic retry on API errors (429, 5xx)
 - **⚡ Debouncing**: Prevents accidental double-triggers from rapid hotkey presses
 - **✅ Input Validation**: Validates API keys, audio file size (<25MB), URLs, and model names
@@ -909,7 +909,7 @@ Set language in: **Settings → Set Language** (use `auto` for automatic detecti
 
 - **Use AI correction sparingly**: It adds cost and latency (enable only when needed)
 - **Keep glossary focused**: Add only terms you actually use
-- **Monitor rate limits**: Default is 3 requests/minute (adjustable)
+- **Monitor rate limits**: Default is 10 requests/minute (adjustable)
 - **Check API quota**: Ensure you have sufficient OpenAI credits
 
 ### 🔒 Security Tips
