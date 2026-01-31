@@ -474,7 +474,7 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
             "-w", "\nHTTP_STATUS:%{http_code}",
             "--compressed",
             "--connect-timeout", "10",
-            "--max-time", "60",
+            "--max-time", "90",  -- Increased from 60s to 90s for longer audio files
             url,
             "-H", "Authorization: Bearer " .. apiKey,
             "-F", "file=@" .. audioFilePath,
@@ -580,6 +580,14 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
                 return
             end
             
+            -- Debug: Log response body length (to detect provider-side truncation)
+            local bodyLength = #body
+            if bodyLength > 5000 then
+                print("DEBUG: Response body length: " .. bodyLength .. " bytes (may indicate large text response)")
+            elseif bodyLength < 100 then
+                print("WARNING: Response body very short: " .. bodyLength .. " bytes")
+            end
+            
             -- Try to decode JSON
             local success, response = pcall(hs.json.decode, body)
             
@@ -594,12 +602,24 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
                 -- Trim leading/trailing whitespace from transcription
                 local text = response.text:gsub("^%s+", ""):gsub("%s+$", "")
                 print("Transcription successful. Text length: " .. #text)
+                -- Log detailed info about response length for debugging truncation issues
+                if #text < 100 then
+                    print("  → Text is short (" .. #text .. " chars)")
+                elseif #text > 1300 and #text < 1600 then
+                    print("  → Text is in 1300-1600 range (" .. #text .. " chars) - TRUNCATION CHECK ENABLED")
+                end
                 if callback then callback(text, nil) end
             -- Check for successful transcription (Cloudflare format)
             elseif response and response.success == true and response.result and response.result.text then
                 -- Trim leading/trailing whitespace from transcription
                 local text = response.result.text:gsub("^%s+", ""):gsub("%s+$", "")
                 print("Transcription successful (Cloudflare). Text length: " .. #text)
+                -- Log detailed info about response length for debugging truncation issues
+                if #text < 100 then
+                    print("  → Text is short (" .. #text .. " chars)")
+                elseif #text > 1300 and #text < 1600 then
+                    print("  → Text is in 1300-1600 range (" .. #text .. " chars) - TRUNCATION CHECK ENABLED")
+                end
                 if callback then callback(text, nil) end
             elseif response and response.error then
                 -- OpenAI/DeepInfra error format

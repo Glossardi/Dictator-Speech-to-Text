@@ -28,6 +28,7 @@ M.lastTranscription = nil  -- Store last successful transcription text
 M.lastOriginalTranscription = nil  -- Store original transcription (before correction)
 M.processingStartTime = nil  -- Track when processing started
 M.MAX_PROCESSING_TIME = 90  -- Maximum allowed processing time in seconds
+M.previousAudioFilePath = nil  -- Track previous audio file for cleanup
 
 -- Initialize rate limiter
 rateLimiter.init()
@@ -282,6 +283,13 @@ function M.startRecording()
         return
     end
     
+    -- Cleanup previous audio file before starting new recording
+    -- Ensures user always has the latest audio file in case of issues
+    if M.previousAudioFilePath and utils.file_exists(M.previousAudioFilePath) then
+        log.d("Cleaning up previous audio file: " .. M.previousAudioFilePath)
+        os.remove(M.previousAudioFilePath)
+    end
+    
     if audio.startRecording() then
         log.i("Recording started")
         M.recordingStartTime = hs.timer.secondsSinceEpoch()
@@ -368,8 +376,8 @@ function M.stopAndTranscribe()
 
         -- For short taps: just clean up the file and return without API call or rate limiting
         if isShortTap then
-            log.d("Short tap: deleting temp audio file and skipping transcription")
-            os.remove(filePath)
+            log.d("Short tap: skipping transcription")
+            M.previousAudioFilePath = filePath
             return
         end
 
@@ -380,16 +388,28 @@ function M.stopAndTranscribe()
             local msg = string.format("Rate limit reached. Please wait %d seconds.", waitTime)
             log.w(msg)
             ui.showError(msg)
-            os.remove(filePath)  -- Cleanup
+            M.previousAudioFilePath = filePath -- Keep for next cleanup
             return
         end
 
+        -- Store current file path for cleanup on next recording
+        M.previousAudioFilePath = filePath
+        
         log.i("Sending audio to Whisper API")
+        log.d(string.format("Audio file stored for cleanup: %s", filePath))
         api.transcribe(filePath, function(text, apiErr)
             if timeoutTimer then timeoutTimer:stop() end
             
-            -- Cleanup temp file
-            os.remove(filePath)
+            -- Log text length for debugging the ~1400-1500 character issue
+            if text then
+                log.d(string.format("Transcription received: %d characters", #text))
+                if #text > 1300 and #text < 1600 then
+                    log.w(string.format("TRUNCATION CHECK: Received text is %d chars (between 1300-1600 range)", #text))
+                end
+            end
+            
+            -- DO NOT remove file here. It will be removed when the next recording starts.
+            -- This allows the user to recover the file if the transcription fails.
 
             if apiErr then
                 M.isProcessing = false  -- Reset processing flag
