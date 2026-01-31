@@ -69,12 +69,14 @@ cd ~/Documents/Dictator
 - **⚙️ Configurable**: Set API key, custom hotkeys, language, API providers, and models
 - **🎯 Minimal UI**: Clean menubar icon showing current status (🎙️ Idle, 🔴 Recording, ⏳ Processing, 🤖 AI)
 - **🌍 Multi-language**: Support for multiple languages via Whisper API
+- **🛡️ Hallucination Filtering**: Advanced segment-based confidence filtering and "Prompt Reflection" detection to prevent random words in silence (OpenAI/Groq optimized)
 - **🛡️ Rate Limiting**: Built-in rate limiter prevents exceeding API limits (10 requests/minute default)
 - **🔄 Auto-Retry**: Exponential backoff with automatic retry on API errors (429, 5xx)
 - **⚡ Debouncing**: Prevents accidental double-triggers from rapid hotkey presses
 - **✅ Input Validation**: Validates API keys, audio file size (<25MB), URLs, and model names
 - **🚀 Performance Optimized**:
   - MP3 VBR -V 4 reduces file sizes significantly while maintaining excellent speech quality
+  - High-fidelity 44.1kHz audio recording with active gain control (+3dB) for better quiet-speech detection
   - Optimized curl flags for maximum transfer speed
   - Lossless quality for perfect transcription accuracy
 

@@ -409,6 +409,7 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
     local language = config.getLanguage()
     local glossary = config.getGlossary()
     local isCloudflare = M.isCloudflareProvider(baseUrl)
+    local isOpenAIOfficial = baseUrl:lower():find("api.openai.com", 1, true) ~= nil
     
     local url, args, jsonBody
     
@@ -428,7 +429,8 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         
         -- Build JSON payload for Cloudflare
         local payload = {
-            audio = base64Audio
+            audio = base64Audio,
+            temperature = 0
         }
         
         -- Add optional parameters
@@ -483,8 +485,24 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
             url,
             "-H", "Authorization: Bearer " .. apiKey,
             "-F", "file=@" .. audioFilePath,
-            "-F", "model=" .. model
+            "-F", "model=" .. model,
+            "-F", "temperature=0"  -- Force deterministic output for all compatible providers
         }
+        
+        -- Add provider-specific parameters
+        -- Only OpenAI API (api.openai.com) supports response_format=verbose_json
+        isOpenAIOfficial = baseUrl:lower():find("api.openai.com", 1, true) ~= nil
+        
+        if isOpenAIOfficial then
+            -- OpenAI supports verbose_json for detailed segment data
+            table.insert(args, "-F")
+            table.insert(args, "response_format=verbose_json")
+        end
+
+        if language and language ~= "auto" then
+            table.insert(args, "-F")
+            table.insert(args, "language=" .. language)
+        end
         
         if glossary and glossary ~= "" then
             -- Truncate glossary to ~200 words / 1000 chars to avoid Whisper API limits/issues
@@ -606,8 +624,53 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
             
             -- Check for successful transcription (OpenAI format)
             if response and response.text then
+                local text = response.text
+                local isHallucination = false
+                
+                -- Detect "Prompt Reflection" Hallucinations:
+                -- If the output is just a subset or exact match of the glossary, and audio was near-silent/short,
+                -- it is almost certainly a hallucination.
+                if glossary and #glossary > 5 and #text > 3 then
+                    local cleanText = text:lower():gsub("[%s%p]", "")
+                    local cleanGlossary = glossary:lower():gsub("[%s%p]", "")
+                    if #cleanText > 5 and cleanGlossary:find(cleanText, 1, true) then
+                        print(string.format("  → DETECTED PROMPT REFLECTION: Transcription '%s' is likely a hallucination of the glossary.", text))
+                        text = "" 
+                        isHallucination = true
+                    end
+                end
+
+                -- PRO-Level: Confidence Filtering (requires verbose_json - OpenAI only)
+                -- Determine if we used verbose_json based on the response format
+                if not isHallucination and response.segments then
+                    local segments = response.segments
+                    local filteredText = ""
+                    local filteredCount = 0
+                    
+                    for _, segment in ipairs(segments) do
+                        local noSpeechProb = segment.no_speech_prob or 0
+                        local avgLogProb = segment.avg_logprob or 0
+                        
+                        -- Thresholds tuned for Whisper V3 Large/Turbo:
+                        -- 1. no_speech_prob > 0.6: Very likely just background noise/silence
+                        -- 2. avg_logprob < -1.0: Model is very uncertain about the text
+                        if noSpeechProb < 0.6 and avgLogProb > -1.0 then
+                            filteredText = filteredText .. segment.text
+                        else
+                            filteredCount = filteredCount + 1
+                            print(string.format("  → Filtering hallucination: '%s' (p_no_speech: %.2f, logprob: %.2f)", 
+                                segment.text:gsub("[\n\r]", " "):sub(1, 40), noSpeechProb, avgLogProb))
+                        end
+                    end
+                    
+                    if filteredCount > 0 then
+                        print(string.format("  → Successfully removed %d hallucination segment(s)", filteredCount))
+                        text = filteredText
+                    end
+                end
+
                 -- Trim leading/trailing whitespace from transcription
-                local text = response.text:gsub("^%s+", ""):gsub("%s+$", "")
+                text = text:gsub("^%s+", ""):gsub("%s+$", "")
                 print("Transcription successful. Text length: " .. #text)
                 -- Log detailed info about response length for debugging truncation issues
                 if #text < 100 then

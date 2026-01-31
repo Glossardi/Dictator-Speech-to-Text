@@ -36,7 +36,8 @@ function M.startRecording()
         return false
     end
 
-    -- Arguments: -q (quiet), -C 4 (MP3 VBR -V 4), -r 16000, -c 1
+    -- Arguments: -q (quiet), -C 4 (MP3 VBR -V 4), -r 44100 (high quality), -c 1
+    -- Effect: gain 3 (boost volume by 3dB to help Whisper detect speech in quiet environments)
     M.currentTask = hs.task.new(soxPath, function(exitCode, stdOut, stdErr)
         print("Recording process exited. Code: " .. exitCode)
         if exitCode ~= 0 and exitCode ~= -1 then
@@ -47,7 +48,7 @@ function M.startRecording()
             print("WARNING: Recording process died unexpectedly!")
             M.isRecording = false
         end
-    end, {"-q", "-C", "4", "-r", "16000", "-c", "1", M.currentFilePath})
+    end, {"-q", "-C", "4", "-r", "44100", "-c", "1", M.currentFilePath, "gain", "3"})
     
     if M.currentTask:start() then
         M.isRecording = true
