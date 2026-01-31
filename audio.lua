@@ -1,5 +1,5 @@
 -- audio.lua
--- Audio recording via SoX (MP3 format, 16kHz mono, VBR -V 9 for fast Whisper uploads)
+-- Audio recording via SoX (MP3 format, 16kHz mono, VBR -V 4 for balanced speed/quality)
 
 local M = {}
 local utils = require("utils")
@@ -16,7 +16,7 @@ function M.startRecording()
     M.currentFilePath = utils.get_temp_file_path("mp3")
     print("Starting recording to: " .. M.currentFilePath)
     
-    -- Using 'rec' from SoX with MP3 output (VBR -V 9 for fast encoding/upload)
+    -- Using 'rec' from SoX with MP3 output (VBR -V 4 for balanced encoding/upload)
     -- CRITICAL: Added '-q' (quiet) to prevent stdout/stderr pipe overflow in hs.task
     -- for long-running recordings (which would block the recording process).
     local soxPath = "/opt/homebrew/bin/rec" -- Standard brew path on Apple Silicon
@@ -36,7 +36,7 @@ function M.startRecording()
         return false
     end
 
-    -- Arguments: -q (quiet), -C 9 (MP3 VBR -V 9), -r 16000, -c 1
+    -- Arguments: -q (quiet), -C 4 (MP3 VBR -V 4), -r 16000, -c 1
     M.currentTask = hs.task.new(soxPath, function(exitCode, stdOut, stdErr)
         print("Recording process exited. Code: " .. exitCode)
         if exitCode ~= 0 and exitCode ~= -1 then
@@ -47,7 +47,7 @@ function M.startRecording()
             print("WARNING: Recording process died unexpectedly!")
             M.isRecording = false
         end
-    end, {"-q", "-C", "9", "-r", "16000", "-c", "1", M.currentFilePath})
+    end, {"-q", "-C", "4", "-r", "16000", "-c", "1", M.currentFilePath})
     
     if M.currentTask:start() then
         M.isRecording = true

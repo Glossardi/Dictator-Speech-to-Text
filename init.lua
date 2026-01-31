@@ -363,9 +363,9 @@ function M.stopAndTranscribe()
                 duration = hs.timer.secondsSinceEpoch() - M.recordingStartTime
             end
             
-            -- Theoretical minimum size for MP3 VBR -V 9 at 16k mono is ~7-8KB/s
-            -- 30s recording should be at least 200KB.
-            if duration > 10 and size < 1024 * 10 then
+            -- Theoretical minimum size for MP3 VBR -V 4 at 16k mono is ~10-12KB/s
+            -- 30s recording should be at least 300KB.
+            if duration > 10 and size < 1024 * 30 then
                 log.w(string.format("WARNING: File size (%.1f KB) suspiciously small for duration (%.1f s)", size/1024, duration))
             end
         end

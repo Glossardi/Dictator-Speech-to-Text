@@ -74,7 +74,7 @@ cd ~/Documents/Dictator
 - **⚡ Debouncing**: Prevents accidental double-triggers from rapid hotkey presses
 - **✅ Input Validation**: Validates API keys, audio file size (<25MB), URLs, and model names
 - **🚀 Performance Optimized**:
-  - MP3 VBR -V 9 reduces file sizes and provides the fastest encoding for uploads
+  - MP3 VBR -V 4 reduces file sizes significantly while maintaining excellent speech quality
   - Optimized curl flags for maximum transfer speed
   - Lossless quality for perfect transcription accuracy
 
@@ -632,7 +632,7 @@ Dictator/
 2. Verify API key is correct (must start with `sk-`)
 3. Check OpenAI API quota/billing
 4. **Rate Limit**: Wait if you see "Rate limit reached" message
-5. **File Size**: Recording must be under 25MB (rarely an issue with MP3 VBR -V 9 at 16kHz mono)
+5. **File Size**: Recording must be under 25MB (rarely an issue with MP3 VBR -V 4 at 16kHz mono)
 6. Check internet connection
 7. API retries automatically (up to 3 attempts with exponential backoff)
 
@@ -695,11 +695,11 @@ Dictator/
 **Solutions**:
 
 1. Verify SoX is installed: `which rec` (should show path)
-2. Test microphone: `rec -q -C 9 -r 16000 -c 1 test.mp3` (speak, then Ctrl+C)
+2. Test microphone: `rec -q -C 4 -r 16000 -c 1 test.mp3` (speak, then Ctrl+C)
 3. Check microphone permissions:
    - **System Settings** → **Privacy & Security** → **Microphone**
    - Enable **Hammerspoon**
-4. Recording format: MP3 VBR -V 9 at 16kHz mono (fastest encoding, very small files)
+4. Recording format: MP3 VBR -V 4 at 16kHz mono (balanced encoding speed and high speech quality)
 5. Hold hotkey for at least 1-2 seconds to capture audio
 6. Check Console for SoX errors: `SoX Error: <message>`
 
