@@ -74,7 +74,7 @@ cd ~/Documents/Dictator
 - **⚡ Debouncing**: Prevents accidental double-triggers from rapid hotkey presses
 - **✅ Input Validation**: Validates API keys, audio file size (<25MB), URLs, and model names
 - **🚀 Performance Optimized**:
-  - FLAC compression reduces file sizes by ~50% (faster uploads)
+  - MP3 VBR -V 9 reduces file sizes and provides the fastest encoding for uploads
   - Optimized curl flags for maximum transfer speed
   - Lossless quality for perfect transcription accuracy
 
@@ -632,7 +632,7 @@ Dictator/
 2. Verify API key is correct (must start with `sk-`)
 3. Check OpenAI API quota/billing
 4. **Rate Limit**: Wait if you see "Rate limit reached" message
-5. **File Size**: Recording must be under 25MB (rarely an issue with FLAC at 16kHz mono)
+5. **File Size**: Recording must be under 25MB (rarely an issue with MP3 VBR -V 9 at 16kHz mono)
 6. Check internet connection
 7. API retries automatically (up to 3 attempts with exponential backoff)
 
@@ -672,7 +672,7 @@ Dictator/
    ```bash
    curl -X POST https://api.deepinfra.com/v1/openai/audio/transcriptions \
      -H "Authorization: Bearer YOUR_API_KEY" \
-     -F "file=@test.flac" \
+   -F "file=@test.mp3" \
      -F "model=openai/whisper-large-v3-turbo"
    ```
 
@@ -695,11 +695,11 @@ Dictator/
 **Solutions**:
 
 1. Verify SoX is installed: `which rec` (should show path)
-2. Test microphone: `rec test.flac rate 16k channels 1` (speak, then Ctrl+C)
+2. Test microphone: `rec -q -C 9 -r 16000 -c 1 test.mp3` (speak, then Ctrl+C)
 3. Check microphone permissions:
    - **System Settings** → **Privacy & Security** → **Microphone**
    - Enable **Hammerspoon**
-4. Recording format: FLAC at 16kHz mono is optimized for speech (lossless, 50% smaller than WAV)
+4. Recording format: MP3 VBR -V 9 at 16kHz mono (fastest encoding, very small files)
 5. Hold hotkey for at least 1-2 seconds to capture audio
 6. Check Console for SoX errors: `SoX Error: <message>`
 

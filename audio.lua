@@ -1,5 +1,5 @@
 -- audio.lua
--- Audio recording via SoX (FLAC format, 16kHz mono for optimal Whisper performance)
+-- Audio recording via SoX (MP3 format, 16kHz mono, VBR -V 9 for fast Whisper uploads)
 
 local M = {}
 local utils = require("utils")
@@ -13,10 +13,10 @@ M.pendingCallback = nil  -- Retain timer to prevent GC
 function M.startRecording()
     if M.isRecording then return end
     
-    M.currentFilePath = utils.get_temp_file_path("flac")
+    M.currentFilePath = utils.get_temp_file_path("mp3")
     print("Starting recording to: " .. M.currentFilePath)
     
-    -- Using 'rec' from SoX with FLAC output (lossless, 50% smaller than WAV)
+    -- Using 'rec' from SoX with MP3 output (VBR -V 9 for fast encoding/upload)
     -- CRITICAL: Added '-q' (quiet) to prevent stdout/stderr pipe overflow in hs.task
     -- for long-running recordings (which would block the recording process).
     local soxPath = "/opt/homebrew/bin/rec" -- Standard brew path on Apple Silicon
@@ -36,7 +36,7 @@ function M.startRecording()
         return false
     end
 
-    -- Arguments: -q (quiet), output_file, rate, channels
+    -- Arguments: -q (quiet), -C 9 (MP3 VBR -V 9), -r 16000, -c 1
     M.currentTask = hs.task.new(soxPath, function(exitCode, stdOut, stdErr)
         print("Recording process exited. Code: " .. exitCode)
         if exitCode ~= 0 and exitCode ~= -1 then
@@ -47,7 +47,7 @@ function M.startRecording()
             print("WARNING: Recording process died unexpectedly!")
             M.isRecording = false
         end
-    end, {"-q", M.currentFilePath, "rate", "16k", "channels", "1"})
+    end, {"-q", "-C", "9", "-r", "16000", "-c", "1", M.currentFilePath})
     
     if M.currentTask:start() then
         M.isRecording = true
@@ -70,7 +70,7 @@ function M.stopRecording(callback)
     local pid = M.currentTask:pid()
     
     -- Try to stop SoX gracefully with SIGINT (kill -2)
-    -- This ensures FLAC headers are written correctly for long recordings
+    -- This ensures MP3 files are finalized correctly for long recordings
     if pid then
         os.execute("kill -2 " .. pid)
         -- Give it a tiny moment to exit through SIGINT before forced termination
@@ -86,7 +86,7 @@ function M.stopRecording(callback)
     M.isRecording = false
     M.currentTask = nil
     
-    -- Give file system a moment to flush and close the FLAC file
+    -- Give file system a moment to flush and close the MP3 file
     -- This ensures the file is fully written before we try to upload it
     M.pendingCallback = hs.timer.doAfter(0.5, function() -- Increased from 0.1 to 0.5 for stability
         M.pendingCallback = nil

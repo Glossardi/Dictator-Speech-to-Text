@@ -45,13 +45,13 @@ describe("utils module", function()
     
     describe("get_file_size", function()
         it("should return file size via mock", function()
-            local size = utils.get_file_size("/fake/path/test.flac")
+            local size = utils.get_file_size("/fake/path/test.mp3")
             -- Mock returns 100KB by default
             assert.are.equal(1024 * 100, size)
         end)
         
         it("should track fs.attributes calls", function()
-            local filepath = "/test/file.flac"
+            local filepath = "/test/file.mp3"
             utils.get_file_size(filepath)
             
             assert.are.equal(1, mock_hs.getCallCount("fs_attributes"))
@@ -62,8 +62,8 @@ describe("utils module", function()
     
     describe("get_temp_file_path", function()
         it("should generate unique temp file paths", function()
-            local path1 = utils.get_temp_file_path("flac")
-            local path2 = utils.get_temp_file_path("flac")
+            local path1 = utils.get_temp_file_path("mp3")
+            local path2 = utils.get_temp_file_path("mp3")
             
             -- Paths should be different (due to UUID)
             assert.is_string(path1)
@@ -76,9 +76,9 @@ describe("utils module", function()
             assert.is_true(path:match("%.mp3$") ~= nil)
         end)
         
-        it("should default to flac extension", function()
+        it("should default to mp3 extension", function()
             local path = utils.get_temp_file_path()
-            assert.is_true(path:match("%.flac$") ~= nil)
+            assert.is_true(path:match("%.mp3$") ~= nil)
         end)
         
         it("should include mock UUID in path", function()

@@ -78,7 +78,7 @@ describe("api module", function()
         end)
         
         it("should reject non-existent file", function()
-            local valid, err = api.validateAudioFile("/nonexistent/file.flac")
+            local valid, err = api.validateAudioFile("/nonexistent/file.mp3")
             assert.is_false(valid)
             assert.are.equal("Audio file does not exist", err)
         end)
@@ -230,7 +230,7 @@ x-ratelimit-reset: 60
             local callbackCalled = false
             local errorReceived = nil
             
-            api.transcribe("/fake/file.flac", function(result, err)
+            api.transcribe("/fake/file.mp3", function(result, err)
                 callbackCalled = true
                 errorReceived = err
             end)
@@ -246,7 +246,7 @@ x-ratelimit-reset: 60
             local callbackCalled = false
             local errorReceived = nil
             
-            api.transcribe("/nonexistent/file.flac", function(result, err)
+            api.transcribe("/nonexistent/file.mp3", function(result, err)
                 callbackCalled = true
                 errorReceived = err
             end)
