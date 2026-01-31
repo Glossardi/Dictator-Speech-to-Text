@@ -437,7 +437,12 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
         end
         
         if glossary and glossary ~= "" then
-            payload.initial_prompt = glossary
+            -- Truncate glossary to ~224 tokens/1000 chars for API compatibility
+            local truncatedGlossary = glossary
+            if #truncatedGlossary > 1000 then
+                truncatedGlossary = truncatedGlossary:sub(1, 1000)
+            end
+            payload.initial_prompt = truncatedGlossary
         end
         
         jsonBody = hs.json.encode(payload)
@@ -481,14 +486,15 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
             "-F", "model=" .. model
         }
         
-        if language and language ~= "auto" then
-            table.insert(args, "-F")
-            table.insert(args, "language=" .. language)
-        end
-        
         if glossary and glossary ~= "" then
+            -- Truncate glossary to ~200 words / 1000 chars to avoid Whisper API limits/issues
+            local truncatedGlossary = glossary
+            if #truncatedGlossary > 1000 then
+                truncatedGlossary = truncatedGlossary:sub(1, 1000)
+                print("WARNING: Glossary truncated for API request (too long)")
+            end
             table.insert(args, "-F")
-            table.insert(args, "prompt=" .. glossary)
+            table.insert(args, "prompt=" .. truncatedGlossary)
         end
     end
 

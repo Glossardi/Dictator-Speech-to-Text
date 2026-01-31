@@ -341,13 +341,14 @@ function M.stopAndTranscribe()
         -- Reset start time on every stop
         M.recordingStartTime = nil
 
-        -- Watchdog: falls innerhalb von 35s kein Ergebnis zurückkommt, brechen wir sauber ab
+        -- Watchdog: falls innerhalb von 90s kein Ergebnis zurückkommt, brechen wir sauber ab
+        -- Erhöht von 35s auf 90s, um längere Transkriptionen + KI-Korrekturen zu ermöglichen
         local timeoutTimer
         if not isShortTap then
-            timeoutTimer = hs.timer.doAfter(35, function()
+            timeoutTimer = hs.timer.doAfter(90, function()
                 if M.isProcessing then
                     M.isProcessing = false
-                    log.e("Transcription timeout after 35 seconds")
+                    log.e("Transcription timeout after 90 seconds")
                     ui.updateStatus("idle", "Timeout")
                     ui.showError("Transcription timeout: no response from API")
                 end
@@ -464,7 +465,7 @@ function M.stopAndTranscribe()
             end
 
             if config.getCorrectionEnabled() then
-                log.i("AI correction enabled - correcting text")
+                log.i(string.format("AI correction enabled - correcting text (%d chars)", #text))
                 ui.updateStatus("processing_ai", "Processing AI...")
                 api.correctText(text, function(correctedText, correctionErr)
                     if correctionErr or type(correctedText) ~= "string" or correctedText == "" then
@@ -477,6 +478,7 @@ function M.stopAndTranscribe()
                             log.w("AI correction produced invalid output, falling back to raw transcription: " .. (validationErrorCorrected or "unknown"))
                             finalize(text)
                         else
+                            log.i(string.format("AI correction successful (diff: %d chars)", #correctedText - #text))
                             finalize(correctedText)
                         end
                     end

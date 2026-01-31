@@ -52,15 +52,44 @@ function M.stopRecording(callback)
     end
 
     local filePath = M.currentFilePath
-    M.currentTask:terminate()
+    local pid = M.currentTask:pid()
+    
+    -- Try to stop SoX gracefully with SIGINT (kill -2)
+    -- This ensures FLAC headers are written correctly for long recordings
+    if pid then
+        os.execute("kill -2 " .. pid)
+        -- Give it a tiny moment to exit through SIGINT before forced termination
+        hs.timer.doAfter(0.2, function()
+            if M.currentTask and M.currentTask:isRunning() then
+                M.currentTask:terminate()
+            end
+        end)
+    else
+        M.currentTask:terminate()
+    end
+    
     M.isRecording = false
     M.currentTask = nil
     
-    -- Give file system a brief moment to flush and close the FLAC file
+    -- Give file system a moment to flush and close the FLAC file
     -- This ensures the file is fully written before we try to upload it
-    -- CRITICAL: Must retain timer object to prevent garbage collection
-    M.pendingCallback = hs.timer.doAfter(0.1, function()
-        M.pendingCallback = nil  -- Clear reference after firing
+    M.pendingCallback = hs.timer.doAfter(0.5, function() -- Increased from 0.1 to 0.5 for stability
+        M.pendingCallback = nil
+        
+        -- Validate file exists and log size for diagnosis
+        if utils.file_exists(filePath) then
+            local size = utils.get_file_size(filePath) or 0
+            print(string.format("Recording saved: %s (%.2f KB)", filePath, size / 1024))
+            if size == 0 then
+                if callback then callback(nil, "Audio file is empty") end
+                return
+            end
+        else
+            print("ERROR: Recording file missing after stop: " .. tostring(filePath))
+            if callback then callback(nil, "File not found after recording") end
+            return
+        end
+        
         if callback then callback(filePath, nil) end
     end)
 end
