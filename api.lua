@@ -518,7 +518,8 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attemptNumber, callback)
     if isCloudflare then
         commandForLog = "/usr/bin/curl -s -w \\nHTTP_STATUS:%{http_code} --compressed " .. url .. " -H 'Authorization: Bearer <redacted>' -H 'Content-Type: application/json' -d '{...}'"
     else
-        commandForLog = "/usr/bin/curl -s -w \\nHTTP_STATUS:%{http_code} --compressed --connect-timeout 10 --max-time 60 " .. url .. " -H 'Authorization: Bearer <redacted>' -F 'file=@" .. audioFilePath .. "' -F model=" .. model .. " " .. (language and language ~= "auto" and (" -F language=" .. language) or "") .. (glossary and glossary ~= "" and (" -F prompt='" .. glossary:sub(1, 32) .. "'") or "")
+        -- Show real timeout in logs
+        commandForLog = "/usr/bin/curl -s -w \\nHTTP_STATUS:%{http_code} --compressed --connect-timeout 10 --max-time 90 " .. url .. " -H 'Authorization: Bearer <redacted>' -F 'file=@" .. audioFilePath .. "' -F model=" .. model .. " " .. (language and language ~= "auto" and (" -F language=" .. language) or "") .. (glossary and glossary ~= "" and (" -F prompt='" .. glossary:sub(1, 64) .. "...'") or "")
     end
     print("Command: " .. commandForLog)
     

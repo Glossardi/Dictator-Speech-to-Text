@@ -17,27 +17,42 @@ function M.startRecording()
     print("Starting recording to: " .. M.currentFilePath)
     
     -- Using 'rec' from SoX with FLAC output (lossless, 50% smaller than WAV)
-    -- FLAC is natively supported by SoX and perfect for Whisper API
-    -- Arguments: output_file, then effects (rate, channels, compression)
+    -- CRITICAL: Added '-q' (quiet) to prevent stdout/stderr pipe overflow in hs.task
+    -- for long-running recordings (which would block the recording process).
     local soxPath = "/opt/homebrew/bin/rec" -- Standard brew path on Apple Silicon
     if not utils.file_exists(soxPath) then
         soxPath = "/usr/local/bin/rec" -- Intel Mac
     end
     if not utils.file_exists(soxPath) then
-        -- Fallback or error
+        -- Last resort: check PATH
+        local pathCheck = hs.execute("which rec")
+        if pathCheck and pathCheck ~= "" then
+            soxPath = pathCheck:gsub("%s+", "")
+        end
+    end
+
+    if not utils.file_exists(soxPath) then
         hs.alert.show("SoX (rec) not found! Please run 'brew install sox'")
         return false
     end
 
+    -- Arguments: -q (quiet), output_file, rate, channels
     M.currentTask = hs.task.new(soxPath, function(exitCode, stdOut, stdErr)
-        print("Recording finished. Exit code: " .. exitCode)
-        if exitCode ~= 0 and exitCode ~= -1 then -- -1 is terminated
-             print("SoX Error: " .. stdErr)
+        print("Recording process exited. Code: " .. exitCode)
+        if exitCode ~= 0 and exitCode ~= -1 then
+            print("SoX Error: " .. (stdErr or "unknown"))
         end
-    end, {M.currentFilePath, "rate", "16k", "channels", "1"})
+        -- If it exited unexpectedly without us stopping it, update state
+        if exitCode ~= -1 and M.isRecording then
+            print("WARNING: Recording process died unexpectedly!")
+            M.isRecording = false
+        end
+    end, {"-q", M.currentFilePath, "rate", "16k", "channels", "1"})
     
     if M.currentTask:start() then
         M.isRecording = true
+        local pid = M.currentTask:pid()
+        print("Recording process started (PID: " .. (pid or "unknown") .. ")")
         return true
     else
         hs.alert.show("Failed to start recording")

@@ -355,6 +355,21 @@ function M.stopAndTranscribe()
             end)
         end
 
+        -- Validate file exists and log size for diagnosis
+        if not err and filePath and utils.file_exists(filePath) then
+            local size = utils.get_file_size(filePath) or 0
+            local duration = 0
+            if M.recordingStartTime then
+                duration = hs.timer.secondsSinceEpoch() - M.recordingStartTime
+            end
+            
+            -- Theoretical minimum size for FLAC 16k mono is ~8KB/s
+            -- 30s recording should be at least 200KB.
+            if duration > 10 and size < 1024 * 10 then
+                log.w(string.format("WARNING: File size (%.1f KB) suspiciously small for duration (%.1f s)", size/1024, duration))
+            end
+        end
+
         if err then
             if not isShortTap then
                 M.isProcessing = false
