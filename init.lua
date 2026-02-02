@@ -269,6 +269,25 @@ local function buildMenu()
             end
         end },
         { title = "-" },
+        { title = "Update Dictator...", fn = function()
+            local installPath = config.getInstallPath() or (os.getenv("HOME") .. "/Documents/Dictator")
+            local scriptPath = installPath .. "/update.sh"
+            
+            -- Check if file exists
+            if hs.fs.attributes(scriptPath) then
+                hs.alert.show("Opening Terminal to update...")
+                local appleScript = string.format([[
+                    tell application "Terminal"
+                        do script "cd '%s' && chmod +x update.sh && ./update.sh"
+                        activate
+                    end tell
+                ]], installPath)
+                hs.osascript.applescript(appleScript)
+            else
+                hs.alert.show("Update script not found at: " .. installPath)
+                log.e("Update failed: Script not found at " .. scriptPath)
+            end
+        end },
         { title = "Reload Config", fn = hs.reload },
         { title = "Quit", fn = function() M.menubarItem:delete() end } -- Actually just removes item, HS stays open
     }

@@ -244,14 +244,20 @@ After installation, grant these permissions for Dictator to work:
 
 Keep Dictator up-to-date with the latest features and fixes:
 
-### 🌟 Automated Update (Recommended)
+### 🌟 Via Menubar (Easiest)
+
+1. Click the Dictator menubar icon (🎙️)
+2. Select **Update Dictator...**
+3. A Terminal window will open and automatically update the app.
+
+### 💻 Via Command Line
 
 ```bash
 cd ~/Documents/Dictator
 ./update.sh
 ```
 
-**What the update script does:**
+**What the update process does:**
 
 - ✅ Pulls latest changes from Git (if repository)
 - ✅ Creates automatic backup of current installation

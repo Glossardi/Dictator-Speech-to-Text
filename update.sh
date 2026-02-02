@@ -48,6 +48,19 @@ check_git_repo() {
     fi
 }
 
+# Check if SoX is installed
+check_sox() {
+    if ! command -v sox &> /dev/null; then
+        log_warning "SoX is missing! This is required for recording."
+        if command -v brew &> /dev/null; then
+            log_info "Installing SoX via Homebrew..."
+            brew install sox
+        else
+            log_error "Homebrew not found. Please install SoX manually."
+        fi
+    fi
+}
+
 # Update from Git
 update_from_git() {
     log_info "Pulling latest changes from Git..."
@@ -66,13 +79,22 @@ update_from_git() {
     fi
     
     # Pull latest changes
-    git pull origin main || git pull origin master || {
-        log_error "Failed to pull latest changes"
-        echo "Please update manually with: git pull"
-        exit 1
-    }
+    # Try current branch first, fallback to common defaults
+    local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+    log_info "Current branch: ${branch}"
     
-    log_success "Updated to latest version"
+    if git pull origin "${branch}" 2>/dev/null; then
+        log_success "Pulled changes from ${branch}"
+    else
+        log_warning "Could not pull from ${branch}, trying default..."
+        git pull origin main || git pull origin master || {
+            log_error "Failed to pull latest changes"
+            echo "Please update manually with: git pull"
+            exit 1
+        }
+    fi
+    
+    log_success "Updated local repository"
 }
 
 # Backup existing files
@@ -149,6 +171,8 @@ print_summary() {
     echo "  2. Restore from backup if needed:"
     echo "     cp ${BACKUP_PATH}/*.lua ${HAMMERSPOON_DIR}/"
     echo ""
+    read -n 1 -s -r -p "Press any key to finish..."
+    echo ""
 }
 
 # Main update flow
@@ -163,6 +187,7 @@ main() {
         update_from_git
     fi
     
+    check_sox
     backup_existing_files
     install_files
     reload_hammerspoon

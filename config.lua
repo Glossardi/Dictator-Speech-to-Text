@@ -24,6 +24,7 @@ M.TRANSCRIPTION_MODEL_KEY = M.BUNDLE_ID .. ".transcriptionModel"
 M.TRANSCRIPTION_API_KEY_KEY = M.BUNDLE_ID .. ".transcriptionApiKey"
 M.CORRECTION_API_BASE_URL_KEY = M.BUNDLE_ID .. ".correctionApiBaseUrl"
 M.CORRECTION_API_KEY_KEY = M.BUNDLE_ID .. ".correctionApiKey"
+M.INSTALL_PATH_KEY = M.BUNDLE_ID .. ".installPath"
 
 -- Defaults
 M.defaultHotkeyMods = {"cmd", "alt"}
@@ -301,6 +302,14 @@ function M.setCorrectionApiBaseUrl(url)
     if not sanitized then return false end
     settings.set(M.CORRECTION_API_BASE_URL_KEY, sanitized)
     return true
+end
+
+function M.setInstallPath(path)
+    settings.set(M.INSTALL_PATH_KEY, path)
+end
+
+function M.getInstallPath()
+    return settings.get(M.INSTALL_PATH_KEY)
 end
 
 return M

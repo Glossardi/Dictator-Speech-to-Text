@@ -89,10 +89,31 @@ check_sox() {
 
 # Create Hammerspoon directory if it doesn't exist
 create_hammerspoon_dir() {
-    if [[ ! -d "${HAMMERSPOON_DIR}" ]]; then
+    if [[ !  -d "${HAMMERSPOON_DIR}" ]]; then
         log_info "Creating Hammerspoon directory..."
         mkdir -p "${HAMMERSPOON_DIR}"
         log_success "Created ${HAMMERSPOON_DIR}"
+    fi
+}
+
+# Save installation path to Hammerspoon settings
+save_install_path() {
+    log_info "Saving installation path to Hammerspoon settings..."
+    
+    # Escape path for Lua
+    local escaped_path=$(echo "${SCRIPT_DIR}" | sed 's/\\/\\\\/g' | sed "s/'/\\\\'/g")
+    
+    if pgrep -x "Hammerspoon" > /dev/null; then
+        osascript -e "tell application \"Hammerspoon\" to execute lua code \"require('config').setInstallPath('${escaped_path}')\"" 2>/dev/null || {
+            log_warning "Could not save install path automatically via Hammerspoon"
+            return
+        }
+        log_success "Install path saved: ${SCRIPT_DIR}"
+    else
+        log_warning "Hammerspoon is not running, will save path using defaults..."
+        # Hammerspoon uses org.hammerspoon.Hammerspoon as plist domain
+        defaults write org.hammerspoon.Hammerspoon "com.simon.dictator.installPath" "${SCRIPT_DIR}"
+        log_success "Install path saved to defaults"
     fi
 }
 
@@ -313,6 +334,8 @@ print_next_steps() {
     echo ""
     echo "For more information, see: ${SCRIPT_DIR}/README.md"
     echo ""
+    read -n 1 -s -r -p "Press any key to finish..."
+    echo ""
 }
 
 # Main installation flow
@@ -328,6 +351,7 @@ main() {
     create_hammerspoon_dir
     backup_existing_files
     install_files
+    save_install_path
     reload_hammerspoon
     configure_dictator
     check_permissions
