@@ -17,10 +17,18 @@ test*.lua
 debug*.lua
 *_test.sh
 tmp-npm-cache/
+.busted
+luacov.*
 
 # IDE
 .vscode/
 .idea/
+
+# Luarocks/Build
+/lua_modules/
+/rock_dest/
+*.rock
+*.rockspec.lock
 
 # Temporary files
 /tmp/

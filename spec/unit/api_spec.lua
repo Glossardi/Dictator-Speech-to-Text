@@ -16,6 +16,8 @@ describe("api module", function()
         -- Reload modules
         package.loaded["config"] = nil
         package.loaded["utils"] = nil
+        package.loaded["api_client"] = nil
+        package.loaded["api_filters"] = nil
         package.loaded["api"] = nil
         config = require("config")
         utils = require("utils")

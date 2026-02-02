@@ -556,14 +556,17 @@ This ensures you never lose access to what Whisper actually heard, even if the c
 
 ```
 Dictator/
-├── init.lua              # Main entry point, menu logic, hotkey binding
+├── init.lua              # Main entry point and recording lifecycle orchestration
 ├── config.lua            # Configuration management (settings persistence)
-├── audio.lua             # Audio recording via SoX
-├── api.lua               # OpenAI API integration (Whisper transcription with retry logic)
-├── ui.lua                # Menubar UI and status updates
-├── utils.lua             # Utility functions (temp file handling, file validation)
-├── rate_limiter.lua      # Token bucket rate limiter (prevents API abuse)
-└── README.md             # This file
+├── config_defaults.lua   # Default values and large assets (e.g. system prompts)
+├── audio.lua             # Audio recording process management (SoX)
+├── api.lua               # High-level API orchestration (transcription & correction)
+├── api_client.lua        # Low-level HTTP requests and task management
+├── api_filters.lua       # AI hallucination and silence filtering logic
+├── ui.lua                # Menubar UI, status management, and menu builder
+├── utils.lua             # Utility functions (I/O, validation, paths)
+├── rate_limiter.lua      # Token bucket rate limiter
+└── README.md             # Project documentation
 ```
 
 ---
