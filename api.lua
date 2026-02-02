@@ -142,7 +142,7 @@ end
 
 -- Transcribe with retry logic
 function M.transcribe(audioFilePath, callback)
-    local apiKey = config.getApiKey()
+    local apiKey = config.getTranscriptionApiKey()
     
     -- Validate API key
     local valid, err = M.validateApiKey(apiKey)
@@ -166,7 +166,7 @@ end
 
 -- Correct transcribed text using Chat Completions (optional post-processing)
 function M.correctText(text, callback)
-    local apiKey = config.getApiKey()
+    local apiKey = config.getCorrectionApiKey()
 
     local valid, err = M.validateApiKey(apiKey)
     if not valid then

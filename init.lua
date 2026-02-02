@@ -136,6 +136,25 @@ local function buildMenu()
                         hs.alert.show("Invalid model name")
                     end
                 end
+            end },
+            { title = "Set Dedicated API Key...", fn = function()
+                local current = config.getTranscriptionApiKey()
+                -- If it's the same as global key, it might be inherited
+                local isInherited = (current == config.getApiKey())
+                local promptValue = isInherited and "" or current
+                
+                local button, text = hs.dialog.textPrompt(
+                    "Transcription Dedicated API Key",
+                    "Enter dedicated API key for Whisper (leave empty to use global key):",
+                    promptValue,
+                    "Save",
+                    "Cancel"
+                )
+                if button == "Save" then
+                    config.setTranscriptionApiKey(text)
+                    hs.alert.show("Transcription API key saved")
+                    ui.setMenu(buildMenu())
+                end
             end }
         } },
         { title = "  Edit Glossary...", fn = function()
@@ -204,6 +223,24 @@ local function buildMenu()
                     else
                         hs.alert.show("Invalid prompt")
                     end
+                end
+            end },
+            { title = "Set Dedicated API Key...", fn = function()
+                local current = config.getCorrectionApiKey()
+                local isInherited = (current == config.getApiKey())
+                local promptValue = isInherited and "" or current
+
+                local button, text = hs.dialog.textPrompt(
+                    "Correction Dedicated API Key",
+                    "Enter dedicated API key for Correction (leave empty to use global key):",
+                    promptValue,
+                    "Save",
+                    "Cancel"
+                )
+                if button == "Save" then
+                    config.setCorrectionApiKey(text)
+                    hs.alert.show("Correction API key saved")
+                    ui.setMenu(buildMenu())
                 end
             end }
         } },

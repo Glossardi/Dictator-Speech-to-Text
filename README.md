@@ -350,24 +350,41 @@ Access all settings via the menubar icon:
 
 ### Settings Menu
 
-- **API Key**: Set your OpenAI API key (or API key from alternative provider)
+- **API Key**: Set your global OpenAI API key (or API key from alternative provider)
 - **Language**: Set transcription language (`auto`, `en`, `de`, etc.)
 - **Transcription API Settings**: Configure API provider for speech-to-text
   - **Set API Base URL**: Choose provider (OpenAI, DeepInfra, etc.)
   - **Set Model**: Select transcription model
+  - **Set Dedicated API Key**: Provide a different key for Whisper (falls back to global key if empty)
 - **Edit Glossary...**: Define context words to improve transcription accuracy
 - **Auto-Paste**: Toggle automatic text pasting
 - **Enable AI Correction**: Toggle post-processing of the transcription (default: OFF to avoid extra cost)
 - **Correction Settings**: Configure API provider, model, and system prompt for AI correction
-  - **Set API Base URL**: Choose provider for correction
+  - **Set API Base URL**: Choose provider for correction (falls back to transcription URL if empty)
   - **Set Model**: Select correction model
   - **Set System Prompt**: Customize correction behavior
+  - **Set Dedicated API Key**: Provide a different key for AI correction (falls back to transcription key if empty)
 - **Use Fn Key (Hold)**: Toggle Fn key as recording hotkey
 - **Set Custom Hotkey**: Configure alternative hotkey (when Fn key is disabled)
 
 ### API Provider Configuration
 
 Dictator uses **OpenAI's Whisper API** by default. You can optionally switch to alternative providers that offer OpenAI-compatible APIs.
+
+#### Multi-Provider Routing & Fallbacks
+
+Dictator features a sophisticated hierarchical configuration system that allows for maximum flexibility with minimal setup:
+
+1. **Global API Key**: The master key used for everything by default.
+2. **Transcription Settings**: Can have its own dedicated key and base URL.
+3. **Correction Settings**: Can have its own dedicated key and base URL.
+
+**Automatic Fallbacks:**
+- If a **Corection API Key** is not set, it falls back to the **Transcription API Key**.
+- If a **Transcription API Key** is not set, it falls back to the **Global API Key**.
+- If a **Correction Base URL** is not set, it automatically routes to your **Transcription Base URL**.
+
+This means you can set your Groq URL and key in the Transcription settings, and your AI Correction will automatically "follow" and use Groq as well, unless you explicitly tell it to use something else!
 
 #### Default Provider
 
@@ -416,6 +433,7 @@ Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 
 **Correction Models:**
 
+- **Recommended**: Use **Instruct** or **Chat** models for best results. These models are specifically tuned to follow instructions (like your system prompt).
 - Choose models with **similar performance to GPT-4o-mini**
 - Examples: `llama-3.3-70b-versatile` (Groq), `Qwen/Qwen2.5-7B-Instruct` (DeepInfra), `@cf/meta/llama-3.1-8b-instruct` (Cloudflare)
 - Faster models = faster correction, but ensure quality is sufficient for your use case

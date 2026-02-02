@@ -21,7 +21,9 @@ M.CORRECTION_SYSTEM_PROMPT_KEY = M.BUNDLE_ID .. ".correctionSystemPrompt"
 M.GLOSSARY_KEY = M.BUNDLE_ID .. ".userGlossary"
 M.TRANSCRIPTION_API_BASE_URL_KEY = M.BUNDLE_ID .. ".transcriptionApiBaseUrl"
 M.TRANSCRIPTION_MODEL_KEY = M.BUNDLE_ID .. ".transcriptionModel"
+M.TRANSCRIPTION_API_KEY_KEY = M.BUNDLE_ID .. ".transcriptionApiKey"
 M.CORRECTION_API_BASE_URL_KEY = M.BUNDLE_ID .. ".correctionApiBaseUrl"
+M.CORRECTION_API_KEY_KEY = M.BUNDLE_ID .. ".correctionApiKey"
 
 -- Defaults
 M.defaultHotkeyMods = {"cmd", "alt"}
@@ -87,6 +89,29 @@ end
 
 function M.setApiKey(key)
     settings.set(M.API_KEY_KEY, key)
+end
+
+function M.getTranscriptionApiKey()
+    local key = settings.get(M.TRANSCRIPTION_API_KEY_KEY)
+    if key and key ~= "" then return key end
+    return M.getApiKey()
+end
+
+function M.setTranscriptionApiKey(key)
+    if key == "" then key = nil end
+    settings.set(M.TRANSCRIPTION_API_KEY_KEY, key)
+end
+
+function M.getCorrectionApiKey()
+    local key = settings.get(M.CORRECTION_API_KEY_KEY)
+    if key and key ~= "" then return key end
+    -- Fallback to dedicated transcription key if available, which itself falls back to global
+    return M.getTranscriptionApiKey()
+end
+
+function M.setCorrectionApiKey(key)
+    if key == "" then key = nil end
+    settings.set(M.CORRECTION_API_KEY_KEY, key)
 end
 
 function M.getHotkey()
@@ -260,11 +285,18 @@ end
 
 function M.getCorrectionApiBaseUrl()
     local url = settings.get(M.CORRECTION_API_BASE_URL_KEY)
-    url = sanitizeUrl(url) or M.defaultCorrectionApiBaseUrl
-    return url
+    url = sanitizeUrl(url)
+    if url then return url end
+    
+    -- Fallback to transcription URL if no dedicated correction URL is set
+    return M.getTranscriptionApiBaseUrl()
 end
 
 function M.setCorrectionApiBaseUrl(url)
+    if url == "" then
+        settings.set(M.CORRECTION_API_BASE_URL_KEY, nil)
+        return true
+    end
     local sanitized = sanitizeUrl(url)
     if not sanitized then return false end
     settings.set(M.CORRECTION_API_BASE_URL_KEY, sanitized)

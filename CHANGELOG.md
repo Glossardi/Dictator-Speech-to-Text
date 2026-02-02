@@ -1,5 +1,45 @@
 # Changelog
 
+## Version 1.4.0 - Advanced API Routing & Dedicated Keys (February 2026)
+
+### 🎯 Summary
+
+Major update to the configuration system providing independent control over Transcription and Correction APIs. Introduced a hierarchical fallback system for API keys and endpoint routing.
+
+### ✨ New Features
+
+#### Dedicated API Keys
+
+- **Transcription Key**: Set a specific API key for Whisper transcription independent of the global key.
+- **Correction Key**: Set a specific API key for AI correction independent of the transcription key.
+- **Hierarchical Fallback**:
+    - Correction → Transcription → Global
+    - This ensures maximum flexibility while maintaining "one-key setup" simplicity for most users.
+
+#### Advanced Routing Logic
+
+- **Inherited Endpoints**: If the Correction API Base URL is not explicitly set, it now automatically routes to the Transcription Base URL.
+- **Provider Independence**: Seamlessly mix and match providers (e.g., Groq for lightning-fast Whisper + OpenAI for high-quality GPT-4o correction).
+
+### 🔧 Configuration Changes
+
+- **New Menu Items**:
+    - Settings → Transcription API Settings → **Set Dedicated API Key**
+    - Settings → Correction Settings → **Set Dedicated API Key**
+- **Cleaner Overrides**: Setting a dedicated key or URL now "just works" without complex configuration.
+
+### 📚 Documentation Updates
+
+- **README Update**: Added section on Multi-Provider Routing and Fallbacks.
+- **Model Recommendations**: Added recommendation to use **Instruct** models for better correction results.
+
+### 🧪 Technical Implementation
+
+- **config.lua**: Refactored `getCorrectionApiKey` and `getCorrectionApiBaseUrl` with multi-level fallback logic.
+- **Unit Tests**: Added comprehensive test cases for routing logic and fallback chains (99 tests total).
+
+---
+
 ## Version 1.3.1 - Provider Prioritization & Maintenance (January 2026)
 
 ### 🎯 Summary
