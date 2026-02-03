@@ -148,7 +148,7 @@ function M.correctTextWithRetry(text, apiKey, attempt, callback, includeTemp)
         }
     }
     if includeTemp then
-        payload.temperature = 0.2; payload.top_p = 0.95; payload.frequency_penalty = 0.4; payload.max_tokens = 2048
+        payload.temperature = 0.1; payload.top_p = 0.95; payload.frequency_penalty = 0.4; payload.max_tokens = 2048
     end
 
     local args = { "-s", "-w", "\nHTTP_STATUS:%{http_code}", "--compressed", "--connect-timeout", "10", "--max-time", "20",
