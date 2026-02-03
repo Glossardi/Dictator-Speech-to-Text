@@ -264,14 +264,14 @@ function M.buildMenu()
         { title = "-" },
         { title = "Update Dictator...", fn = function()
             local installPath = config.getInstallPath() or (os.getenv("HOME") .. "/Documents/Dictator")
-            local scriptPath = installPath .. "/update.sh"
+            local scriptPath = installPath .. "/scripts/update.sh"
             
             -- Check if file exists
             if hs.fs.attributes(scriptPath) then
                 hs.alert.show("Opening Terminal to update...")
                 local appleScript = string.format([[
                     tell application "Terminal"
-                        do script "cd '%s' && chmod +x update.sh && ./update.sh"
+                        do script "cd '%s' && chmod +x scripts/update.sh && ./scripts/update.sh"
                         activate
                     end tell
                 ]], installPath)

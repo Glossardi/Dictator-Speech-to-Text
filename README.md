@@ -254,7 +254,7 @@ Keep Dictator up-to-date with the latest features and fixes:
 
 ```bash
 cd ~/Documents/Dictator
-./update.sh
+make update
 ```
 
 **What the update process does:**
@@ -303,7 +303,7 @@ Remove Dictator cleanly from your system:
 
 ```bash
 cd ~/Documents/Dictator
-./uninstall.sh
+make uninstall
 ```
 
 **What the uninstaller does:**
@@ -566,7 +566,10 @@ Dictator/
 ├── ui.lua                # Menubar UI, status management, and menu builder
 ├── utils.lua             # Utility functions (I/O, validation, paths)
 ├── rate_limiter.lua      # Token bucket rate limiter
-└── README.md             # Project documentation
+├── install.sh            # Main installation script
+├── Makefile              # Development and maintenance tasks
+├── scripts/              # Helper scripts (update, uninstall, tests)
+└── spec/                 # Unit tests (busted)
 ```
 
 ---
@@ -871,7 +874,7 @@ git checkout v1.0.0
 
 # Return to latest version
 git checkout main
-./update.sh
+make update
 ```
 
 ### What if the automated installer fails?
@@ -954,7 +957,7 @@ Set language in: **Settings → Set Language** (use `auto` for automatic detecti
 - **Combine with text expansion**: Use with tools like TextExpander
 - **Use glossary effectively**: Add technical terms, names, acronyms
 - **Test before important work**: Try a quick recording first
-- **Keep Dictator updated**: Run `./update.sh` periodically
+- **Keep Dictator updated**: Run `make update` periodically
 
 ---
 

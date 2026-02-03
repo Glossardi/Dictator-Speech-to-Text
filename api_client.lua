@@ -28,21 +28,8 @@ function M.audioFileToBase64(filePath)
     file:close()
     if not content or #content == 0 then return nil, "Empty audio file" end
     
-    local encodedFile = os.tmpname() .. ".b64"
-    local cmd = string.format("/usr/bin/openssl base64 -in %s -out %s", 
-        hs.execute("printf %q " .. filePath), 
-        hs.execute("printf %q " .. encodedFile))
-    
-    if os.execute(cmd) ~= 0 then
-        os.remove(encodedFile)
-        return nil, "Failed to encode audio to base64"
-    end
-    
-    local f = io.open(encodedFile, "r")
-    local base64 = f:read("*all"):gsub("[\n\r]", "")
-    f:close()
-    os.remove(encodedFile)
-    return base64, nil
+    -- Use Hammerspoon's built-in base64 encoding instead of external openssl
+    return hs.base64.encode(content), nil
 end
 
 -- Validation helpers

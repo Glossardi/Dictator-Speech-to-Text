@@ -32,19 +32,18 @@ setup-dev:
 # Run all tests
 test:
 	@echo "Running all tests..."
-	@command -v busted >/dev/null 2>&1 || (eval $$(luarocks path --bin) && busted) || { echo "Error: busted not found. Run 'make setup-dev' first."; exit 1; }
-	@(command -v busted >/dev/null 2>&1 && busted --output=plainTerminal) || (eval $$(luarocks path --bin) && busted --output=plainTerminal)
+	@./scripts/run_tests.sh
 
 # Run only unit tests
 test-unit:
 	@echo "Running unit tests..."
-	@(command -v busted >/dev/null 2>&1 && busted --output=plainTerminal --pattern=_spec spec/unit/) || (eval $$(luarocks path --bin) && busted --output=plainTerminal --pattern=_spec spec/unit/)
+	@./scripts/run_tests.sh --output=plainTerminal --pattern=_spec spec/unit/
 
 # Run tests in watch mode (requires entr: brew install entr)
 test-watch:
 	@command -v entr >/dev/null 2>&1 || { echo "Error: entr not found. Install with: brew install entr"; exit 1; }
 	@echo "Watching for file changes... (Ctrl+C to stop)"
-	@find . -name "*.lua" | entr -c make test
+	@find . -name "*.lua" | entr -c make test-unit
 
 # Install to Hammerspoon (recommended - uses install script with backup)
 install:
@@ -52,11 +51,11 @@ install:
 
 # Update to latest version (with backup)
 update:
-	@./update.sh
+	@./scripts/update.sh
 
 # Uninstall from Hammerspoon
 uninstall:
-	@./uninstall.sh
+	@./scripts/uninstall.sh
 
 # Quick install (copy files only, no checks or backup - for developers)
 quick-install:
