@@ -274,8 +274,11 @@ function M.stopAndTranscribe()
                 ui.updateStatus("idle", "Ready")
 
                 -- Copy to clipboard
-                hs.pasteboard.setContents(finalText)
-                log.d("Text copied to clipboard: " .. string.sub(finalText, 1, 50) .. "...")
+                -- Using a newline followed by a Zero Width Space (U+200B)
+                -- This often tricks apps into not sending because the line isn't "empty" or "just a newline"
+                local textToPaste = finalText .. "\n" .. "\226\128\139"
+                hs.pasteboard.setContents(textToPaste)
+                log.d("Text copied to clipboard: " .. string.sub(textToPaste, 1, 50) .. "...")
 
                 -- Store last transcription for later retrieval via menu
                 M.lastTranscription = finalText
