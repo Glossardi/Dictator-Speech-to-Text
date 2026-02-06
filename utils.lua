@@ -33,7 +33,6 @@ function M.getCurrentContext()
     local bundleID = app and app:bundleID() or "Unknown"
     local winTitle = win:title() or "Untitled"
     
-    local now = os.date("*t")
     local dateStr = os.date("%Y-%m-%d")
     local timeStr = os.date("%H:%M:%S")
     local dayName = os.date("%A")
@@ -47,37 +46,83 @@ function M.getCurrentContext()
         "  <window_title>" .. winTitle .. "</window_title>"
     }
     
-    -- Add Clipboard hint (useful if the user is talking about something they just copied)
+    -- Add Clipboard hint
     local clipboard = hs.pasteboard.getContents()
     if clipboard and type(clipboard) == "string" and #clipboard > 0 then
-        -- Limit to first 300 chars to avoid bloating prompt
-        local cbHint = #clipboard > 300 and (clipboard:sub(1, 300) .. "...") or clipboard
-        table.insert(contextParts, "  <clipboard_hint>" .. cbHint .. "</clipboard_hint>")
+        -- Detect if it's a previous Dictator transcript (marked by Zero Width Space \226\128\139)
+        local isDictator = clipboard:find("\226\128\139$")
+        local tag = isDictator and "previous_transcription" or "clipboard_hint"
+        
+        -- Limit to first 350 chars
+        local cbHint = #clipboard > 350 and (clipboard:sub(1, 350) .. "...") or clipboard
+        -- Remove the marker from display in context if present
+        if isDictator then cbHint = cbHint:gsub("\226\128\139$", "") end
+        table.insert(contextParts, "  <" .. tag .. ">" .. cbHint .. "</" .. tag .. ">")
     end
 
-    -- Check Accessibility permissions for deeper insight
+    -- Check Accessibility permissions
     local hasAx = hs.accessibilityState()
     table.insert(contextParts, "  <accessibility_enabled>" .. tostring(hasAx) .. "</accessibility_enabled>")
 
-    -- Attempt to get deep information from the focused element (e.g., text area)
-    local ok, focusedElement = pcall(function() return hs.axuielement.focusedElement() end)
-    if ok and focusedElement then
-        -- 1. Try to get the selected text
-        local okSel, selectedText = pcall(function() return focusedElement.AXSelectedText end)
-        if okSel and type(selectedText) == "string" and #selectedText > 0 then
-            table.insert(contextParts, "  <selected_text>" .. selectedText .. "</selected_text>")
-        end
+    -- Deeper Accessibility extraction (Optimized for Electron/VS Code)
+    local function extractFromElement(el)
+        if not el then return nil end
+        local data = {}
+        
+        -- Try AXSelectedText
+        local okSel, sel = pcall(function() return el.AXSelectedText end)
+        if okSel and type(sel) == "string" and #sel > 0 then data.selected = sel end
+        
+        -- Try AXValue
+        local okVal, val = pcall(function() return el.AXValue end)
+        if okVal and type(val) == "string" and #val > 0 then data.value = val end
+        
+        -- Try AXRole
+        local okRole, role = pcall(function() return el.AXRole end)
+        if okRole then data.role = role end
 
-        -- 2. Try to get the full value (field text)
-        local okVal, val = pcall(function() return focusedElement.AXValue end)
-        if okVal and type(val) == "string" and #val > 0 then
-            -- Limit context to the last 2000 characters
+        return (data.selected or data.value) and data or nil
+    end
+
+    local ok, focusedElement = pcall(function() return hs.axuielement.focusedElement() end)
+    local elementData = extractFromElement(focusedElement)
+    
+    -- Fallback 1: If focused element gave nothing, try its parent (Electron often nests text)
+    if not elementData and focusedElement then
+        local okP, parent = pcall(function() return focusedElement.AXParent end)
+        if okP and parent then
+            elementData = extractFromElement(parent)
+        end
+    end
+
+    -- Fallback 2: Try identifying the main window's focused element directly (Fallback for focus shifts)
+    if not elementData and win then
+        local okW, winEl = pcall(function() return hs.axuielement.windowElement(win) end)
+        if okW and winEl then
+            local pW, focusedEl = pcall(function() return winEl:attributeValue("AXFocusedUIElement") end)
+            if pW and focusedEl then
+                elementData = extractFromElement(focusedEl)
+            end
+        end
+    end
+
+    if elementData then
+        if elementData.selected then
+            table.insert(contextParts, "  <selected_text>" .. elementData.selected .. "</selected_text>")
+        end
+        if elementData.value then
+            local val = elementData.value
             local textContext = #val > 2000 and val:sub(-2000) or val
             table.insert(contextParts, "  <field_text>" .. textContext .. "</field_text>")
         end
-
-        -- 3. Try to get the role
-        local okRole, role = pcall(function() return focusedElement.AXRole end)
+        if elementData.role then
+            table.insert(contextParts, "  <element_role>" .. elementData.role .. "</element_role>")
+        end
+    end
+    
+    table.insert(contextParts, "</context>")
+    return table.concat(contextParts, "\n")
+end
         if okRole and role then
             table.insert(contextParts, "  <element_role>" .. role .. "</element_role>")
         end
