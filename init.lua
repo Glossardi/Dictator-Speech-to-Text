@@ -95,10 +95,14 @@ function M.startRecording()
     -- Capture context at start of recording if enabled
     M.currentContext = nil
     if config.getContextAwarenessEnabled() then
+        -- Immediately capture focused element to avoid losing it during hotkey processing
+        local systemWide = hs.axuielement.systemWideElement()
+        local focusedAtStart = systemWide:attributeValue("AXFocusedUIElement")
+        
         -- Run context capture in a background timer to avoid delaying recording start
         hs.timer.doAfter(0.01, function()
             log.i("Capturing context awareness in background...")
-            local ctx = utils.getCurrentContext()
+            local ctx = utils.getCurrentContext(focusedAtStart)
             if ctx and ctx ~= "" then
                 M.currentContext = ctx
                 log.i("Context captured:\n" .. M.currentContext)

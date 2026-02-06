@@ -24,7 +24,7 @@ function M.get_temp_file_path(extension)
 end
 
 -- Get context about the currently active application and window
-function M.getCurrentContext()
+function M.getCurrentContext(focusedElement)
     local win = hs.window.focusedWindow()
     if not win then return "" end
 
@@ -64,44 +64,85 @@ function M.getCurrentContext()
     local hasAx = hs.accessibilityState()
     table.insert(contextParts, "  <accessibility_enabled>" .. tostring(hasAx) .. "</accessibility_enabled>")
 
-    -- Deeper Accessibility extraction (Optimized for Electron/VS Code)
+    -- Deeper Accessibility extraction (Optimized for Electron/VS Code/Safari)
     local function extractFromElement(el)
         if not el then return nil end
         local data = {}
         
-        -- Try AXSelectedText
-        local okSel, sel = pcall(function() return el.AXSelectedText end)
-        if okSel and type(sel) == "string" and #sel > 0 then data.selected = sel end
+        -- 1. Try AXSelectedText (Standard & VS Code Selection)
+        local okSel, sel = pcall(function() return el:attributeValue("AXSelectedText") end)
+        if okSel and type(sel) == "string" and #sel > 0 then 
+            data.selected = sel 
+        end
         
-        -- Try AXValue
-        local okVal, val = pcall(function() return el.AXValue end)
-        if okVal and type(val) == "string" and #val > 0 then data.value = val end
+        -- 2. Try AXSelectedTextMarkerRange (Advanced Selection for Electron/Safari)
+        if not data.selected then
+            local okM, mRange = pcall(function() return el:attributeValue("AXSelectedTextMarkerRange") end)
+            if okM and mRange then
+                local okS, mStr = pcall(function() return el:attributeValue("AXStringForTextMarkerRange", mRange) end)
+                if okS and type(mStr) == "string" and #mStr > 0 then
+                    data.selected = mStr
+                end
+            end
+        end
         
-        -- Try AXRole
-        local okRole, role = pcall(function() return el.AXRole end)
+        -- 3. Try AXValue (Standard Text)
+        local okVal, val = pcall(function() return el:attributeValue("AXValue") end)
+        if okVal and type(val) == "string" and #val > 0 then 
+            data.value = val 
+        end
+        
+        -- 4. Try AXTextMarkerRange (Advanced Full Text for Electron/Safari)
+        if not data.value then
+            local pStart, startM = pcall(function() return el:attributeValue("AXStartTextMarker") end)
+            local pEnd, endM = pcall(function() return el:attributeValue("AXEndTextMarker") end)
+            if pStart and pEnd and startM and endM then
+                pcall(function()
+                    local fullRange = hs.axuielement.axtextmarker.newRange(startM, endM)
+                    local fullStr = el:attributeValue("AXStringForTextMarkerRange", fullRange)
+                    if type(fullStr) == "string" and #fullStr > 0 then
+                        data.value = fullStr
+                    end
+                end)
+            end
+        end
+
+        -- 5. Fallback AXSharedText
+        if not data.value then
+            local okSh, shared = pcall(function() return el:attributeValue("AXSharedText") end)
+            if okSh and type(shared) == "string" and #shared > 0 then data.value = shared end
+        end
+        
+        local okRole, role = pcall(function() return el:attributeValue("AXRole") end)
         if okRole then data.role = role end
 
         return (data.selected or data.value) and data or nil
     end
 
-    local ok, focusedElement = pcall(function() return hs.axuielement.focusedElement() end)
-    local elementData = extractFromElement(focusedElement)
+    -- Use provided element or get current focused one
+    local focused = focusedElement
+    if not focused then
+        local systemWide = hs.axuielement.systemWideElement()
+        focused = systemWide:attributeValue("AXFocusedUIElement")
+    end
+
+    local elementData = extractFromElement(focused)
     
-    -- Fallback 1: If focused element gave nothing, try its parent (Electron often nests text)
-    if not elementData and focusedElement then
-        local okP, parent = pcall(function() return focusedElement.AXParent end)
+    -- Fallback 1: Try Parent (Common in Electron nesting)
+    if not elementData and focused then
+        local okP, parent = pcall(function() return focused:attributeValue("AXParent") end)
         if okP and parent then
             elementData = extractFromElement(parent)
         end
     end
 
-    -- Fallback 2: Try identifying the main window's focused element directly (Fallback for focus shifts)
-    if not elementData and win then
-        local okW, winEl = pcall(function() return hs.axuielement.windowElement(win) end)
-        if okW and winEl then
-            local pW, focusedEl = pcall(function() return winEl:attributeValue("AXFocusedUIElement") end)
-            if pW and focusedEl then
-                elementData = extractFromElement(focusedEl)
+    -- Fallback 2: Try children (Sometimes the parent is focused but children hold the text)
+    if not elementData and focused then
+        local okC, children = pcall(function() return focused:attributeValue("AXChildren") end)
+        if okC and type(children) == "table" then
+            for _, child in ipairs(children) do
+                elementData = extractFromElement(child)
+                if elementData then break end
             end
         end
     end
@@ -112,6 +153,7 @@ function M.getCurrentContext()
         end
         if elementData.value then
             local val = elementData.value
+            -- Limit context to the last 2000 characters
             local textContext = #val > 2000 and val:sub(-2000) or val
             table.insert(contextParts, "  <field_text>" .. textContext .. "</field_text>")
         end
