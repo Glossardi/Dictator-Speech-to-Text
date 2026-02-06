@@ -18,7 +18,7 @@
 ### 🧪 Technical Implementation
 
 - **init.lua**: Immediate "Focus-Snap" at recording start to preserve the active text field's state. Uses async background capture to ensure zero delay in recording start.
-- **utils.lua**: Complete overhaul of `M.getCurrentContext()` with cascading failover extraction logic. Renamed `<field_text>` to `<surrounding_text_readonly>` for better AI semantic parsing.
+- **utils.lua**: Complete overhaul of `M.getCurrentContext()` with cascading failover extraction logic. Renamed `<field_text>` to `<surrounding_text_readonly>` for better AI semantic parsing. Added support for `AXTitle` and `AXHelp` attributes and implemented a **Clipboard Fallback** mechanism for "hard-case" applications (VS Code, Discord, Safari, Chrome) where Accessibility APIs fail to return text content.
 - **api.lua**: Payload expansion to include structured XML context (including user glossary) within the user message. Implemented deterministic correction with temperature 0.0, stop sequences, and robust output cleanup to eliminate AI preambles and code fences.
 
 ---

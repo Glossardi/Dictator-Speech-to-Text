@@ -56,7 +56,8 @@ function M.getCurrentContext(focusedElement)
         local data = {}
         
         -- Attributes to check for value and selection
-        local valAttrs = {"AXValue", "AXSharedText", "AXDescription"}
+        -- AXTitle and AXHelp are often used for placeholders or descriptive labels in web inputs
+        local valAttrs = {"AXValue", "AXSharedText", "AXDescription", "AXTitle", "AXHelp"}
         local selAttrs = {"AXSelectedText"}
 
         -- 1. Try directly supported text attributes
@@ -174,6 +175,42 @@ function M.getCurrentContext(focusedElement)
         end
         if elementData.role then
             table.insert(contextParts, "  <element_role>" .. elementData.role .. "</element_role>")
+        end
+    else
+        -- Clipboard Fallback for Hard-Case apps (Electron, VS Code, Browser, Discord)
+        local hardCaseApps = {
+            ["com.microsoft.VSCode"] = true,
+            ["com.hnc.Discord"] = true,
+            ["com.apple.Safari"] = true,
+            ["com.google.Chrome"] = true,
+            ["com.electron.perplexity"] = true -- Assuming hypothetical bundle ID
+        }
+
+        if hardCaseApps[bundleID] or (appName:lower():find("perplexity")) then
+            table.insert(contextParts, "  <context_method>clipboard_fallback</context_method>")
+            -- 1. Store original clipboard
+            local originalClipboard = hs.pasteboard.getContents()
+            
+            -- 2. Select All + Copy
+            hs.eventtap.keyStroke({"cmd"}, "a", 0)
+            hs.eventtap.keyStroke({"cmd"}, "c", 0)
+            
+            -- Small delay to let clipboard update
+            hs.timer.usleep(100000) -- 100ms
+            
+            local capturedText = hs.pasteboard.getContents()
+            if capturedText and #capturedText > 0 then
+                local textContext = #capturedText > 1500 and capturedText:sub(-1500) or capturedText
+                table.insert(contextParts, "  <surrounding_text_readonly>" .. textContext .. "</surrounding_text_readonly>")
+            end
+            
+            -- 3. Restore clipboard
+            if originalClipboard then
+                hs.pasteboard.setContents(originalClipboard)
+            end
+            
+            -- 4. Unselect (Right arrow puts cursor at end of text)
+            hs.eventtap.keyStroke({}, "right", 0)
         end
     end
     
