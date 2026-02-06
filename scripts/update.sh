@@ -17,8 +17,8 @@ readonly BACKUP_DIR="${HAMMERSPOON_DIR}/backups"
 readonly TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 readonly BACKUP_PATH="${BACKUP_DIR}/dictator_backup_${TIMESTAMP}"
 
-# Get script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get project root (parent directory of this script)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Logging functions
 log_info() {
@@ -39,7 +39,7 @@ log_error() {
 
 # Check if Git repository
 check_git_repo() {
-    if [[ -d "${SCRIPT_DIR}/.git" ]]; then
+    if [[ -d "${PROJECT_ROOT}/.git" ]]; then
         log_info "Git repository detected"
         return 0
     else
@@ -65,7 +65,7 @@ check_sox() {
 update_from_git() {
     log_info "Pulling latest changes from Git..."
     
-    cd "${SCRIPT_DIR}"
+    cd "${PROJECT_ROOT}"
     
     # Check for uncommitted changes
     if [[ -n $(git status --porcelain) ]]; then
@@ -102,7 +102,7 @@ backup_existing_files() {
     local lua_files=()
     
     # Find existing Dictator-related files
-    for file in "${SCRIPT_DIR}"/*.lua; do
+    for file in "${PROJECT_ROOT}"/*.lua; do
         local basename=$(basename "${file}")
         if [[ -f "${HAMMERSPOON_DIR}/${basename}" ]]; then
             lua_files+=("${basename}")
@@ -129,7 +129,7 @@ install_files() {
     log_info "Installing updated files..."
     
     local count=0
-    for file in "${SCRIPT_DIR}"/*.lua; do
+    for file in "${PROJECT_ROOT}"/*.lua; do
         if [[ -f "${file}" ]]; then
             cp -v "${file}" "${HAMMERSPOON_DIR}/"
             ((count++))
