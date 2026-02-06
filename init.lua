@@ -95,10 +95,12 @@ function M.startRecording()
     -- Capture context at start of recording if enabled
     M.currentContext = nil
     if config.getContextAwarenessEnabled() then
-        log.d("Capturing context awareness...")
+        log.i("Capturing context awareness...")
         M.currentContext = utils.getCurrentContext()
         if M.currentContext and M.currentContext ~= "" then
-            log.d("Context captured: " .. string.sub(M.currentContext, 1, 50) .. "...")
+            log.i("Context captured:\n" .. M.currentContext)
+        else
+            log.w("Context awareness enabled but no context captured")
         end
     end
     
