@@ -121,16 +121,16 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attempt, callback)
 end
 
 -- AI text correction orchestration
-function M.correctText(text, callback)
+function M.correctText(text, callback, contextXml)
     local apiKey = config.getCorrectionApiKey()
     local ok, err = client.validateApiKey(apiKey)
     if not ok then if callback then callback(nil, err) end; return end
     if not text or text == "" then if callback then callback(nil, "No text to correct") end; return end
 
-    M.correctTextWithRetry(text, apiKey, 0, callback, true)
+    M.correctTextWithRetry(text, apiKey, 0, callback, true, contextXml)
 end
 
-function M.correctTextWithRetry(text, apiKey, attempt, callback, includeTemp)
+function M.correctTextWithRetry(text, apiKey, attempt, callback, includeTemp, contextXml)
     if attempt >= client.MAX_RETRIES then
         if callback then callback(nil, "Max correction retries exceeded") end
         return
@@ -140,11 +140,17 @@ function M.correctTextWithRetry(text, apiKey, attempt, callback, includeTemp)
     local isCloudflare = M.isCloudflareProvider(baseUrl)
     local url = isCloudflare and (baseUrl:gsub("/v1/openai$", "") .. "/v1/chat/completions") or (baseUrl .. "/chat/completions")
     
+    local userContent = ""
+    if contextXml and contextXml ~= "" then
+        userContent = contextXml .. "\n\n"
+    end
+    userContent = userContent .. "<transcript>" .. text .. "</transcript>"
+
     local payload = {
         model = config.getCorrectionModel(),
         messages = {
             { role = "system", content = config.getCorrectionSystemPrompt() },
-            { role = "user", content = "<transcript>" .. text .. "</transcript>" }
+            { role = "user", content = userContent }
         }
     }
     if includeTemp then
@@ -157,7 +163,7 @@ function M.correctTextWithRetry(text, apiKey, attempt, callback, includeTemp)
     client.performRequest("correct", url, args, attempt, nil, function(success, status, body, elapsed)
         if not success or status == 429 or status >= 500 then
             local delay = client.calculateRetryDelay(attempt)
-            hs.timer.doAfter(delay, function() M.correctTextWithRetry(text, apiKey, attempt + 1, callback, includeTemp) end)
+            hs.timer.doAfter(delay, function() M.correctTextWithRetry(text, apiKey, attempt + 1, callback, includeTemp, contextXml) end)
             return
         end
 
@@ -165,7 +171,7 @@ function M.correctTextWithRetry(text, apiKey, attempt, callback, includeTemp)
         if not ok or not resp then if callback then callback(nil, "Invalid JSON") end; return end
         
         if resp.error and status == 400 and includeTemp and tostring(resp.error.message):lower():find("temperature") then
-            M.correctTextWithRetry(text, apiKey, attempt, callback, false)
+            M.correctTextWithRetry(text, apiKey, attempt, callback, false, contextXml)
             return
         end
 

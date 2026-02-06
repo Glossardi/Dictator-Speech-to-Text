@@ -26,6 +26,7 @@ M.MIN_RECORDING_DURATION = 0.4  -- Minimum duration in seconds to trigger transc
 M.recordingStartTime = nil
 M.lastTranscription = nil  -- Store last successful transcription text
 M.lastOriginalTranscription = nil  -- Store original transcription (before correction)
+M.currentContext = nil  -- Store context (app, window title, etc.) for AI correction
 M.processingStartTime = nil  -- Track when processing started
 M.MAX_PROCESSING_TIME = 90  -- Maximum allowed processing time in seconds
 M.previousAudioFilePath = nil  -- Track previous audio file for cleanup
@@ -89,6 +90,16 @@ function M.startRecording()
         log.w("Start recording blocked: already processing")
         hs.alert.show("Already processing, please wait...")
         return
+    end
+
+    -- Capture context at start of recording if enabled
+    M.currentContext = nil
+    if config.getContextAwarenessEnabled() then
+        log.d("Capturing context awareness...")
+        M.currentContext = utils.getCurrentContext()
+        if M.currentContext and M.currentContext ~= "" then
+            log.d("Context captured: " .. string.sub(M.currentContext, 1, 50) .. "...")
+        end
     end
     
     -- Check if already recording
@@ -314,7 +325,7 @@ function M.stopAndTranscribe()
                             finalize(correctedText)
                         end
                     end
-                end)
+                end, M.currentContext)
             else
                 finalize(text)
             end

@@ -23,6 +23,37 @@ function M.get_temp_file_path(extension)
     return os.tmpname() .. "_" .. uuid .. "." .. (extension or "mp3")
 end
 
+-- Get context about the currently active application and window
+function M.getCurrentContext()
+    local win = hs.window.focusedWindow()
+    if not win then return "" end
+
+    local app = win:application()
+    local appName = app and app:name() or "Unknown"
+    local winTitle = win:title() or "Untitled"
+    
+    local contextParts = {
+        "<context>",
+        "  <app>" .. appName .. "</app>",
+        "  <window_title>" .. winTitle .. "</window_title>"
+    }
+    
+    -- Attempt to get text from the focused element (e.g., text area)
+    -- This requires accessibility permissions to be granted to Hammerspoon
+    local ok, focusedElement = pcall(function() return hs.axuielement.focusedElement() end)
+    if ok and focusedElement then
+        local okVal, val = pcall(function() return focusedElement.AXValue end)
+        if okVal and type(val) == "string" and #val > 0 then
+            -- Limit context to the last 1000 characters to save tokens/context window
+            local textContext = #val > 1000 and val:sub(-1000) or val
+            table.insert(contextParts, "  <field_text>" .. textContext .. "</field_text>")
+        end
+    end
+    
+    table.insert(contextParts, "</context>")
+    return table.concat(contextParts, "\n")
+end
+
 -- Validate transcription output to prevent garbage/malicious content
 -- Returns: isValid (boolean), errorMessage (string or nil)
 function M.validateTranscriptionOutput(text)

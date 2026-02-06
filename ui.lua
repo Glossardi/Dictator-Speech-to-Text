@@ -174,6 +174,11 @@ function M.buildMenu()
             M.refresh()
         end },
         { title = "  Correction Settings", disabled = (not correctionEnabled), menu = {
+            { title = "Enable Context Awareness", checked = config.getContextAwarenessEnabled(), fn = function()
+                config.setContextAwarenessEnabled(not config.getContextAwarenessEnabled())
+                M.refresh()
+            end },
+            { title = "-" },
             { title = "Set API Base URL...", fn = function()
                 local current = correctionApiBaseUrl
                 local button, text = hs.dialog.textPrompt(

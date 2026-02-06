@@ -1,5 +1,25 @@
 # Changelog
 
+## Version 1.5.0 - Context-Aware AI Correction (February 2026)
+
+### ✨ New Features
+
+- **Context Awareness**: The AI correction model now understands which application and window you are working in. It can adapt its tone, formatting, and technical terminology based on the active environment (e.g., formal for Outlook, informal for Slack, technical for VS Code).
+- **Text Field Scraping**: Where supported by macOS Accessibility, the last 1,000 characters of the current text field are sent as context to ensure the correction fits seamlessly into the existing paragraph.
+
+### 🔧 Configuration Changes
+
+- **New Toggle**: Settings → Correction Settings → **Enable Context Awareness**.
+- **Enhanced System Prompt**: Updated the default correction prompt to handle incoming `<context>` blocks with app-specific instructions.
+
+### 🧪 Technical Implementation
+
+- **init.lua**: Added context capture logic at start of recording.
+- **utils.lua**: Implemented `M.getCurrentContext()` using `hs.window` and `hs.axuielement`.
+- **api.lua**: Updated payload construction to inject XML-formatted context into the user prompt.
+
+---
+
 ## Version 1.4.1 - XML-formatted Correction Prompts (February 2026)
 
 ### ✨ Enhancements

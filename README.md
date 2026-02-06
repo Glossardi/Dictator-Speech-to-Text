@@ -18,6 +18,7 @@ Dictator converts speech to text with professional accuracy using the latest Whi
 - **Privacy First**: Audio is processed only by your chosen API provider.
 - **Smart Formatting**: Optional AI-powered grammar and punctuation refinement.
 - **Native Experience**: A sleek macOS menubar app that works with any text field.
+- **Context Awareness**: (New) Automatically detects the active app and window to adapt the correction style accordingly.
 
 ---
 
@@ -86,6 +87,7 @@ cp -v ~/Documents/Dictator/*.lua ~/.hammerspoon/
 - **⚡ Performance**: Optimized for Groq (transcription often under 500ms).
 - **🔑 BYOK**: Compatible with all OpenAI-standard API providers.
 - **🎯 Precision**: Support for custom technical glossaries to avoid mistakes.
+- **🧠 Context Awareness**: Detects active apps (Slack, Mail, VS Code) and window titles to provide smarter, context-aware corrections.
 - **🌍 Global**: Multi-language support via Whisper-v3 Large models.
 
 ---

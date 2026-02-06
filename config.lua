@@ -17,6 +17,7 @@ M.LANGUAGE_KEY = M.BUNDLE_ID .. ".language"
 M.RATE_LIMIT_MAX_KEY = M.BUNDLE_ID .. ".rateLimitMax"
 M.RATE_LIMIT_WINDOW_KEY = M.BUNDLE_ID .. ".rateLimitWindow"
 M.CORRECTION_ENABLED_KEY = M.BUNDLE_ID .. ".correctionEnabled"
+M.CONTEXT_AWARENESS_ENABLED_KEY = M.BUNDLE_ID .. ".contextAwarenessEnabled"
 M.CORRECTION_MODEL_KEY = M.BUNDLE_ID .. ".correctionModel"
 M.CORRECTION_SYSTEM_PROMPT_KEY = M.BUNDLE_ID .. ".correctionSystemPrompt"
 M.GLOSSARY_KEY = M.BUNDLE_ID .. ".userGlossary"
@@ -36,6 +37,7 @@ M.defaultLanguage = defaults.defaultLanguage
 M.defaultRateLimitMax = defaults.defaultRateLimitMax
 M.defaultRateLimitWindow = defaults.defaultRateLimitWindow
 M.defaultCorrectionEnabled = defaults.defaultCorrectionEnabled
+M.defaultContextAwarenessEnabled = defaults.defaultContextAwarenessEnabled
 M.defaultCorrectionModel = defaults.defaultCorrectionModel
 M.defaultCorrectionSystemPrompt = defaults.defaultCorrectionSystemPrompt
 M.defaultTranscriptionApiBaseUrl = defaults.defaultTranscriptionApiBaseUrl
@@ -164,6 +166,16 @@ end
 
 function M.setCorrectionEnabled(val)
     settings.set(M.CORRECTION_ENABLED_KEY, val and true or false)
+end
+
+function M.getContextAwarenessEnabled()
+    local val = settings.get(M.CONTEXT_AWARENESS_ENABLED_KEY)
+    if val == nil then return M.defaultContextAwarenessEnabled end
+    return val and true or false
+end
+
+function M.setContextAwarenessEnabled(val)
+    settings.set(M.CONTEXT_AWARENESS_ENABLED_KEY, val and true or false)
 end
 
 function M.getCorrectionModel()
