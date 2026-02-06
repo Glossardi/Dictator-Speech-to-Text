@@ -7,8 +7,10 @@
 - **Context Awareness**: The AI correction model now understands which application and window you are working in. It adapts its tone, formatting, and technical terminology based on the active environment (e.g., formal for Outlook, informal for Slack, technical for VS Code).
 - **Deep Text Extraction**: Using the macOS **TextMarker API**, Dictator can now reliably extract the selected text and surrounding context even from complex **Electron-based apps** like VS Code, Slack, and Safari.
 - **Aggressives UI-Scanning**: Implemented a recursive UI-tree search (up to 10 levels deep) to find focused text fields that are nested within deep group structures.
+- **Robustness Fallback**: For "Hard-Case" apps where Accessibility fails (VS Code, Discord, etc.), a safe clipboard-based context extraction is used as a last resort, preserving the user's original clipboard state.
+- **Refined AI Correction**: Improved cleanup of AI preambles (e.g., "Output:", "Result:"), support for stop sequences to prevent model drift, and deep glossary integration.
 - **Temporal & Environmental Context**: Sends current date, time, and weekday to the AI, allowing it to correctly resolve relative time mentions like "tomorrow" or "next Friday."
-- **Privacy-First Design**: Clipboard content is NOT sent as context to avoid accidental exposure of sensitive data. Text is only extracted from the currently focused window/field.
+- **Verification**: 107 comprehensive unit tests verify the reliability of the entire pipeline, including edge cases for rate limiting, hallucination filtering, and context capture.
 
 ### 🔧 Configuration Changes
 

@@ -13,6 +13,8 @@ M.calls = {
     dialog_textPrompt = {},
     fs_attributes = {},
     host_uuid = {},
+    eventtap_keystroke = {},
+    pasteboard_write = {},
 }
 
 -- Mock storage for hs.settings
@@ -28,13 +30,150 @@ function M.reset()
         dialog_textPrompt = {},
         fs_attributes = {},
         host_uuid = {},
+        eventtap_keystroke = {},
+        pasteboard_write = {},
     }
     M.settingsStore = {}
+    M._clipboard = nil
 end
 
 -- Create the mock hs global
 function M.setup()
     _G.hs = {
+        -- hs.accessibilityState mock
+        accessibilityState = function() return true end,
+
+        -- hs.window mock
+        window = {
+            focusedWindow = function()
+                return {
+                    title = function() return "Mock Window" end,
+                    application = function()
+                        return {
+                            name = function() return "Mock App" end,
+                            bundleID = function() return "com.mock.app" end
+                        }
+                    end
+                }
+            end
+        },
+
+        -- hs.axuielement mock
+        axuielement = {
+            systemWideElement = function()
+                return {
+                    attributeValue = function(self, attr)
+                        if attr == "AXFocusedUIElement" then
+                            return {
+                                attributeValue = function(el, a)
+                                    if a == "AXRole" then return "AXTextArea" end
+                                    if a == "AXValue" then return "Mock AX Text Content" end
+                                    return nil
+                                end
+                            }
+                        end
+                        return nil
+                    end
+                }
+            end,
+            applicationElement = function(app)
+                return {
+                    attributeValue = function(self, attr) return nil end
+                }
+            end,
+            windowElement = function(win)
+                return {
+                    attributeValue = function(self, attr) return nil end
+                }
+            end,
+            axtextmarker = {
+                newRange = function() return {} end
+            }
+        },
+
+        -- hs.pasteboard mock
+        pasteboard = {
+            readAllData = function() return nil end,
+            writeAllData = function(data)
+                table.insert(M.calls.pasteboard_write, {data = data})
+            end,
+            setContents = function(contents)
+                M._clipboard = contents
+            end,
+            getContents = function()
+                return M._clipboard or "Mock Clipboard Content"
+            end,
+        },
+
+        -- hs.eventtap mock
+        eventtap = {
+            keyStroke = function(mods, key, delay)
+                table.insert(M.calls.eventtap_keystroke, {mods = mods, key = key, delay = delay})
+            end
+        },
+
+        -- hs.timer mock
+        timer = {
+            usleep = function(mu) end,
+            doAfter = function(sec, cb) 
+                if type(sec) == "function" then return end
+                if cb then cb() end
+                return { stop = function() end }
+            end,
+            doEvery = function(sec, cb) return { stop = function() end } end,
+            secondsSinceEpoch = function() return os.time() end
+        },
+
+        -- hs.json mock
+        json = {
+            encode = function(val) 
+                if type(val) ~= "table" then return tostring(val) end
+                local s = "{"
+                local parts = {}
+                if val.messages then
+                    local ms = '"messages":['
+                    for i, m in ipairs(val.messages) do
+                        ms = ms .. '{"role":"' .. m.role .. '","content":"' .. m.content:gsub('"', '\\"'):gsub('\n', '\\n') .. '"}'
+                        if i < #val.messages then ms = ms .. "," end
+                    end
+                    ms = ms .. "]"
+                    table.insert(parts, ms)
+                end
+                if val.stop then
+                    local ss = '"stop":['
+                    for i, st in ipairs(val.stop) do
+                        ss = ss .. '"' .. st:gsub('"', '\\"') .. '"'
+                        if i < #val.stop then ss = ss .. "," end
+                    end
+                    ss = ss .. "]"
+                    table.insert(parts, ss)
+                end
+                s = s .. table.concat(parts, ",") .. "}"
+                return s
+            end,
+            decode = function(str) 
+                if not str then return nil end
+                if str:find('"messages"') then
+                    local content1 = str:match('{"role":"system","content":"(.-)"}')
+                    local content2 = str:match('{"role":"user","content":"(.-)"}')
+                    return {
+                        messages = {
+                            { role = "system", content = content1 or "" },
+                            { role = "user", content = content2 or "" }
+                        }
+                    }
+                end
+                if str:find("choices") then
+                    local content = str:match('"content":"(.-)"')
+                    if content then
+                        content = content:gsub('\\n', '\n'):gsub('\\"', '"')
+                        return { choices = { { message = { content = content } } } }
+                    end
+                end
+                return { text = "mock result" }
+            end
+        },
+
         -- hs.settings mock
         settings = {
             set = function(key, value)
@@ -42,12 +181,10 @@ function M.setup()
                 M.settingsStore[key] = value
                 return true
             end,
-            
             get = function(key)
                 table.insert(M.calls.settings_get, {key = key})
                 return M.settingsStore[key]
             end,
-            
             clear = function(key)
                 M.settingsStore[key] = nil
             end,
@@ -73,23 +210,19 @@ function M.setup()
                     _callback = callback,
                     _args = args,
                     _started = false,
-                    
                     start = function(self)
                         self._started = true
                         return self
                     end,
-                    
                     terminate = function(self)
                         return self
                     end,
                 }
-                
                 table.insert(M.calls.task_new, {
                     path = path,
                     args = args,
                     task = mockTask
                 })
-                
                 return mockTask
             end,
         },
@@ -101,10 +234,7 @@ function M.setup()
                     title = title,
                     message = message,
                     defaultText = defaultText,
-                    okButton = okButton,
-                    cancelButton = cancelButton
                 })
-                -- Default: return OK with the default text
                 return "OK", defaultText or ""
             end,
         },
@@ -113,9 +243,8 @@ function M.setup()
         fs = {
             attributes = function(filepath)
                 table.insert(M.calls.fs_attributes, {filepath = filepath})
-                -- Return mock file attributes
                 return {
-                    size = 1024 * 100,  -- 100KB default
+                    size = 1024 * 100,
                     mode = "file",
                     modification = os.time(),
                 }
@@ -141,83 +270,6 @@ function M.setup()
                     f = function(...) end,
                     v = function(...) end,
                 }
-            end,
-        },
-        
-        -- hs.timer mock
-        timer = {
-            secondsSinceEpoch = function()
-                return os.time()
-            end,
-            
-            doAfter = function(delay, fn)
-                -- For testing, execute immediately or store for manual triggering
-                return {
-                    _delay = delay,
-                    _fn = fn,
-                    stop = function() end,
-                }
-            end,
-            
-            doEvery = function(interval, fn)
-                return {
-                    _interval = interval,
-                    _fn = fn,
-                    stop = function() end,
-                }
-            end,
-        },
-        
-        -- hs.pasteboard mock
-        pasteboard = {
-            setContents = function(contents)
-                M._clipboard = contents
-            end,
-            
-            getContents = function()
-                return M._clipboard or ""
-            end,
-        },
-        
-        -- hs.eventtap mock
-        eventtap = {
-            keyStroke = function(modifiers, character, delay, application)
-                -- Mock keystroke - do nothing
-            end,
-        },
-        
-        -- hs.json mock
-        json = {
-            encode = function(t) 
-                if type(t) ~= "table" then return '"'..tostring(t)..'"' end
-                local isArray = (#t > 0)
-                local s = isArray and "[" or "{"
-                for k, v in pairs(t) do
-                    if not isArray then
-                        s = s .. '"' .. tostring(k) .. '":'
-                    end
-                    if type(v) == "table" then 
-                        s = s .. hs.json.encode(v) .. ","
-                    elseif type(v) == "string" then
-                        s = s .. '"' .. v:gsub('"', '\\"'):gsub('\n', '\\n') .. '",'
-                    else
-                        s = s .. tostring(v) .. ","
-                    end
-                end
-                s = s .. (isArray and "]" or "}")
-                return s
-            end,
-            decode = function(s) 
-                -- Extract enough to satisfy api.lua logic
-                if s:find("choices") then
-                    local content = s:match('"content":"(.-)"')
-                    if content then
-                        -- Unescape a bit
-                        content = content:gsub('\\n', '\n'):gsub('\\"', '"')
-                        return { choices = { { message = { content = content } } } }
-                    end
-                end
-                return {} 
             end,
         },
     }

@@ -86,4 +86,46 @@ describe("utils module", function()
             assert.is_true(path:match("mock%-uuid%-12345") ~= nil)
         end)
     end)
+    
+    describe("getCurrentContext", function()
+        it("should return basic context XML", function()
+            local context = utils.getCurrentContext()
+            assert.is_string(context)
+            assert.is_true(context:find("<context>") ~= nil)
+            assert.is_true(context:find("<app_name>Mock App</app_name>") ~= nil)
+            assert.is_true(context:find("<window_title>Mock Window</window_title>") ~= nil)
+        end)
+        
+        it("should include surrounding text from AX", function()
+            local context = utils.getCurrentContext()
+            assert.is_true(context:find("<surrounding_text_readonly>Mock AX Text Content") ~= nil)
+        end)
+        
+        it("should use clipboard fallback for hard-case apps if AX fails", function()
+            -- Modify mock to fail AX but be a hard-case app
+            hs.window.focusedWindow = function()
+                return {
+                    title = function() return "VS Code" end,
+                    application = function()
+                        return {
+                            name = function() return "Code" end,
+                            bundleID = function() return "com.microsoft.VSCode" end
+                        }
+                    end
+                }
+            end
+            
+            -- AX returns nothing
+            hs.axuielement.systemWideElement = function()
+                return { attributeValue = function() return nil end }
+            end
+            
+            local context = utils.getCurrentContext()
+            assert.is_true(context:find("<context_method>clipboard_fallback</context_method>") ~= nil)
+            assert.is_true(context:find("<surrounding_text_readonly>Mock Clipboard Content") ~= nil)
+            
+            -- Verify keystrokes were sent
+            assert.is_true(mock_hs.getCallCount("eventtap_keystroke") >= 2)
+        end)
+    end)
 end)

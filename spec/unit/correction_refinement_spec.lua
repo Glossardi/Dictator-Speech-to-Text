@@ -25,6 +25,31 @@ describe("AI correction refinements", function()
         mock_hs.teardown()
     end)
     
+    describe("correctText context awareness", function()
+        it("should include context XML in user message if provided", function()
+            local context = "<context><app_name>TestApp</app_name></context>"
+            api.correctText("Transcribed text", function() end, context)
+            
+            local lastCall = mock_hs.getLastCall("task_new")
+            assert.is_not_nil(lastCall)
+            
+            local args = lastCall.args
+            local jsonPayload = nil
+            for i, arg in ipairs(args) do
+                if arg == "-d" then
+                    jsonPayload = args[i+1]
+                    break
+                end
+            end
+            
+            assert.is_not_nil(jsonPayload)
+            -- Use string matching instead of decoding for robustness
+            assert.is_true(jsonPayload:find("<context>") ~= nil)
+            assert.is_true(jsonPayload:find("TestApp") ~= nil)
+            assert.is_true(jsonPayload:find("<transcript>Transcribed text</transcript>") ~= nil)
+        end)
+    end)
+    
     describe("correctTextWithRetry refinements", function()
         it("should include stop sequences in payload", function()
             api.correctText("Test text", function() end)
