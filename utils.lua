@@ -141,16 +141,16 @@ function M.getCurrentContext(focusedElement)
 
     -- Last Resort: If we still have nothing, search the entire window for ANY focused text element
     if not elementData and win then
-        local winEl = hs.axuielement.windowElement(win)
-        if winEl then
+        local okW, winEl = pcall(function() return hs.axuielement.windowElement(win) end)
+        if okW and winEl then
             -- This is a more horizontal search
             local function findText(el, depth)
-                if depth > 3 then return nil end -- Don't go too deep
+                if depth > 10 then return nil end -- Deep enough for Electron/VS Code
                 local d = extractFromElement(el)
                 if d then return d end
                 
-                local children = el:attributeValue("AXChildren")
-                if type(children) == "table" then
+                local okC, children = pcall(function() return el:attributeValue("AXChildren") end)
+                if okC and type(children) == "table" then
                     for _, child in ipairs(children) do
                         local res = findText(child, depth + 1)
                         if res then return res end
@@ -174,14 +174,6 @@ function M.getCurrentContext(focusedElement)
         end
         if elementData.role then
             table.insert(contextParts, "  <element_role>" .. elementData.role .. "</element_role>")
-        end
-    end
-    
-    table.insert(contextParts, "</context>")
-    return table.concat(contextParts, "\n")
-end
-        if okRole and role then
-            table.insert(contextParts, "  <element_role>" .. role .. "</element_role>")
         end
     end
     
