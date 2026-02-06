@@ -30,23 +30,38 @@ function M.getCurrentContext()
 
     local app = win:application()
     local appName = app and app:name() or "Unknown"
+    local bundleID = app and app:bundleID() or "Unknown"
     local winTitle = win:title() or "Untitled"
     
     local contextParts = {
         "<context>",
-        "  <app>" .. appName .. "</app>",
+        "  <app_name>" .. appName .. "</app_name>",
+        "  <bundle_id>" .. bundleID .. "</bundle_id>",
         "  <window_title>" .. winTitle .. "</window_title>"
     }
     
-    -- Attempt to get text from the focused element (e.g., text area)
+    -- Attempt to get deep information from the focused element (e.g., text area)
     -- This requires accessibility permissions to be granted to Hammerspoon
     local ok, focusedElement = pcall(function() return hs.axuielement.focusedElement() end)
     if ok and focusedElement then
+        -- 1. Try to get the selected text (if any)
+        local okSel, selectedText = pcall(function() return focusedElement.AXSelectedText end)
+        if okSel and type(selectedText) == "string" and #selectedText > 0 then
+            table.insert(contextParts, "  <selected_text>" .. selectedText .. "</selected_text>")
+        end
+
+        -- 2. Try to get the full value (existing text in the field)
         local okVal, val = pcall(function() return focusedElement.AXValue end)
         if okVal and type(val) == "string" and #val > 0 then
-            -- Limit context to the last 1000 characters to save tokens/context window
-            local textContext = #val > 1000 and val:sub(-1000) or val
+            -- Limit context to the last 2000 characters for better surrounding context
+            local textContext = #val > 2000 and val:sub(-2000) or val
             table.insert(contextParts, "  <field_text>" .. textContext .. "</field_text>")
+        end
+
+        -- 3. Try to get the role of the element (e.g., AXTextArea, AXTextField)
+        local okRole, role = pcall(function() return focusedElement.AXRole end)
+        if okRole and role then
+            table.insert(contextParts, "  <element_role>" .. role .. "</element_role>")
         end
     end
     
