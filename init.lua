@@ -95,13 +95,17 @@ function M.startRecording()
     -- Capture context at start of recording if enabled
     M.currentContext = nil
     if config.getContextAwarenessEnabled() then
-        log.i("Capturing context awareness...")
-        M.currentContext = utils.getCurrentContext()
-        if M.currentContext and M.currentContext ~= "" then
-            log.i("Context captured:\n" .. M.currentContext)
-        else
-            log.w("Context awareness enabled but no context captured")
-        end
+        -- Run context capture in a background timer to avoid delaying recording start
+        hs.timer.doAfter(0.01, function()
+            log.i("Capturing context awareness in background...")
+            local ctx = utils.getCurrentContext()
+            if ctx and ctx ~= "" then
+                M.currentContext = ctx
+                log.i("Context captured:\n" .. M.currentContext)
+            else
+                log.w("Context awareness enabled but no context captured")
+            end
+        end)
     end
     
     -- Check if already recording
@@ -311,6 +315,7 @@ function M.stopAndTranscribe()
 
             if config.getCorrectionEnabled() then
                 log.i(string.format("AI correction enabled - correcting text (%d chars)", #text))
+                log.d("Correction Input: \"" .. text .. "\"")
                 ui.updateStatus("processing_ai", "Processing AI...")
                 api.correctText(text, function(correctedText, correctionErr)
                     if correctionErr or type(correctedText) ~= "string" or correctedText == "" then
@@ -324,6 +329,7 @@ function M.stopAndTranscribe()
                             finalize(text)
                         else
                             log.i(string.format("AI correction successful (diff: %d chars)", #correctedText - #text))
+                            log.d("Correction Output: \"" .. correctedText .. "\"")
                             finalize(correctedText)
                         end
                     end

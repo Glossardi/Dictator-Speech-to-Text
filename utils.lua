@@ -33,32 +33,50 @@ function M.getCurrentContext()
     local bundleID = app and app:bundleID() or "Unknown"
     local winTitle = win:title() or "Untitled"
     
+    local now = os.date("*t")
+    local dateStr = os.date("%Y-%m-%d")
+    local timeStr = os.date("%H:%M:%S")
+    local dayName = os.date("%A")
+    
     local contextParts = {
         "<context>",
+        "  <current_date>" .. dateStr .. " (" .. dayName .. ")</current_date>",
+        "  <current_time>" .. timeStr .. "</current_time>",
         "  <app_name>" .. appName .. "</app_name>",
         "  <bundle_id>" .. bundleID .. "</bundle_id>",
         "  <window_title>" .. winTitle .. "</window_title>"
     }
     
+    -- Add Clipboard hint (useful if the user is talking about something they just copied)
+    local clipboard = hs.pasteboard.getContents()
+    if clipboard and type(clipboard) == "string" and #clipboard > 0 then
+        -- Limit to first 300 chars to avoid bloating prompt
+        local cbHint = #clipboard > 300 and (clipboard:sub(1, 300) .. "...") or clipboard
+        table.insert(contextParts, "  <clipboard_hint>" .. cbHint .. "</clipboard_hint>")
+    end
+
+    -- Check Accessibility permissions for deeper insight
+    local hasAx = hs.accessibilityState()
+    table.insert(contextParts, "  <accessibility_enabled>" .. tostring(hasAx) .. "</accessibility_enabled>")
+
     -- Attempt to get deep information from the focused element (e.g., text area)
-    -- This requires accessibility permissions to be granted to Hammerspoon
     local ok, focusedElement = pcall(function() return hs.axuielement.focusedElement() end)
     if ok and focusedElement then
-        -- 1. Try to get the selected text (if any)
+        -- 1. Try to get the selected text
         local okSel, selectedText = pcall(function() return focusedElement.AXSelectedText end)
         if okSel and type(selectedText) == "string" and #selectedText > 0 then
             table.insert(contextParts, "  <selected_text>" .. selectedText .. "</selected_text>")
         end
 
-        -- 2. Try to get the full value (existing text in the field)
+        -- 2. Try to get the full value (field text)
         local okVal, val = pcall(function() return focusedElement.AXValue end)
         if okVal and type(val) == "string" and #val > 0 then
-            -- Limit context to the last 2000 characters for better surrounding context
+            -- Limit context to the last 2000 characters
             local textContext = #val > 2000 and val:sub(-2000) or val
             table.insert(contextParts, "  <field_text>" .. textContext .. "</field_text>")
         end
 
-        -- 3. Try to get the role of the element (e.g., AXTextArea, AXTextField)
+        -- 3. Try to get the role
         local okRole, role = pcall(function() return focusedElement.AXRole end)
         if okRole and role then
             table.insert(contextParts, "  <element_role>" .. role .. "</element_role>")
