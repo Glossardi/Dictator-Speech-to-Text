@@ -55,9 +55,17 @@ function M.getCurrentContext(focusedElement)
         if not el then return nil end
         local data = {}
         
+        -- Roles that we specifically want to extract from
+        local validRoles = {
+            AXTextArea = true, AXTextField = true, AXStaticText = true,
+            AXWebArea = true, AXGroup = true, AXScrollArea = true
+        }
+        local role = el:attributeValue("AXRole")
+        if not validRoles[role] then return nil end
+
         -- Attributes to check for value and selection
         -- AXTitle and AXHelp are often used for placeholders or descriptive labels in web inputs
-        local valAttrs = {"AXValue", "AXSharedText", "AXDescription", "AXTitle", "AXHelp"}
+        local valAttrs = {"AXValue", "AXSharedText", "AXDescription", "AXTitle", "AXHelp", "AXLabel", "AXPlaceholderValue"}
         local selAttrs = {"AXSelectedText"}
 
         -- 1. Try directly supported text attributes
@@ -72,8 +80,15 @@ function M.getCurrentContext(focusedElement)
         for _, attr in ipairs(valAttrs) do
             local ok, val = pcall(function() return el:attributeValue(attr) end)
             if ok and type(val) == "string" and #val > 0 then
-                data.value = val
-                break
+                -- Check if it's just a placeholder
+                local okP, placeholder = pcall(function() return el:attributeValue("AXPlaceholderValue") end)
+                if okP and val == placeholder and #val > 0 then
+                    -- Keep it but don't count it as a "full" value yet
+                    data.placeholder = val
+                else
+                    data.value = val
+                    break
+                end
             end
         end
 
@@ -103,8 +118,25 @@ function M.getCurrentContext(focusedElement)
             end
         end
 
-        local okRole, role = pcall(function() return el:attributeValue("AXRole") end)
-        if okRole then data.role = role end
+        -- 4. Concatenate children for rich groups/web areas (LinkedIn/VS Code fix)
+        if not data.value and (role == "AXGroup" or role == "AXWebArea" or role == "AXScrollArea") then
+            local children = el:attributeValue("AXChildren")
+            if type(children) == "table" then
+                local parts = {}
+                for _, child in ipairs(children) do
+                    local cRole = child:attributeValue("AXRole")
+                    local cVal = child:attributeValue("AXValue") or child:attributeValue("AXTitle")
+                    if (cRole == "AXStaticText" or cRole == "AXTextArea") and type(cVal) == "string" and #cVal > 0 then
+                        table.insert(parts, cVal)
+                    end
+                end
+                if #parts > 0 then
+                    data.value = table.concat(parts, " ")
+                end
+            end
+        end
+
+        if role then data.role = role end
 
         return (data.selected or data.value) and data or nil
     end
@@ -176,27 +208,34 @@ function M.getCurrentContext(focusedElement)
         if elementData.role then
             table.insert(contextParts, "  <element_role>" .. elementData.role .. "</element_role>")
         end
-    else
-        -- Clipboard Fallback for Hard-Case apps (Electron, VS Code, Browser, Discord)
-        local hardCaseApps = {
-            ["com.microsoft.VSCode"] = true,
-            ["com.hnc.Discord"] = true,
-            ["com.apple.Safari"] = true,
-            ["com.google.Chrome"] = true,
-            ["com.electron.perplexity"] = true -- Assuming hypothetical bundle ID
-        }
+    end
 
-        if hardCaseApps[bundleID] or (appName:lower():find("perplexity")) then
+    -- Clipboard Fallback for Hard-Case apps when AX yields insufficient data
+    -- We do this as a supplement, NOT just as a fallback if elementData is nil
+    local hardCaseApps = {
+        ["com.microsoft.VSCode"] = true,
+        ["com.hnc.Discord"] = true,
+        ["com.apple.Safari"] = true,
+        ["com.google.Chrome"] = true,
+        ["com.electron.perplexity"] = true 
+    }
+
+    if hardCaseApps[bundleID] or (appName:lower():find("perplexity")) then
+        -- Only attempt if we don't already have a valid value or if the value is very short
+        if not elementData or not elementData.value or #elementData.value < 5 then
             table.insert(contextParts, "  <context_method>clipboard_fallback</context_method>")
-            -- 1. Store original clipboard
-            local originalClipboard = hs.pasteboard.getContents()
             
-            -- 2. Select All + Copy
-            hs.eventtap.keyStroke({"cmd"}, "a", 0)
-            hs.eventtap.keyStroke({"cmd"}, "c", 0)
+            -- Save original clipboard safely
+            local originalClipboard = hs.pasteboard.readAllData()
             
-            -- Small delay to let clipboard update
-            hs.timer.usleep(100000) -- 100ms
+            -- Step 1: Cmd+A (Select All)
+            hs.eventtap.keyStroke({"cmd"}, "a", 10000) -- Small delay between strokes
+            
+            -- Step 2: Cmd+C (Copy)
+            hs.eventtap.keyStroke({"cmd"}, "c", 10000)
+            
+            -- Wait a bit for clipboard update (synchronous-ish in background)
+            hs.timer.usleep(80000) 
             
             local capturedText = hs.pasteboard.getContents()
             if capturedText and #capturedText > 0 then
@@ -204,13 +243,13 @@ function M.getCurrentContext(focusedElement)
                 table.insert(contextParts, "  <surrounding_text_readonly>" .. textContext .. "</surrounding_text_readonly>")
             end
             
-            -- 3. Restore clipboard
+            -- Step 3: Restore clipboard
             if originalClipboard then
-                hs.pasteboard.setContents(originalClipboard)
+                hs.pasteboard.writeAllData(originalClipboard)
             end
             
-            -- 4. Unselect (Right arrow puts cursor at end of text)
-            hs.eventtap.keyStroke({}, "right", 0)
+            -- Step 4: Deselect (Move cursor to end)
+            hs.eventtap.keyStroke({}, "right", 10000)
         end
     end
     
