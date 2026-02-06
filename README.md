@@ -87,7 +87,7 @@ cp -v ~/Documents/Dictator/*.lua ~/.hammerspoon/
 - **⚡ Performance**: Optimized for Groq (transcription often under 500ms).
 - **🔑 BYOK**: Compatible with all OpenAI-standard API providers.
 - **🎯 Precision**: Support for custom technical glossaries to avoid mistakes.
-- **🧠 Context Awareness**: Detects active apps (Slack, Mail, VS Code) and window titles to provide smarter, context-aware corrections.
+- **🧠 Context Awareness**: Detects active apps (Slack, Mail, VS Code), window titles, and integrates your **personal glossary** to provide smarter, context-aware corrections that respect your specific terminology.
 - **🌍 Global**: Multi-language support via Whisper-v3 Large models.
 
 ---

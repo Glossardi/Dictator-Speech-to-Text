@@ -185,6 +185,41 @@ function M.setup()
                 -- Mock keystroke - do nothing
             end,
         },
+        
+        -- hs.json mock
+        json = {
+            encode = function(t) 
+                if type(t) ~= "table" then return '"'..tostring(t)..'"' end
+                local isArray = (#t > 0)
+                local s = isArray and "[" or "{"
+                for k, v in pairs(t) do
+                    if not isArray then
+                        s = s .. '"' .. tostring(k) .. '":'
+                    end
+                    if type(v) == "table" then 
+                        s = s .. hs.json.encode(v) .. ","
+                    elseif type(v) == "string" then
+                        s = s .. '"' .. v:gsub('"', '\\"'):gsub('\n', '\\n') .. '",'
+                    else
+                        s = s .. tostring(v) .. ","
+                    end
+                end
+                s = s .. (isArray and "]" or "}")
+                return s
+            end,
+            decode = function(s) 
+                -- Extract enough to satisfy api.lua logic
+                if s:find("choices") then
+                    local content = s:match('"content":"(.-)"')
+                    if content then
+                        -- Unescape a bit
+                        content = content:gsub('\\n', '\n'):gsub('\\"', '"')
+                        return { choices = { { message = { content = content } } } }
+                    end
+                end
+                return {} 
+            end,
+        },
     }
     
     return _G.hs

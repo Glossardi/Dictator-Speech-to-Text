@@ -170,7 +170,7 @@ function M.getCurrentContext(focusedElement)
             local val = elementData.value
             -- Limit context to the last 1500 characters
             local textContext = #val > 1500 and val:sub(-1500) or val
-            table.insert(contextParts, "  <field_text>" .. textContext .. "</field_text>")
+            table.insert(contextParts, "  <surrounding_text_readonly>" .. textContext .. "</surrounding_text_readonly>")
         end
         if elementData.role then
             table.insert(contextParts, "  <element_role>" .. elementData.role .. "</element_role>")

@@ -18,8 +18,8 @@
 ### 🧪 Technical Implementation
 
 - **init.lua**: Immediate "Focus-Snap" at recording start to preserve the active text field's state. Uses async background capture to ensure zero delay in recording start.
-- **utils.lua**: Complete overhaul of `M.getCurrentContext()` with cascading failover extraction logic.
-- **api.lua**: Payload expansion to include structured XML context within the user message.
+- **utils.lua**: Complete overhaul of `M.getCurrentContext()` with cascading failover extraction logic. Renamed `<field_text>` to `<surrounding_text_readonly>` for better AI semantic parsing.
+- **api.lua**: Payload expansion to include structured XML context (including user glossary) within the user message. Implemented deterministic correction with temperature 0.0, stop sequences, and robust output cleanup to eliminate AI preambles and code fences.
 
 ---
 

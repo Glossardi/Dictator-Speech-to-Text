@@ -144,6 +144,12 @@ function M.correctTextWithRetry(text, apiKey, attempt, callback, includeTemp, co
     if contextXml and contextXml ~= "" then
         userContent = contextXml .. "\n\n"
     end
+
+    local glossary = config.getGlossary()
+    if glossary and glossary ~= "" then
+        userContent = userContent .. "<glossary>" .. glossary .. "</glossary>\n\n"
+    end
+
     userContent = userContent .. "<transcript>" .. text .. "</transcript>"
 
     local payload = {
@@ -151,7 +157,8 @@ function M.correctTextWithRetry(text, apiKey, attempt, callback, includeTemp, co
         messages = {
             { role = "system", content = config.getCorrectionSystemPrompt() },
             { role = "user", content = userContent }
-        }
+        },
+        stop = {"\nInput:", "<|endoftext|>", "User:", "<transcript>"}
     }
     if includeTemp then
         payload.temperature = 0.0; payload.top_p = 1.0; payload.frequency_penalty = 0.0; payload.max_tokens = 2048
@@ -183,7 +190,35 @@ function M.correctTextWithRetry(text, apiKey, attempt, callback, includeTemp, co
         end
 
         if content then
-            callback(content:gsub("^%s+", ""):gsub("%s+$", ""), nil)
+            -- Clean common labels and code fences
+            content = content:gsub("^%s+", ""):gsub("%s+$", "")
+            
+            -- 1. Remove typical AI preambles first
+            local preambles = { 
+                "^Output:%s*", "^Result:%s*", "^Here is the text:%s*", 
+                "^Sure, here is the text:%s*", "^Corrected text:%s*",
+                "^Output:%s*\n", "^Result:%s*\n", "^Here is the corrected text:%s*"
+            }
+            
+            local changed = true
+            while changed do
+                changed = false
+                for _, pattern in ipairs(preambles) do
+                    local newContent = content:gsub(pattern, "")
+                    if newContent ~= content then
+                        content = newContent:gsub("^%s+", "") -- trim start after removal
+                        changed = true
+                    end
+                end
+            end
+            
+            -- 2. Remove code fences (```markdown ... ``` or ```text ... ``` or just ```)
+            content = content:gsub("^```%w*%s*\n", ""):gsub("\n?```$", "")
+            
+            -- Final trim
+            content = content:gsub("^%s+", ""):gsub("%s+$", "")
+            
+            callback(content, nil)
         else
             callback(nil, "Unknown correction response format")
         end
