@@ -144,7 +144,7 @@ function M.correctTextWithRetry(text, apiKey, attempt, callback, includeTemp)
         model = config.getCorrectionModel(),
         messages = {
             { role = "system", content = config.getCorrectionSystemPrompt() },
-            { role = "user", content = "### TRANSCRIPT START ###\n" .. text .. "\n### TRANSCRIPT END ###" }
+            { role = "user", content = "<transcript>" .. text .. "</transcript>" }
         }
     }
     if includeTemp then

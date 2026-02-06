@@ -452,6 +452,7 @@ When enabled, Dictator will run an extra step after Whisper:
 
 1. Whisper returns the raw transcription
 2. A Chat Completions call corrects punctuation/grammar and adds paragraphs
+   - The transcript is sent as a user message wrapped in `<transcript>` tags for optimal LLM processing.
 3. The corrected text is pasted/copied
 
 **Fail-open behavior:** If the correction call fails (network, API error, rate limit), Dictator will still paste/copy the original Whisper text so you never lose data.

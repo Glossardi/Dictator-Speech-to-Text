@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.4.1 - XML-formatted Correction Prompts (February 2026)
+
+### ✨ Enhancements
+
+- **XML Transcript Tags**: Changed the correction user prompt to wrap transcripts in `<transcript>` tags instead of text markers. This improves recognition for models optimized for XML-structured data.
+
 ## Version 1.4.0 - Advanced API Routing & Dedicated Keys (February 2026)
 
 ### 🎯 Summary
