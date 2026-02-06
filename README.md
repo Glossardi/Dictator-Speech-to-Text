@@ -13,6 +13,7 @@
 Dictator converts speech to text with professional accuracy using the latest Whisper AI models. It sits quietly in your menubar, ready to transcribe your thoughts the moment you press a key.
 
 ### Key Benefits:
+
 - **Fast & Reliable**: Near-instant transcription via Groq or OpenAI.
 - **BYOK (OpenAI Standard)**: Support for any OpenAI-compatible API provider.
 - **Privacy First**: Audio is processed only by your chosen API provider.
@@ -36,7 +37,7 @@ cd ~/Documents/Dictator
 ./install.sh
 ```
 
-*The installer will guide you through the initial setup, including API key configuration and system permissions.*
+_The installer will guide you through the initial setup, including API key configuration and system permissions._
 
 ---
 
@@ -45,9 +46,11 @@ cd ~/Documents/Dictator
 Stay current with the latest transcription models and features:
 
 ### Method 1: Menubar (Recommended)
+
 Click the Dictator icon (🎙️) and select **Update Dictator...**. This handles everything automatically.
 
 ### Method 2: Terminal
+
 ```bash
 cd ~/Documents/Dictator
 make update
@@ -57,7 +60,7 @@ make update
 
 ## ⌨️ Quick Start
 
-1. **Grant Permissions**: Ensure Hammerspoon has **Accessibility** and **Microphone** access in *System Settings > Privacy & Security*.
+1. **Grant Permissions**: Ensure Hammerspoon has **Accessibility** and **Microphone** access in _System Settings > Privacy & Security_.
 2. **Setup API**: Click the 🎙️ icon > **Settings** > **Set API Key**.
 3. **Dictate**: Hold the `Fn` key, speak, and release to transcribe directly into your focused app.
 

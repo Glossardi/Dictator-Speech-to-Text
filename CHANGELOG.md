@@ -44,8 +44,8 @@ Major update to the configuration system providing independent control over Tran
 - **Transcription Key**: Set a specific API key for Whisper transcription independent of the global key.
 - **Correction Key**: Set a specific API key for AI correction independent of the transcription key.
 - **Hierarchical Fallback**:
-    - Correction → Transcription → Global
-    - This ensures maximum flexibility while maintaining "one-key setup" simplicity for most users.
+  - Correction → Transcription → Global
+  - This ensures maximum flexibility while maintaining "one-key setup" simplicity for most users.
 
 #### Advanced Routing Logic
 
@@ -55,8 +55,8 @@ Major update to the configuration system providing independent control over Tran
 ### 🔧 Configuration Changes
 
 - **New Menu Items**:
-    - Settings → Transcription API Settings → **Set Dedicated API Key**
-    - Settings → Correction Settings → **Set Dedicated API Key**
+  - Settings → Transcription API Settings → **Set Dedicated API Key**
+  - Settings → Correction Settings → **Set Dedicated API Key**
 - **Cleaner Overrides**: Setting a dedicated key or URL now "just works" without complex configuration.
 
 ### 📚 Documentation Updates
