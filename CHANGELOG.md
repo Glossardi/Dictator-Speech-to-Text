@@ -4,19 +4,22 @@
 
 ### ✨ New Features
 
-- **Context Awareness**: The AI correction model now understands which application and window you are working in. It can adapt its tone, formatting, and technical terminology based on the active environment (e.g., formal for Outlook, informal for Slack, technical for VS Code).
-- **Text Field Scraping**: Where supported by macOS Accessibility, the last 1,000 characters of the current text field are sent as context to ensure the correction fits seamlessly into the existing paragraph.
+- **Context Awareness**: The AI correction model now understands which application and window you are working in. It adapts its tone, formatting, and technical terminology based on the active environment (e.g., formal for Outlook, informal for Slack, technical for VS Code).
+- **Deep Text Extraction**: Using the macOS **TextMarker API**, Dictator can now reliably extract the selected text and surrounding context even from complex **Electron-based apps** like VS Code, Slack, and Safari.
+- **Aggressives UI-Scanning**: Implemented a recursive UI-tree search (up to 10 levels deep) to find focused text fields that are nested within deep group structures.
+- **Temporal & Environmental Context**: Sends current date, time, and weekday to the AI, allowing it to correctly resolve relative time mentions like "tomorrow" or "next Friday."
+- **Privacy-First Design**: Clipboard content is NOT sent as context to avoid accidental exposure of sensitive data. Text is only extracted from the currently focused window/field.
 
 ### 🔧 Configuration Changes
 
 - **New Toggle**: Settings → Correction Settings → **Enable Context Awareness**.
-- **Enhanced System Prompt**: Updated the default correction prompt to handle incoming `<context>` blocks with app-specific instructions.
+- **Context-Ready System Prompt**: Updated the default correction prompt with specific instructions on how to utilize `<context>` blocks for smarter editing.
 
 ### 🧪 Technical Implementation
 
-- **init.lua**: Added context capture logic at start of recording.
-- **utils.lua**: Implemented `M.getCurrentContext()` using `hs.window` and `hs.axuielement`.
-- **api.lua**: Updated payload construction to inject XML-formatted context into the user prompt.
+- **init.lua**: Immediate "Focus-Snap" at recording start to preserve the active text field's state. Uses async background capture to ensure zero delay in recording start.
+- **utils.lua**: Complete overhaul of `M.getCurrentContext()` with cascading failover extraction logic.
+- **api.lua**: Payload expansion to include structured XML context within the user message.
 
 ---
 
