@@ -1,5 +1,5 @@
 -- audio.lua
--- Audio recording via SoX (MP3 format, 16kHz mono, VBR -V 4 for balanced speed/quality)
+-- Audio recording via SoX (FLAC format, 16kHz mono, lossless compression)
 
 local M = {}
 local utils = require("utils")
@@ -13,7 +13,7 @@ M.pendingCallback = nil  -- Retain timer to prevent GC
 function M.startRecording()
     if M.isRecording then return end
     
-    M.currentFilePath = utils.get_temp_file_path("mp3")
+    M.currentFilePath = utils.get_temp_file_path("flac")
     print("Starting recording to: " .. M.currentFilePath)
     
     -- Using 'rec' from SoX with MP3 output (VBR -V 4 for balanced encoding/upload)
@@ -36,7 +36,9 @@ function M.startRecording()
         return false
     end
 
-    -- Arguments: -q (quiet), -C 4 (MP3 VBR -V 4), -r 44100 (high quality), -c 1
+    -- Arguments: -q (quiet), -r 16000 (Whisper native rate), -c 1 (mono)
+    -- FLAC is lossless and universally accepted by all Whisper API providers.
+    -- 16kHz is Whisper's native input rate — no resampling on the server side.
     -- Effect: gain 3 (boost volume by 3dB to help Whisper detect speech in quiet environments)
     M.currentTask = hs.task.new(soxPath, function(exitCode, stdOut, stdErr)
         print("Recording process exited. Code: " .. exitCode)
@@ -48,7 +50,7 @@ function M.startRecording()
             print("WARNING: Recording process died unexpectedly!")
             M.isRecording = false
         end
-    end, {"-q", "-C", "4", "-r", "44100", "-c", "1", M.currentFilePath, "gain", "3"})
+    end, {"-q", "-r", "16000", "-c", "1", M.currentFilePath, "gain", "3"})
     
     if M.currentTask:start() then
         M.isRecording = true

@@ -1,5 +1,25 @@
 # Changelog
 
+## Version 1.5.1 - FLAC Recording & SambaNova Compatibility (February 2026)
+
+### 🐛 Bug Fixes
+
+- **SambaNova "Invalid JSON" fix**: Non-OpenAI providers (SambaNova, Groq, etc.) now always receive an explicit `response_format=json` in the transcription request. SambaNova returns plain text by default when no format is specified — unlike Groq which defaults to JSON — causing `hs.json.decode` to fail. Added a plain-text fallback parser as an additional safety net.
+- **SambaNova "Invalid or corrupted audio file" fix**: Switched recording format from MP3 to FLAC. SambaNova's Whisper implementation is strict about audio container headers; SoX-generated MP3 files use raw ADTS framing without an ID3 container, which some providers reject. FLAC uses a well-defined container with a proper header that all Whisper implementations accept.
+
+### ✨ Improvements
+
+- **Native FLAC recording**: `audio.lua` now records directly as FLAC at **16 kHz mono** — Whisper's native input sample rate. This eliminates any server-side resampling and removes the intermediate MP3 encoding step entirely.
+- **Smaller temp files**: FLAC files are typically *smaller* than the VBR MP3 files produced by SoX for short dictation clips (e.g., a 2s clip: 8 KB MP3 vs. 5.7 KB FLAC), while being lossless.
+
+### 🧪 Technical Details
+
+- **Root cause (MP3)**: SoX's `rec` command writes raw MPEG ADTS frames (`FF FB ...` sync word) without an ID3v2 header. Permissive APIs (OpenAI, Groq) accept this; stricter APIs (SambaNova) reject it as malformed.
+- **Root cause (JSON)**: OpenAI-compatible APIs differ in their default `response_format`: OpenAI and Groq return JSON by default; SambaNova returns `text/plain`. The code previously only set `response_format` explicitly for `api.openai.com`.
+- **`audio.lua`**: Recording args changed from `{"-q", "-C", "4", "-r", "44100", ...}` to `{"-q", "-r", "16000", "-c", "1", ...}`. The `-C 4` flag (MP3 VBR quality) is not applicable to FLAC.
+
+---
+
 ## Version 1.5.0 - Context-Aware AI Correction (February 2026)
 
 ### ✨ New Features
