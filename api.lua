@@ -74,6 +74,10 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attempt, callback)
         
         if baseUrl:lower():find("api.openai.com", 1, true) then
             table.insert(args, "-F"); table.insert(args, "response_format=verbose_json")
+        else
+            -- Other OpenAI-compatible providers (SambaNova, Groq, etc.) may return plain text
+            -- by default; explicitly request JSON to ensure parseable responses.
+            table.insert(args, "-F"); table.insert(args, "response_format=json")
         end
         if language and language ~= "auto" then
             table.insert(args, "-F"); table.insert(args, "language=" .. language)
@@ -99,7 +103,16 @@ function M.transcribeWithRetry(audioFilePath, apiKey, attempt, callback)
         end
 
         local ok, resp = pcall(hs.json.decode, body)
-        if not ok or not resp then if callback then callback(nil, "Invalid JSON") end; return end
+        if not ok or not resp then
+            -- Some providers return plain text when no response_format is set; treat as transcript.
+            local trimmed = body and body:match("^%s*(.-)%s*$")
+            if trimmed and trimmed ~= "" then
+                if callback then callback(trimmed, nil) end
+            else
+                if callback then callback(nil, "Invalid JSON") end
+            end
+            return
+        end
         if resp.error or (resp.success == false and resp.errors) then
             local msg = (resp.error and resp.error.message) or (resp.errors and resp.errors[1] and resp.errors[1].message) or "API Error"
             if callback then callback(nil, msg) end; return
